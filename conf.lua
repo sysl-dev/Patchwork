@@ -1,3 +1,36 @@
+local selected_size = "gamehd"
+
+local size_type = {
+  -- Classic
+  pixelhd = {w = 320, h = 180},
+  pixelhd2x = {w = 640, h = 360},
+  gamehd = {w = 256, h = 144},
+  -- Handheld
+  hh1 = {w = 160, h = 144},
+  hh2 = {w = 240, h = 160},
+  hh3 = {w = 256, h = 192},
+  hh4 = {w = 400, h = 240},
+  -- Home System
+  hs1 = {w = 256, h = 240},
+  hs2 = {w = 256, h = 224},
+  hs3 = {w = 320, h = 240},
+  hs4 = {w = 640, h = 480},
+  -- Classic
+  size480s = {w = 620, h = 480},
+  size480 = {w = 720, h = 480},
+  size720 = {w = 1280, h = 720},
+  size1080 = {w = 1920, h = 1080},
+}
+
+local size = {
+  w = size_type[selected_size].w,
+  h = size_type[selected_size].h,
+  }
+
+-- There is no nice way to extract these, make them global.
+BASE_HEIGHT = size.h
+BASE_WIDTH = size.w
+
 function love.conf(t)
   t.identity = "Patchwork Engine"           -- The name of the save directory (string)
   t.appendidentity = false                  -- Search files in source directory before save directory (boolean)
@@ -12,12 +45,12 @@ function love.conf(t)
 
   t.window.title = "Patchwork Engine"       -- The window title (string)
   t.window.icon = nil                       -- Filepath to an image to use as the window's icon (string)
-  t.window.width = 320                      -- The window width (number)
-  t.window.height = 180                     -- The window height (number)
+  t.window.width = size.w                      -- The window width (number)
+  t.window.height = size.h                     -- The window height (number)
   t.window.borderless = false               -- Remove all border visuals from the window (boolean)
   t.window.resizable = false                -- Let the window be user-resizable (boolean)
-  t.window.minwidth = 320                   -- Minimum window width if the window is resizable (number)
-  t.window.minheight = 180                  -- Minimum window height if the window is resizable (number)
+  t.window.minwidth = size.w                   -- Minimum window width if the window is resizable (number)
+  t.window.minheight = size.h                  -- Minimum window height if the window is resizable (number)
   t.window.fullscreen = false               -- Enable fullscreen (boolean)
   t.window.fullscreentype = "desktop"       -- Choose between "desktop" fullscreen or "exclusive" fullscreen mode (string)
   t.window.vsync = 1                        -- Vertical sync mode (number)

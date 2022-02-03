@@ -1,8 +1,8 @@
 local m = {
-  __NAME        = "QU-Global-Defaults",
+  __NAME        = "QU-Debug-Tools",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Changes global LOVE variables",
+  __DESCRIPTION = "Tools used to debug my terrible code.",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -46,36 +46,100 @@ local function print(...)
   end
 end print(m.__DESCRIPTION)
 
+-- Get the base width and height of the window before we resize it later.
+local base = {width = love.graphics.getWidth(), height = love.graphics.getHeight()}
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Global Settings to Load
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.global_settings_list = {
-  "nearest_filter",
-  "line_rough",
-  "faster_print",
+m.functions_list = {
+  "print_globals",
+  "on_screen_debug_info",
 }
+
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Store into a table for easy on/off
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.global_settings_functions = {
-  nearest_filter = function()
-    -- Forces Love to scale everything per pixel
-    love.graphics.setDefaultFilter("nearest", "nearest", 1)
-    print("nearest_filter: ON")
+m.functions_code = {
+  -- Print a list of all things in the global namespace
+  ["print_globals"] = function()
+    local known_globals = {
+        "_G",
+        "_VERSION",
+        "arg",
+        "bit",
+        "coroutine",
+        "debug",
+        "io",
+        "jit",
+        "love",
+        "math",
+        "module",
+        "os",
+        "package",
+        "require",
+        "string",
+        "table",
+      }
+    function m.print_globals()
+      -- Create to sort later
+      local global_list_table = {}
+      
+      -- Step though the global namespace items, ignore built in functions
+      for name_of_global,value_of_global in pairs(_G) do
+        if not string.match(tostring(value_of_global), "builtin#") then
+          global_list_table[name_of_global] = #global_list_table+1
+        end
+      end
+
+      -- Look at everything and sort it
+      local global_list_sorted_table = {}
+      for n in pairs(global_list_table) do
+        table.insert(global_list_sorted_table, n) 
+      end
+      table.sort(global_list_sorted_table)
+
+      -- Print the final list, removing any default globals.
+      print("---- Globals ----")
+      for _,n in ipairs(global_list_sorted_table) do
+        for i=1, #known_globals do 
+          if n == known_globals[i] then 
+            n = nil
+          end
+        end
+        if n then
+          print("GLOBAL-ITEM: " .. n)
+        end 
+      end
+      print("---- Globals ----")
+    end
+    print("print_globals: enabled")
   end,
 
-  line_rough = function()
-    -- Forces lines style to be aligned to the grid
-    love.graphics.setLineStyle("rough")
-    print("line_rough: ON")
-  end,
+  ["on_screen_debug_info"] = function()
+    function m.on_screen_debug_info(settings)
+      settings = settings or {}
+      local print_function = love.graphics.printf or settings.printfunction
+      local x = settings.x or 5
+      local y = settings.y or 5
+      local mx = tostring(settings.mouse_x or love.mouse.getX())
+      local my = tostring(settings.mouse_y or love.mouse.getY())
+      local fps = tostring(love.timer.getFPS())
+      local draw_calls = tostring(love.graphics.getStats().drawcalls)
+      local batch_calls = tostring(love.graphics.getStats().drawcallsbatched)
+      local canvas_switches = tostring(love.graphics.getStats().canvasswitches)
+      local texture_memory = tostring(love.graphics.getStats().texturememory/ 1024 / 1024)
+      local infostring = "FPS: " .. fps .. " Draw Calls: " .. draw_calls  .. " Batched Calls: " .. batch_calls
+      local moreinfo = " texturememory: " .. texture_memory .. "MB canvasswitches: " .. canvas_switches
+      local extraline = tostring("Mouse X: " .. mx .. " Mouse Y: " ..  my)
+      local string_length = (BASE_WIDTH or love.graphics.getWidth()) - 10
+      love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x, y, string_length)
+    end
+  end
 
-  faster_print = function()
-    -- Make print commands not halt execution as much
-    io.output():setvbuf("no")
-    print("faster_print: ON")
-  end,
+
 }
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Tinker with global settings
@@ -86,22 +150,22 @@ function m.setup(settings)
   settings = settings or {}
 
   -- If required, only apply certain items
-  local global_settings_to_apply = settings.apply or m.global_settings_list
+  local functions_to_apply = settings.apply or m.functions_list
 
   -- If required, remove items from being applied.
   if settings.remove then 
     for x=1, #settings.remove do
-      for i=1, #global_settings_to_apply do
-        if global_settings_to_apply[i] == settings.remove[x] then
-          table.remove(global_settings_to_apply,i)
+      for i=1, #functions_to_apply do
+        if functions_to_apply[i] == settings.remove[x] then
+          table.remove(functions_to_apply,i)
         end
       end
     end
   end
 
   -- Apply settings
-  for i=1, #global_settings_to_apply do
-    m.global_settings_functions[global_settings_to_apply[i]]()
+  for i=1, #functions_to_apply do
+    m.functions_code[functions_to_apply[i]]()
   end
 end
 
