@@ -1,22 +1,21 @@
-local selected_size = "gamehd"
+local selected_size = "hd_gb"
 
 local size_type = {
   -- Classic
-  pixelhd = {w = 320, h = 180},
-  pixelhd2x = {w = 640, h = 360},
-  gamehd = {w = 256, h = 144},
+  hd_pixel = {w = 320, h = 180},
+  hd_pixel_2x = {w = 640, h = 360},
+  hd_gb = {w = 256, h = 144},
   -- Handheld
-  hh1 = {w = 160, h = 144},
-  hh2 = {w = 240, h = 160},
-  hh3 = {w = 256, h = 192},
-  hh4 = {w = 400, h = 240},
+  gb = {w = 160, h = 144},
+  gba = {w = 240, h = 160},
+  ds = {w = 256, h = 192},
+  tds = {w = 400, h = 240},
   -- Home System
-  hs1 = {w = 256, h = 240},
-  hs2 = {w = 256, h = 224},
-  hs3 = {w = 320, h = 240},
-  hs4 = {w = 640, h = 480},
+  nez = {w = 256, h = 240},
+  snez = {w = 256, h = 224},
+  nsf = {w = 320, h = 240},
+  gcb = {w = 640, h = 480},
   -- Classic
-  size480s = {w = 620, h = 480},
   size480 = {w = 720, h = 480},
   size720 = {w = 1280, h = 720},
   size1080 = {w = 1920, h = 1080},

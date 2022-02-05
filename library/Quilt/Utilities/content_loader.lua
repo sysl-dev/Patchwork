@@ -193,4 +193,34 @@ function m.textures(name_of_global_table, path)
   end
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Lua Loader
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.lua_loader(name_of_global_table, path)
+
+  -- Create the global table to hold the image assets if not made.
+  if not _G[name_of_global_table] then
+    _G[name_of_global_table] = {}
+  end
+
+  -- Grab only the lua files
+  local lua_list = m.get_file_list(path, {keep = {".lua"}})
+
+  -- For each file
+  for i=1, #lua_list do 
+    -- Remove the path prefix and change all / into .
+    local string_without_start_of_path = lua_list[i][1]:gsub(path .."/", "")
+    string_without_start_of_path = string_without_start_of_path:gsub("/",".")
+
+    -- Split into a table of path parts, add the global table start, remove the file extension
+    local folder_bits = split_string_by(string_without_start_of_path,".")
+    table.insert(folder_bits, 1, name_of_global_table)
+    table.remove(folder_bits, #folder_bits)
+
+    local module_convert = lua_list[i][1]:gsub("/","."):sub(1,-5)
+
+    _G[name_of_global_table][folder_bits[#folder_bits]] = require(module_convert)
+  end
+end
+
 return m

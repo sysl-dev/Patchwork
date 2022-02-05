@@ -1,8 +1,8 @@
 local m = {
-  __NAME        = "Quilt-Utilities",
-  __VERSION     = "1.0",
+  __NAME        = "Quilt-Mouse",
+  __VERSION     = "4.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "One off code functions - parent loader",
+  __DESCRIPTION = "Graphical Cursor and Mouse Function",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -46,47 +46,12 @@ local function print(...)
   end
 end print(m.__DESCRIPTION)
 
-
-m.utilities_list = {
-  "color",
-  "content_loader",
-  "debug_tools",
-  "global_defaults",
-  "love_patch",
-  "number",
-  "pixel_scale",
-  "mouse",
-}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * 
+  * Setup (if Required)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.setup(path, settings)
+function m.setup(settings)
   -- Set reasonable defaults if none are supplied.
-  path = path or ""
   settings = settings or {}
-  -- Check to see if we are only loading some of the items
-  local utilities_to_load = settings.load_only or m.utilities_list
-
-  -- If required, remove items from being applied.
-  if settings.remove then 
-    for x=1, #settings.remove do
-      for i=1, #utilities_to_load do
-        if utilities_to_load[i] == settings.remove[x] then
-          table.remove(utilities_to_load,i)
-        end
-      end
-    end
-  end
-
-  -- Load the items as subtables to Utilities 
-  for i=1, #utilities_to_load do 
-    -- Yell
-    print("Loaded:",utilities_to_load[i])
-    -- Load the items
-    m[utilities_to_load[i]] = require(path .. "." .. utilities_to_load[i])
-    -- Apply settings
-    m[utilities_to_load[i]].setup(settings[utilities_to_load[i]])
-  end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

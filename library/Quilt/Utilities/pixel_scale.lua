@@ -31,19 +31,6 @@ local m = {
   __LICENSE_TITLE = "MIT LICENSE"
 }
 
-local shader_invert = love.graphics.newShader[[ vec4 effect(vec4 color, Image texture, vec2 texture_coords, vec2 pixel_coords) { vec4 col = texture2D( texture, texture_coords ); return vec4(1-col.r, 1-col.g, 1-col.b, col.a); } ]]
-local grade = love.graphics.newShader[[
-  vec4 effect( vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords ){
-    vec4 pixel = Texel(texture, texture_coords );//This is the current pixel color
-    number average = (pixel.r+pixel.b+pixel.g)/10.0;
-    number factor = texture_coords.x;
-    pixel.r = pixel.r + (average-pixel.r) * factor;
-    pixel.g = pixel.g + (average-pixel.g) * factor;
-    pixel.b = pixel.b + (average-pixel.b) * factor;
-    return pixel * color;
-  }
-]]
-
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -80,6 +67,8 @@ m.config = {
   allow_window_resize = false,
   pixel_perfect_fullscreen = true,
   dirty_draw = true, -- People have bad monitors, dirty draw avoids blank frames.
+  vsync = 1,
+  monitor = 1,
   size_details = {}
 }
 
@@ -117,8 +106,8 @@ function m.setup(settings)
   settings = settings or {}
   
   -- Get the default width and height
-  m.config.base_width = settings.width or m.config.base_width
-  m.config.base_height = settings.height or m.config.base_height
+  m.config.base_width = settings.base_width or m.config.base_width
+  m.config.base_height = settings.base_height or m.config.base_height
   print("Width/Height " .. m.config.base_width .. "/" .. m.config.base_height)
 
   -- Apply pixel friendly scaling changes if not disabled
@@ -133,7 +122,7 @@ function m.setup(settings)
   m.buffer2 = love.graphics.newCanvas(m.config.base_width, m.config.base_height)
 
   -- Gather information about the monitor and save it.
-  local mwidth, mheight = love.window.getDesktopDimensions(1)
+  local mwidth, mheight = love.window.getDesktopDimensions(m.config.monitor)
   m.config.monitor_width = mwidth
   m.config.monitor_height = mheight
 
@@ -246,13 +235,6 @@ function m.update(dt)
   m.mouse.x = math.floor((love.mouse.getX() - c.offsetx)/c.current_scale)
   m.mouse.y = math.floor((love.mouse.getY() - c.offsety)/c.current_scale)
 
-  if love.keyboard.isDown("a") then 
-    m.resize_larger()
-  end
-
-  if love.keyboard.isDown("s") then 
-    m.resize_smaller()
-  end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -273,7 +255,8 @@ function m.resize_window(scale, force)
       minwidth = m.config.base_width,
       minheight = m.config.base_height,
       centered = true,
-      vsync = -1,
+      vsync = m.config.vsync,
+      display = m.config.monitor,
     }
     )
 end
@@ -281,17 +264,31 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Go back and forward from fullscreen
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.resize_fullscreen()
-  if love.window.getFullscreen() == false then
+function m.resize_fullscreen(force)
+  if love.window.getFullscreen() == false or force then
     local full_scale = m.config.max_scale
     if m.config.pixel_perfect_fullscreen then 
-    full_scale = math.floor(m.config.max_scale)
-  end
+      full_scale = math.floor(m.config.max_scale)
+    end
     m.resize_window(full_scale, true)
     love.window.setFullscreen(true, "desktop")
   else
     m.resize_window(math.floor(m.config.max_window_scale))
     love.window.setFullscreen(false)
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Go back and forward from fullscreen
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.resize_scale_fullscreen()
+  m.config.pixel_perfect_fullscreen = not m.config.pixel_perfect_fullscreen 
+  if love.window.getFullscreen() == true then
+    local full_scale = m.config.max_scale
+    if m.config.pixel_perfect_fullscreen then 
+      full_scale = math.floor(m.config.max_scale)
+    end
+    m.config.current_scale = full_scale
   end
 end
 
@@ -308,6 +305,22 @@ end
 function m.resize_smaller()
   m.resize_window(m.config.current_scale - 1)
 end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Change Vsync
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.change_vsync(num)
+  num = math.floor(num)
+  num = math.min(1, math.max(num, -1))
+  print(num)
+  m.config.vsync = num
+  if love.window.getFullscreen() == false then
+    m.resize_window(m.config.current_scale)
+  else
+    m.resize_fullscreen(true)
+  end
+end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -384,7 +397,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.capture_canvas(name)
 name = name or "default"
-  local capture = m.buffer1:newImageData( 1, 1, 0, 0, m.config.base_width, m.config.base_height )
+  local capture = m.buffer1:newImageData(1, 1, 0, 0, m.config.base_width, m.config.base_height)
   m.screen_capture[name] = love.graphics.newImage(capture)
   return capture
 end

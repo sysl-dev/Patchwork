@@ -121,7 +121,6 @@ m.functions_code = {
   ["on_screen_debug_info"] = function()
     function m.on_screen_debug_info(settings)
       settings = settings or {}
-      local print_function = love.graphics.printf or settings.printfunction
       local x = settings.x or 5
       local y = settings.y or 5
       local mx = tostring(settings.mouse_x or love.mouse.getX())
@@ -134,7 +133,10 @@ m.functions_code = {
       local infostring = "FPS: " .. fps .. " Draw Calls: " .. draw_calls  .. " Batched Calls: " .. batch_calls
       local moreinfo = " texturememory: " .. texture_memory .. "MB canvasswitches: " .. canvas_switches
       local extraline = tostring("Mouse X: " .. mx .. " Mouse Y: " ..  my)
-      local string_length = (BASE_WIDTH or love.graphics.getWidth()) - 10
+      local string_length = (love.graphics.getWidth()) - 10
+      love.graphics.setColor(0,0,0,0.7)
+      love.graphics.rectangle("fill",0,0,love.graphics.getWidth(),love.graphics.getHeight())
+      love.graphics.setColor(1,1,1,1)
       love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x, y, string_length)
     end
   end
