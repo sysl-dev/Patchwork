@@ -84,6 +84,9 @@ m.mouse = {
 }
 
 -- Shader Effects
+-- Scale Breaking Filters, apples after scaling.
+m.scale_breaking_shader = {}
+
 -- Always on, apples after the shader pool
 m.always_on_shaders = {}
 
@@ -211,7 +214,13 @@ function m.stop(settings)
 
   love.graphics.setCanvas()
   -- Draw the final compiled visual
+  if m.scale_breaking_shader[1] then 
+    love.graphics.setShader(m.scale_breaking_shader[1])
+  end
   love.graphics.draw(m.buffer1, x, y, r, sx, sy, ox, oy, kx, ky)
+  if m.scale_breaking_shader[1] then 
+    love.graphics.setShader()
+  end
 end
 
 

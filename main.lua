@@ -17,8 +17,8 @@ Utilities = require("library.Quilt.Utilities")
 Utilities.setup("library.Quilt.Utilities", {
   pixel_scale = { 
     no_global_changes = false,
-    width = BASE_WIDTH or 320,
-    height = BASE_HEIGHT or 180,
+    width = BASE_WIDTH or 256,
+    height = BASE_HEIGHT or 144,
     --scale = 4,
   }
 })
@@ -94,8 +94,7 @@ end
   * Debug
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities.content_loader.lua_loader("Debug_screen", "asset/screen-debug")
-
+Utilities.content_loader.flat_lua_loader("Debug_screen", "asset/screen-debug")
 Utilities.debug_tools.print_globals()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

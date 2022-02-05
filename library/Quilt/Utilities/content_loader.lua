@@ -196,7 +196,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Lua Loader
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.lua_loader(name_of_global_table, path)
+function m.flat_lua_loader(name_of_global_table, path)
 
   -- Create the global table to hold the image assets if not made.
   if not _G[name_of_global_table] then
@@ -215,11 +215,12 @@ function m.lua_loader(name_of_global_table, path)
     -- Split into a table of path parts, add the global table start, remove the file extension
     local folder_bits = split_string_by(string_without_start_of_path,".")
     table.insert(folder_bits, 1, name_of_global_table)
+
+    -- Splat extension
     table.remove(folder_bits, #folder_bits)
 
-    local module_convert = lua_list[i][1]:gsub("/","."):sub(1,-5)
-
-    _G[name_of_global_table][folder_bits[#folder_bits]] = require(module_convert)
+    -- Flat require the folder, don't worry about levels
+    _G[name_of_global_table][folder_bits[#folder_bits]] = require(table.concat(folder_bits,".",2,(#folder_bits)))
   end
 end
 
