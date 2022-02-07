@@ -144,9 +144,9 @@ function scene:draw(dt)
       love.graphics.printf("1:Pixel Breaking Shader / 2:Normal Shader / 3: Higher Priorty Shader / 456: Remove Shaders / 7: Clear all shaders / 8: Test removing shader by name from Higher Priorty Shader",0, 20, BASE_WIDTH, "center")
 
       love.graphics.printf("Current Shaders: " .. (
-        Utilities.pixel_scale.count_shader(Utilities.pixel_scale.scale_breaking_shader) + 
-        Utilities.pixel_scale.count_shader(Utilities.pixel_scale.always_on_shaders) + 
-        Utilities.pixel_scale.count_shader()
+        Utilities.pixel_scale.shader_count(Utilities.pixel_scale.scale_breaking_shader) + 
+        Utilities.pixel_scale.shader_count(Utilities.pixel_scale.always_on_shaders) + 
+        Utilities.pixel_scale.shader_count()
       ),0, 100, BASE_WIDTH, "center")
     end
     if current == 3 then 
@@ -185,30 +185,30 @@ function scene:keypressed(key, scan, isrepeat)
 
   if current == 2 then 
     if key == "1" then 
-      Utilities.pixel_scale.push_shader(crtline, Utilities.pixel_scale.scale_breaking_shader)
+      Utilities.pixel_scale.shader_push(crtline, Utilities.pixel_scale.scale_breaking_shader)
     end
     if key == "2" then 
-      Utilities.pixel_scale.push_shader(scanlines)
+      Utilities.pixel_scale.shader_push(scanlines)
     end
     if key == "3" then 
-      Utilities.pixel_scale.push_shader(crt, Utilities.pixel_scale.always_on_shaders)
+      Utilities.pixel_scale.shader_push(crt, Utilities.pixel_scale.always_on_shaders)
     end
     if key == "4" then 
-      Utilities.pixel_scale.pop_shader(Utilities.pixel_scale.scale_breaking_shader)
+      Utilities.pixel_scale.shader_pop(Utilities.pixel_scale.scale_breaking_shader)
     end
     if key == "5" then 
-      Utilities.pixel_scale.pop_shader()
+      Utilities.pixel_scale.shader_pop()
     end
     if key == "6" then 
-      Utilities.pixel_scale.pop_shader(Utilities.pixel_scale.always_on_shaders)
+      Utilities.pixel_scale.shader_pop(Utilities.pixel_scale.always_on_shaders)
     end
     if key == "7" then 
-      Utilities.pixel_scale.clear_all_shader()
-      Utilities.pixel_scale.clear_all_shader(Utilities.pixel_scale.always_on_shaders)
-      Utilities.pixel_scale.clear_all_shader(Utilities.pixel_scale.scale_breaking_shader)
+      Utilities.pixel_scale.shader_clear_all()
+      Utilities.pixel_scale.shader_clear_all(Utilities.pixel_scale.always_on_shaders)
+      Utilities.pixel_scale.shader_clear_all(Utilities.pixel_scale.scale_breaking_shader)
     end
     if key == "8" then 
-      Utilities.pixel_scale.remove_shader(crt, Utilities.pixel_scale.always_on_shaders)
+      Utilities.pixel_scale.shader_remove(crt, Utilities.pixel_scale.always_on_shaders)
     end
   end
 

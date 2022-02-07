@@ -210,7 +210,7 @@ function m.stop(settings)
   end  
 
   -- Will draw after shaders are done, treat like a callback.
-  m.draw_after_shader()
+  m.shader_draw_after()
 
   love.graphics.setCanvas()
   -- Draw the final compiled visual
@@ -339,20 +339,20 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Drawn after shaders render, can be used as a callback or with the change draw after shader function.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.draw_after_shader()
+function m.shader_draw_after()
 
 end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Update Draw After Shader with a new function
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.change_draw_after_shader(fun)
-m.draw_after_shader = fun
+function m.shader_change_draw_after(fun)
+m.shader_draw_after = fun
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Apply a shader to the whole canvas
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.push_shader(love_shader, pool)
+function m.shader_push(love_shader, pool)
   pool = pool or m.shader_pool
   pool[#pool+1] = love_shader
 end
@@ -360,7 +360,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Remove the last added shader
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.pop_shader(pool)
+function m.shader_pop(pool)
   pool = pool or m.shader_pool
   pool[#pool] = nil
 end
@@ -368,7 +368,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Clear All Shaders
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.clear_all_shader(pool)
+function m.shader_clear_all(pool)
   pool = pool or m.shader_pool
   for i=#pool, 1, -1 do 
     pool[i] = nil
@@ -378,7 +378,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Remove all of a certain kind of shader from the pool.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.remove_shader(love_shader, pool)
+function m.shader_remove(love_shader, pool)
   pool = pool or m.shader_pool
   for i=#pool, 1, -1 do 
     if pool[i] == love_shader then
@@ -390,7 +390,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Count all shaders
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.count_shader(pool)
+function m.shader_count(pool)
   pool = pool or m.shader_pool
   return #pool
 end

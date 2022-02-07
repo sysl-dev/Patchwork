@@ -102,3 +102,26 @@ Utilities.debug_tools.print_globals()
   * PATCHWORK ENGINE - Version 0.1 - January 28, 2022
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+
+local seen={}
+
+local function dump(t,i)
+    seen[t]=true
+    local s={}
+    local n=0
+    for k in pairs(t) do
+        n=n+1 s[n]=k
+    end
+    table.sort(s)
+    for k,v in ipairs(s) do
+      if type(t[v]) == "function" then
+          print(i,v)
+      end
+        v=t[v]
+        if type(v)=="table" and not seen[v] then
+            dump(v,i.."\t")
+        end
+    end
+end
+
+dump(Utilities.pixel_scale,"")
