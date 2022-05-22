@@ -107,14 +107,8 @@ function m.get_file_list(folder, settings)
     end
   end
 
-  -- Keep only directories 
-  if settings.file_only then 
-    for i=#final_file_list, 1, -1 do
-      if final_file_list[i][2] == "directory" then 
-        table.remove(final_file_list, i)
-      end
-    end
-  end
+  -- This could likely be wrote so it only have to loop through once to check
+  -- the conditions. TODO: Consider fixing this // Priority: Low 
 
   -- Keep only files
   if settings.file_only then 
@@ -168,7 +162,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Image Loader
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.textures(name_of_global_table, path)
+function m.texture(name_of_global_table, path)
 
   -- Create the global table to hold the image assets if not made.
   if not _G[name_of_global_table] then
@@ -189,14 +183,14 @@ function m.textures(name_of_global_table, path)
     table.insert(folder_bits, 1, name_of_global_table)
     table.remove(folder_bits, #folder_bits)
 
-    table_to_global_assignment(folder_bits,love.graphics.newImage(image_list[i][1]))
+    table_to_global_assignment(folder_bits, love.graphics.newImage(image_list[i][1]))
   end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Lua Loader
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.flat_lua_loader(name_of_global_table, path)
+function m.flat_lua(name_of_global_table, path)
 
   -- Create the global table to hold the image assets if not made.
   if not _G[name_of_global_table] then
@@ -208,19 +202,49 @@ function m.flat_lua_loader(name_of_global_table, path)
 
   -- For each file
   for i=1, #lua_list do 
-    -- Remove the path prefix and change all / into .
-    local string_without_start_of_path = lua_list[i][1]:gsub(path .."/", "")
-    string_without_start_of_path = string_without_start_of_path:gsub("/",".")
 
     -- Split into a table of path parts, add the global table start, remove the file extension
-    local folder_bits = split_string_by(string_without_start_of_path,".")
-    table.insert(folder_bits, 1, name_of_global_table)
+    local folder_bits = split_string_by(lua_list[i][1],"/")
 
-    -- Splat extension
-    table.remove(folder_bits, #folder_bits)
+    -- Remove Extension
+    folder_bits[#folder_bits] = folder_bits[#folder_bits]:sub(1, -5)
 
     -- Flat require the folder, don't worry about levels
-    _G[name_of_global_table][folder_bits[#folder_bits]] = require(table.concat(folder_bits,".",2,(#folder_bits)))
+    -- TABLE[LAST TABLE NAME] = Require 
+    _G[name_of_global_table][folder_bits[#folder_bits]] = require(table.concat(folder_bits,"."))
+   
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Todo: Shader Loader
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+
+function m.flat_shader(name_of_global_table, path)
+
+  -- Create the global table to hold the image assets if not made.
+  if not _G[name_of_global_table] then
+    _G[name_of_global_table] = {}
+  end
+
+  -- Grab only the lua files
+  local lua_list = m.get_file_list(path, {keep = {".glsl"}})
+
+  -- For each file
+  for i=1, #lua_list do 
+
+    -- Split into a table of path parts, add the global table start, remove the file extension
+    local folder_bits = split_string_by(lua_list[i][1],"/")
+
+    -- Flat require the folder, don't worry about levels
+    -- TABLE[LAST TABLE NAME] = Require 
+    _G[name_of_global_table][folder_bits[#folder_bits]] = love.graphics.newShader(table.concat(folder_bits,"/"))
+
+    -- Yell at me if shaders are not valid.
+    -- Allow this yell even if debug is turned off.
+    local pass, message = love.graphics.validateShader(true, table.concat(folder_bits,"/")) 
+    if not pass then debugprint("WARNING: \n", table.concat(folder_bits,"/"), "\n", pass, message ) end
+   
   end
 end
 

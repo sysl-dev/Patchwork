@@ -62,14 +62,15 @@ m.functions_list = {
 m.functions_code = {
   -- Converts a hex-color into a LOVE supported color table.  
   hex2color = function()
-    function m.hex2color(_mod1)
-      local r = tonumber(_mod1:sub(1,2),16)
-      local g = tonumber(_mod1:sub(3,4),16)
-      local b = tonumber(_mod1:sub(5,6),16)
-      local a = tonumber(_mod1:sub(7,8),16)
+    function m.hex2color(color_string)
+      color_string = color_string:gsub("#", "")
+      local r = tonumber(color_string:sub(1,2),16)
+      local g = tonumber(color_string:sub(3,4),16)
+      local b = tonumber(color_string:sub(5,6),16)
+      local a = tonumber(color_string:sub(7,8),16)
       if r == nil or g == nil or b == nil then return end
       a = a or 255
-      r = r / 255; g = g / 255; b = b/255; a = a/255;
+      r, g, b, a = love.math.colorFromBytes(r, g, b, a)
       return {r,g,b,a}
     end
     print("hex2color: enabled")
@@ -156,22 +157,22 @@ function m.setup(settings)
   settings = settings or {}
 
   -- If required, only apply certain items
-  local functions_to_apply = settings.apply or m.functions_list
+  local load_only = settings.load_only or m.functions_list
 
   -- If required, remove items from being applied.
   if settings.remove then 
     for x=1, #settings.remove do
-      for i=1, #functions_to_apply do
-        if functions_to_apply[i] == settings.remove[x] then
-          table.remove(functions_to_apply,i)
+      for i=1, #load_only do
+        if load_only[i] == settings.remove[x] then
+          table.remove(load_only,i)
         end
       end
     end
   end
 
   -- Apply settings
-  for i=1, #functions_to_apply do
-    m.functions_code[functions_to_apply[i]]()
+  for i=1, #load_only do
+    m.functions_code[load_only[i]]()
   end
 end
 

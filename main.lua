@@ -15,12 +15,21 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Utilities = require("library.Quilt.Utilities")
 Utilities.setup("library.Quilt.Utilities", {
+  -- load_only = {},
+  -- remove = {},
+  color = {},
+  content_loader = {},
+  debug_tools = {},
+  global_defaults = {},
+  love_patch = {},
+  number = {},
   pixel_scale = { 
     no_global_changes = false,
     width = BASE_WIDTH or 256,
     height = BASE_HEIGHT or 144,
     --scale = 4,
-  }
+  },
+  mouse = {},
 })
 
 Font = {
@@ -41,7 +50,8 @@ love.graphics.setFont(Font.default)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities.content_loader.textures("Texture", "asset/texture")
+Utilities.content_loader.texture("Texture", "asset/texture")
+Utilities.content_loader.flat_shader("Shader", "asset/shader")
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +104,8 @@ end
   * Debug
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities.content_loader.flat_lua_loader("Debug_screen", "asset/screen-debug")
+Utilities.content_loader.flat_lua("Debug_screen", "asset/screen-debug")
+Utilities.content_loader.flat_lua("screen", "asset/screen")
 Utilities.debug_tools.print_globals()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -104,6 +115,8 @@ Utilities.debug_tools.print_globals()
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 
 local seen={}
+
+print(Utilities.number.cash_format(1234567990.95, {no_centsd = true}))
 
 local function dump(t,i)
     seen[t]=true
@@ -124,4 +137,4 @@ local function dump(t,i)
     end
 end
 
-dump(Utilities.pixel_scale,"")
+--dump(Utilities.pixel_scale,"")

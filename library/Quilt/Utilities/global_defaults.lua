@@ -76,6 +76,18 @@ m.global_settings_functions = {
     io.output():setvbuf("no")
     print("faster_print: ON")
   end,
+
+  table_unpack = function()
+    -- Hack if a library uses table.unpack
+    table.unpack = unpack
+    print("table_unpack: ON")
+  end,
+
+  gfind_fix = function()
+    -- Hack if a library uses string.gfind
+    string.gfind = string.gmatch
+    print("gfind_fix: ON")
+  end,
 }
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Tinker with global settings

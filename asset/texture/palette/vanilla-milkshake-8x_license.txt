@@ -1,3 +1,3 @@
 URL: https://lospec.com/palette-list/vanilla-milkshake
 Author: Space Sandwich
-License: None 
+License: None / List of values

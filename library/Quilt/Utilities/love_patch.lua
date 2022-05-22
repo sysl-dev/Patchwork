@@ -57,10 +57,7 @@ m.functions_list = {
   "lg-background",
   "lg-outlinePrint",
   "lg-outlinePrintf",
-
 }
-
-
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Store into a table for easy on/off
@@ -78,14 +75,9 @@ m.functions_code = {
   ["lg-background"] = function()
     -- Local copy of base into the function
     local base = base
-    function love.graphics.background(padding, settings)
+    function love.graphics.background(padding)
       padding = padding or 0
-      settings = settings or {}
       assert(type(padding) == "number", "Padding should be a number.")
-      -- If we are not working from the base window size in a scaled canvas, allow full screen
-      if settings.not_pixel then 
-        base = {width = love.graphics.getWidth(), height = love.graphics.getHeight()}
-      end
       love.graphics.rectangle("fill", 0 - padding, 0 - padding, base.width + padding * 2, base.height + padding * 2)
     end
     print("love.graphics.background: enabled")
@@ -96,12 +88,12 @@ m.functions_code = {
     function love.graphics.outlinePrint(settings, ...)
       settings = settings or {}
       local temp_color = {love.graphics.getColor()}
-      local color = settings.color or temp_color
-      local color2 = settings.color2 or  {math.abs(color[1] - 1), math.abs(color[2] - 1), math.abs(color[3] - 1), 1}
+      local text_color = settings.color or temp_color
+      local outline_color = settings.color2 or  {math.abs(text_color[1] - 1), math.abs(text_color[2] - 1), math.abs(text_color[3] - 1), 1}
       local text,x,y,r,sx,sy,ox,oy,kx,ky = ...
       x = x or 0
       y = y or 0
-      love.graphics.setColor(color2)
+      love.graphics.setColor(outline_color)
       if settings.thick then 
         love.graphics.print(text,x+1,y+1,r,sx,sy,ox,oy,kx,ky)
         love.graphics.print(text,x-1,y-1,r,sx,sy,ox,oy,kx,ky)
@@ -112,7 +104,7 @@ m.functions_code = {
       love.graphics.print(text,x-1,y,r,sx,sy,ox,oy,kx,ky)
       love.graphics.print(text,x,y+1,r,sx,sy,ox,oy,kx,ky)
       love.graphics.print(text,x,y-1,r,sx,sy,ox,oy,kx,ky)
-      love.graphics.setColor(color)
+      love.graphics.setColor(text_color)
       love.graphics.print(text,x,y,r,sx,sy,ox,oy,kx,ky)
       love.graphics.setColor(temp_color)
     end
@@ -124,12 +116,12 @@ m.functions_code = {
     function love.graphics.outlinePrintf(settings, ...)
       settings = settings or {}
       local temp_color = {love.graphics.getColor()}
-      local color = settings.color or temp_color
-      local color2 = settings.color2 or  {math.abs(color[1] - 1), math.abs(color[2] - 1), math.abs(color[3] - 1), 1}
+      local text_color = settings.color or temp_color
+      local outline_color = settings.color2 or  {math.abs(text_color[1] - 1), math.abs(text_color[2] - 1), math.abs(text_color[3] - 1), 1}
       local text, x, y, limit, align, r, sx, sy, ox, oy, kx, ky = ...
       x = x or 0
       y = y or 0
-      love.graphics.setColor(color2)
+      love.graphics.setColor(outline_color)
       if settings.thick then 
         love.graphics.printf(text,x+1,y+1,limit,align,r,sx,sy,ox,oy,kx,ky)
         love.graphics.printf(text,x-1,y-1,limit,align,r,sx,sy,ox,oy,kx,ky)
@@ -140,7 +132,7 @@ m.functions_code = {
       love.graphics.printf(text,x-1,y,limit,align,r,sx,sy,ox,oy,kx,ky)
       love.graphics.printf(text,x,y+1,limit,align,r,sx,sy,ox,oy,kx,ky)
       love.graphics.printf(text,x,y-1,limit,align,r,sx,sy,ox,oy,kx,ky)
-      love.graphics.setColor(color)
+      love.graphics.setColor(text_color)
       love.graphics.printf(text,x,y,limit,align,r,sx,sy,ox,oy,kx,ky)
       love.graphics.setColor(temp_color)
     end

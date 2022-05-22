@@ -85,16 +85,24 @@ m.functions_code = {
     print("clock_format: enabled")
   end,
 
-  -- Format to match a cash view. (1,000,000.00) Love Forms: https://love2d.org/forums/viewtopic.php?p=24906#p24906
-  cash_format = function(money_value)
+  -- Format to match a cash view. (1,000,000.00) 
+  cash_format = function()
     function m.cash_format(money_value, settings)
       -- Checking User Input
-      assert(type(money_value) == "number", "Time sent to clock format must be a number.")
+      assert(type(money_value) == "number", "Time sent to cash format must be a number.")
       settings = settings or {}
       assert(type(settings) == "table", "Settings must be a table if set.")
 
-      local final_result = string.format("%.2f", money_value):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,?", "")
-      if settings.nocents then final_result = final_result:sub(1, -4) end
+      -- Round to two places
+      local final_result = string.format("%.2f", money_value) 
+      -- Reverse, add commas in groups of three.
+      -- This way we get it starting from the end without more work.
+      -- (Capture), (Return Capture)(Add Comma)
+      final_result = final_result:reverse():gsub("(%d%d%d)", "%1,")
+      -- Return the string to normal and return it
+      final_result = final_result:reverse()
+      -- If we are removing cents, remove the end.
+      if settings.no_cents then final_result = final_result:sub(1, -4) end
       return final_result
 
     end
