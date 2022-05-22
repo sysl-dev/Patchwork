@@ -95,7 +95,7 @@ m.shader_pool = {}
 
 -- Captured Screens
 m.screen_capture = {}
-
+m.screen_capture_imagedata = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Functions / Standard
@@ -288,7 +288,7 @@ function m.resize_fullscreen(force)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Go back and forward from fullscreen
+  * Force / Remove pixel perfect fullscreen.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.resize_scale_fullscreen()
   m.config.pixel_perfect_fullscreen = not m.config.pixel_perfect_fullscreen 
@@ -407,7 +407,8 @@ end
 function m.capture_canvas(name)
 name = name or "default"
   local capture = m.buffer1:newImageData(1, 1, 0, 0, m.config.base_width, m.config.base_height)
-  m.screen_capture[name] = love.graphics.newImage(capture)
+  m.screen_capture_imagedata[name] = capture
+  m.screen_capture[name] = love.graphics.newImage(m.screen_capture_imagedata[name])
   return capture
 end
 
@@ -418,7 +419,11 @@ function m.capture_flush()
   for k,_ in pairs(m.screen_capture) do 
     k = nil
   end
+  for k,_ in pairs(m.screen_capture_imagedata) do 
+    k = nil
+  end
   m.screen_capture = {}
+  m.screen_capture_imagedata = {}
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -427,6 +432,7 @@ end
 function m.capture_remove(name)
   name = name or "default"
   m.screen_capture[name] = nil
+  m.screen_capture_imagedata[name] = nil
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -434,7 +440,11 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.capture_check(name)
   name = name or "default"
-  if  m.screen_capture[name] ~= nil then return true else return false end
+  if (m.screen_capture[name] ~= nil) then 
+    return true 
+  else 
+    return false
+  end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

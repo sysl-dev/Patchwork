@@ -116,8 +116,6 @@ Utilities.debug_tools.print_globals()
 
 local seen={}
 
-print(Utilities.number.cash_format(1234567990.95, {no_centsd = true}))
-
 local function dump(t,i)
     seen[t]=true
     local s={}
