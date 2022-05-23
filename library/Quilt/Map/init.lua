@@ -1,8 +1,8 @@
 local m = {
-  __NAME        = "Quilt-Mouse",
-  __VERSION     = "4.0",
+  __NAME        = "Quilt-Map",
+  __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Graphical Cursor and Mouse Function",
+  __DESCRIPTION = "Map features - Parent Loader",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -46,24 +46,30 @@ local function print(...)
   end
 end print(m.__DESCRIPTION)
 
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Setup (if Required)
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.setup(settings)
-  -- Set reasonable defaults if none are supplied.
-  settings = settings or {}
-end
+-- We load all items in this order.
+m.sub_modules_list = {
 
+}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Setup (if Required)
+  * 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.over(local_x, local_y, local_width, local_height, mouse_x, mouse_y, mouse_width, mouse_height)
-  mouse_width = mouse_width or 1
-  mouse_height = mouse_height or 1
-  return local_x < mouse_x + mouse_width and
-         mouse_x < local_x + local_width and
-         local_y < mouse_y + mouse_height and
-         mouse_y < local_y + local_height
+function m.setup(path, settings)
+  -- Set reasonable defaults if none are supplied.
+  path = path or ""
+  settings = settings or {}
+
+  -- We load all items in this order.
+  local sub_modules = m.sub_modules_list
+
+  -- Load the items as subtables to Utilities 
+  for i=1, #sub_modules do 
+    -- Yell
+    print("Loaded:",sub_modules[i])
+    -- Load the items
+    m[sub_modules[i]] = require(path .. "." .. sub_modules[i])
+    -- Apply settings
+    m[sub_modules[i]].setup(settings[sub_modules[i]])
+  end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
