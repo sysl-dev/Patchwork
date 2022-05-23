@@ -132,8 +132,11 @@ m.functions_code = {
       local moreinfo = " texturememory: " .. texture_memory .. "MB canvasswitches: " .. canvas_switches
       local extraline = tostring("Mouse X: " .. mx .. " Mouse Y: " ..  my)
       local string_length = (love.graphics.getWidth()) - 10
-      love.graphics.setColor(0,0,0,0.7)
-      love.graphics.rectangle("fill",0,0,love.graphics.getWidth(),love.graphics.getHeight())
+      love.graphics.setColor(0,0,0,1)
+      love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x, y-1, string_length)
+      love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x, y+1, string_length)
+      love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x-1, y, string_length)
+      love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x+1, y, string_length)
       love.graphics.setColor(1,1,1,1)
       love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x, y, string_length)
     end
