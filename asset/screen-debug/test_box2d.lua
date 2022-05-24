@@ -39,7 +39,9 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   w = BASE_WIDTH,
   h = 10,
   body_type = "static",
+  img = "wall",
   mass = 100,
+  __scale = true,
 })
 obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   x = 0,
@@ -47,7 +49,9 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   w = 10,
   h = BASE_HEIGHT,
   body_type = "static",
+  img = "floor",
   mass = 100,
+  __scale = true,
 })
 obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   x = BASE_WIDTH - 10,
@@ -55,18 +59,11 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   w = 10,
   h = BASE_HEIGHT,
   body_type = "static",
+  img = "wall",
   mass = 100,
 })
 
-obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-  x = 100,
-  y = 100,
-  w = 10,
-  h = 10,
-  body_type = "static",
-  mass = 100,
-  center_pos = "bottom_right",
-})
+
 
 for v = 1, 5 do
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
@@ -88,9 +85,28 @@ for v = 1, 5 do
     body_type = "dynamic",
     shape = "rectangle",
     img = "sx10",
-    lock_angle = true,
   })
 end
+
+obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+  x = 80 + 20,
+  y = 25 + 20,
+  w = 10,
+  h = 10,
+  body_type = "dynamic",
+  shape = "rectangle",
+  img = "crate",
+})
+obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+  x = 80 + 20,
+  y = 25 + 20,
+  w = 10,
+  h = 10,
+  body_type = "dynamic",
+  shape = "rectangle",
+  img = "crate",
+  __scale = true
+})
 
 Wblock.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
 
@@ -116,26 +132,17 @@ function scene:draw()
   love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
   color()
 
+  Wblock.draw(list_of_obj_pools)
 
-  for i=1, #obj_pool do 
-    if obj_pool[i].body then
-      local s = obj_pool[i].fixture[1]:getUserData().settings
-      if s.img then 
-        local iw = math.floor(math.abs((img[s.img]:getWidth() - s.w)/2) + 0.5)
-        local ih = math.floor(math.abs((img[s.img]:getHeight() - s.h)/2) + 0.5)
-        --love.graphics.draw(img[s.img], math.floor(obj_pool[i].body:getX() + 0.5) , math.floor(obj_pool[i].body:getY() + 0.5), obj_pool[i].body:getAngle(), 1, 1, s.w/2 + iw, s.h/2 + ih)
-        love.graphics.draw(img[s.img], math.floor(obj_pool[i].body:getX() + 0.5) , math.floor(obj_pool[i].body:getY() + 0.5), obj_pool[i].body:getAngle(), 1, 1, iw, ih)
-      end
-    end
-  end
 
   -- Draw outlines of shapes. 
   if debug_shapes then 
     Wblock.debug_draw_pool(obj_pool)
   end
 
+
   color("00FFFF")
-  love.graphics.rectangle("fill", 100, 100, 1, 1)
+  love.graphics.rectangle("fill", Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y, 1, 1)
   color()
 
   Utilities.pixel_scale.stop()

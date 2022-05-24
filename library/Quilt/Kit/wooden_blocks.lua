@@ -50,6 +50,10 @@ local function print(...)
   end
 end print(m.__DESCRIPTION)
 
+-- Not 100% accurate on deep floats, but close enough.
+local function round(x)
+  return x>=0 and math.floor(x+0.5) or math.ceil(x-0.5)
+end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Wooden Blocks - World Information
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -153,12 +157,9 @@ function m.setup(settings)
   end
 
   -- Step 2 - Apply Callbacks 
-  m.beginContact = settings.beginContact or m.beginContact
-  m.endContact = settings.beginContact or m.endContact
-  m.preSolve = settings.beginContact or m.preSolve
-  m.postSolve = settings.beginContact or m.postSolve
-  
   m.world:setCallbacks(m.beginContact, m.endContact, m.preSolve, m.postSolve)
+
+  -- Step 3 - Set 1 Meter = 16 PX
   love.physics.setMeter(settings.meter or 16)
 end
 
@@ -231,6 +232,7 @@ end
   * Draw Debug Shapes (oof)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function draw_shape(shape_type, shape, body)
+  love.graphics.setColor(1,1,1,0.7)
   if shape_type == "polygon" then
     love.graphics.polygon("fill", body:getWorldPoints(shape:getPoints()))
   end
@@ -240,6 +242,7 @@ local function draw_shape(shape_type, shape, body)
     local r = shape:getRadius()
     love.graphics.circle("fill", x, y, r)
   end
+  love.graphics.setColor(1,1,1,1)
 end
 
 function m.debug_draw_pool(pool)
@@ -251,7 +254,6 @@ function m.debug_draw_pool(pool)
         for x=1, #pool[i].shape do 
           local shape_type = pool[i].shape[x]:getType()
         draw_shape(shape_type, pool[i].shape[x], pool[i].body)
-
         end
       else 
         -- Check and draw shapes
@@ -264,6 +266,43 @@ function m.debug_draw_pool(pool)
     -- Step out of loop
   end
   -- End Function
+end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Draw images for things
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.draw(pool_table, settings)
+  local img = Texture.zzzzz_test.kit_wooden_block
+  if type(pool_table) == "table" then
+    for pool=1, #pool_table do 
+      for selected_pool=1, #pool_table[pool] do
+        -- Shortcut to the current pool.
+        local current_pool = pool_table[pool][selected_pool]
+        local s = current_pool.fixture[1]:getUserData().settings
+        --[[--------------------------------------------
+        * Simple Draw
+        ---------------------------------------------]]--
+        if current_pool.settings.__type == "simple" and s.img then
+          local image = img[s.img]
+          local image_w = image:getWidth()
+          local image_h = image:getHeight()
+          local iw = round(s.w/2) + round(img[s.img]:getWidth()/2 - s.w/2)
+          local ih = round(s.h/2) + round(img[s.img]:getHeight()/2 - s.h/2)
+          local sx = 1
+          local sy = 1
+          -- Should we scale our image to fit the object?
+          if s.__scale then
+            sx = ((s.w - image_w)) / image_w
+            sx = 1 + 1 * (sx)
+            sy = ((s.h - image_h)) / image_h
+            sy = 1 + 1 * (sy)
+          end
+  
+          love.graphics.draw(image, round(current_pool.body:getX()), round(current_pool.body:getY()), current_pool.body:getAngle(), sx, sy, iw, ih)
+        end
+        -- End Simple Draw
+      end
+    end
+  end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -352,12 +391,14 @@ function m.create_simple_object(settings, world)
   --[[--------------------------------------------
   * Convience Settings
   ---------------------------------------------]]--
-  settings.center_pos = settings.center_pos or "top_left"
+  settings.__type = "simple"
+  settings.__scale = settings.__scale or false
+  -- settings.img = draw simple image.
 
   -- PUT THE PARTS TOGETHER
   -- Step 1 - Make Body 
  -- obj.body = love.physics.newBody(world, settings.x + settings.w/2, settings.y + settings.h/2, settings.body_type)
-  obj.body = love.physics.newBody(world, settings.x, settings.y, settings.body_type)
+  obj.body = love.physics.newBody(world, settings.x + settings.w/2, settings.y + settings.h/2, settings.body_type)
   obj.body:setMass(settings.mass)
   obj.body:setAngle(settings.angle)
   obj.body:setAngularDamping(settings.angular_damping)
@@ -367,30 +408,14 @@ function m.create_simple_object(settings, world)
   obj.body:setFixedRotation(settings.lock_angle)
   obj.body:setSleepingAllowed(settings.can_sleep)
 
-  local cpos = {
-    top_left = {x = math.floor(settings.w/2 + 0.5), y = math.floor(settings.h/2 + 0.5)},
-    top_center = {x = 0, y = math.floor(settings.h/2 + 0.5)},
-    top_right = {x = -math.floor(settings.w/2 + 0.5) + 1, y = math.floor(settings.h/2 + 0.5)},
-
-    center_left = {x = math.floor(settings.w/2 + 0.5), y = 0},
-    center = {x = 0, y = 0},
-    center_right = {x = -math.floor(settings.w/2 + 0.5) + 1, y = 0},
-
-    bottom_left = {x = math.floor(settings.w/2 + 0.5), y = -math.floor(settings.h/2 + 0.5) + 1},
-    bottom_center = {x = 0, y = -math.floor(settings.h/2 + 0.5) + 1},
-    bottom_right = {x = -math.floor(settings.w/2 + 0.5) + 1, y = -math.floor(settings.h/2 + 0.5) + 1},
-    }
-  
 
   -- Step 2 - Make the shape 
   if settings.shape == "rectangle" then 
-   -- obj.shape = {love.physics.newRectangleShape(0, 0, settings.w, settings.h)}
-    obj.shape = {love.physics.newRectangleShape(cpos[settings.center_pos].x, cpos[settings.center_pos].y, settings.w, settings.h)}
+    obj.shape = {love.physics.newRectangleShape(0, 0, settings.w, settings.h)}
   end
 
   if settings.shape == "circle" then
-    --obj.shape = {love.physics.newCircleShape(0, 0, settings.radius)}
-    obj.shape = {love.physics.newCircleShape(cpos[settings.center_pos].x, cpos[settings.center_pos].y, settings.radius)}
+    obj.shape = {love.physics.newCircleShape(0, 0, settings.radius)}
   end
 
   -- Step 3 - Join the Body to the Shape into a Fixture
