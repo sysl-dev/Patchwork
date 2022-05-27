@@ -33,8 +33,7 @@ local m = {
 -- TODO: Simple object, expose all properties
 -- Create Complex Object 
 -- Test Area (Rect/Circle)
--- Drawing helpers
--- Update physics object property 
+-- Drawing helpers [Started]
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -232,7 +231,7 @@ end
   * Draw Debug Shapes (oof)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function draw_shape(shape_type, shape, body)
-  love.graphics.setColor(1,1,1,0.7)
+  love.graphics.setColor(1,1,1,1)
   if shape_type == "polygon" then
     love.graphics.polygon("fill", body:getWorldPoints(shape:getPoints()))
   end
@@ -330,11 +329,16 @@ function m.create_simple_object(settings, world)
   ---------------------------------------------]]--
   -- W/H are not required but will cause an error if left out.
   -- settings.w, settings.h, settings.x, settings.y
+
+  -- Triangle Scaling Hack
+  settings.tri_scale_w = settings.tri_scale_w or 1
+  settings.tri_scale_h = settings.tri_scale_h or 1
   -- If we have just radius, set width/height based on it.
   if settings.radius then 
     settings.w = settings.radius * 2
-    settings.h = settings.w
+    settings.h = settings.radius * 2
   end
+
   -- Weight of the object, default is about 12 Pounds. (5 KG)
   settings.mass = settings.mass or settings.weight
   settings.mass = settings.mass or 5
@@ -417,6 +421,120 @@ function m.create_simple_object(settings, world)
   if settings.shape == "circle" then
     obj.shape = {love.physics.newCircleShape(0, 0, settings.radius)}
   end
+
+  if settings.shape == "triangle" then
+    obj.shape = {love.physics.newPolygonShape(
+      (-6/5) * settings.w/2,   (5/5) * settings.h/2,
+      (0/5) * settings.w/2,  (-5/5) * settings.h/2,
+      (6/5) * settings.w/2,  (5/5) * settings.h/2
+    )}
+  end
+
+  if settings.shape == "triangle-right" then
+    obj.shape = {love.physics.newPolygonShape(
+      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (-5/5) * settings.w/2,  (5/5) * settings.h/2,
+      (5/5) * settings.w/2,  (5/5) * settings.h/2
+    )}
+  end
+
+  if settings.shape == "hexagon" then
+    obj.shape = {
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (-5/6) * settings.h/2,
+      (3/6) * settings.w/2,  (-5/6) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (5/6) * settings.h/2,
+      (-6/6) * settings.w/2,  (0) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (-5/6) * settings.h/2,
+      (-6/6) * settings.w/2,  (0) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (5/6) * settings.h/2,
+      (3/6) * settings.w/2,  (5/6) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (6/6) * settings.w/2,  (0) * settings.h/2,
+      (3/6) * settings.w/2,  (5/6) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (6/6) * settings.w/2,  (0) * settings.h/2,
+      (3/6) * settings.w/2,  (-5/6) * settings.h/2
+    ),
+  }
+end
+
+  if settings.shape == "glass" then
+    obj.shape = {
+      love.physics.newPolygonShape(
+      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (-4/5) * settings.w/2,  (-4/5) * settings.h/2,
+      (-3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (4/5) * settings.w/2,  (-4/5) * settings.h/2,
+      (3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (-3/5) * settings.w/2,   (4/5) * settings.h/2,
+      (3/5) * settings.w/2,  (4/5) * settings.h/2,
+      (-3/5) * settings.w/2,  (5/5) * settings.h/2,
+      (3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+  }
+  end
+
+  if settings.shape == "wine-glass" then
+    obj.shape = {
+      love.physics.newPolygonShape(
+      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (-5/5) * settings.w/2,  (-1/5) * settings.h/2,
+      (-4/5) * settings.w/2,  (1/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0/5) * settings.w/2,   (1/5) * settings.h/2,
+      (-5/5) * settings.w/2,  (-1/5) * settings.h/2,
+      (-4/5) * settings.w/2,  (1/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (5/5) * settings.w/2,  (-1/5) * settings.h/2,
+      (4/5) * settings.w/2,  (1/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0/5) * settings.w/2,   (1/5) * settings.h/2,
+      (5/5) * settings.w/2,  (-1/5) * settings.h/2,
+      (4/5) * settings.w/2,  (1/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0/5) * settings.w/2,   (1/5) * settings.h/2,
+      (-1/5) * settings.w/2,  (5/5) * settings.h/2,
+      (1/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0/5) * settings.w/2,   (4/5) * settings.h/2,
+      (-3/5) * settings.w/2,  (5/5) * settings.h/2,
+      (3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (3/5) * settings.w/2,   (0/5) * settings.h/2,
+      (-3/5) * settings.w/2,  (0/5) * settings.h/2,
+      (0/5) * settings.w/2,  (2/5) * settings.h/2
+    ),
+
+  }
+  end
+
 
   -- Step 3 - Join the Body to the Shape into a Fixture
   obj.fixture = {}

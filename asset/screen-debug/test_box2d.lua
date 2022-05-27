@@ -33,6 +33,7 @@ Wblock.setup({
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local obj_pool = {}
 local list_of_obj_pools = {obj_pool}
+
 obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   x = 0,
   y = BASE_HEIGHT - 10,
@@ -63,50 +64,94 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   mass = 100,
 })
 
+for i = 1, 4 do 
 
 
-for v = 1, 5 do
+
+  
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 40 + v*8,
-    y = 25 + v,
+    x = 180,
+    y = 100 + 20 - i * 20,
     radius = 5,
     body_type = "dynamic",
     shape = "circle",
-    img = "x10",
-
+    __scale = true,
+    img="x10",
   })
-end
-for v = 1, 5 do
+  
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 80 + v*8,
-    y = 25 + v,
-    w = 10,
-    h = 10,
+    x = 140,
+    y = 100 + 20 - i * 20,
+    w = 12,
+    h = 12,
     body_type = "dynamic",
     shape = "rectangle",
-    img = "sx10",
+    __scale = true,
+    img="crate",
   })
-end
 
-obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-  x = 80 + 20,
-  y = 25 + 20,
-  w = 10,
-  h = 10,
-  body_type = "dynamic",
-  shape = "rectangle",
-  img = "crate",
-})
-obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-  x = 80 + 20,
-  y = 25 + 20,
-  w = 10,
-  h = 10,
-  body_type = "dynamic",
-  shape = "rectangle",
-  img = "crate",
-  __scale = true
-})
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 120,
+    y = 100 + 20 - i * 20,
+    w = 12,
+    h = 12,
+    body_type = "dynamic",
+    shape = "triangle",
+    __scale = true,
+    img="tri",
+  })
+
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 80,
+    y = 100 + 20 - i * 20,
+    w = 12,
+    h = 12,
+    body_type = "dynamic",
+    shape = "triangle-right",
+    __scale = true,
+    img="rtri",
+  })
+
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 60,
+    y = 100 + 20 - i * 20,
+    w = 12,
+    h = 12,
+    body_type = "dynamic",
+    shape = "hexagon",
+    __scale = true,
+    img="hexagon",
+  })
+
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 40,
+    y = 100 + 20 - i * 30,
+    w = 16,
+    h = 16,
+    body_type = "dynamic",
+    shape = "glass",
+    __scale = true,
+    img="glass",
+  })
+
+
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 20,
+    y = 100 + 20 - i * 20,
+    w = 8,
+    h = 18,
+    body_type = "dynamic",
+    shape = "wine-glass",
+    __scale = true,
+    img="wine",
+  })
+
+
+
+
+  end
+
+
 
 Wblock.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
 
