@@ -1,5 +1,7 @@
 local scene = {}
 local debug_shapes = true
+local debug_name = false
+local run_right_away = true
 
 local function color(str)
   str = str or "FFFFFF"
@@ -41,7 +43,6 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   h = 10,
   body_type = "static",
   img = "wall",
-  mass = 100,
   __scale = true,
 })
 obj_pool[#obj_pool+1] = Wblock.create_simple_object({
@@ -51,7 +52,6 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   h = BASE_HEIGHT,
   body_type = "static",
   img = "floor",
-  mass = 100,
   __scale = true,
 })
 obj_pool[#obj_pool+1] = Wblock.create_simple_object({
@@ -61,124 +61,97 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   h = BASE_HEIGHT,
   body_type = "static",
   img = "wall",
-  mass = 100,
 })
 
-for i = 1, 1 do 
+
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 200,
-    y = 100 + 20 - i * 20,
-    w = 16,
-    h = 16,
-    body_type = "dynamic",
-    shape = "triforce",
-    __scale = true,
-  })
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 180,
-    y = 100 + 20 - i * 20,
-    radius = 5,
-    body_type = "dynamic",
-    shape = "circle",
-    __scale = true,
-    img="x10",
-  })
-  
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 140,
-    y = 100 + 20 - i * 20,
-    w = 12,
-    h = 12,
+    x = 150,
+    y = 120,
+    w = 64,
+    h = 4,
     body_type = "dynamic",
     shape = "rectangle",
     __scale = true,
-    img="crate",
+    density = 0.2,
   })
-
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 120,
-    y = 100 + 20 - i * 20,
-    w = 12,
-    h = 12,
+    x = 150 + 32 - 4,
+    y = 124,
+    w = 8,
+    h = 8,
     body_type = "dynamic",
     shape = "triangle",
     __scale = true,
-    img="tri",
-  })
-
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 80,
-    y = 100 + 20 - i * 20,
-    w = 12,
-    h = 12,
-    body_type = "dynamic",
-    shape = "triangle-right",
-    __scale = true,
-    img="rtri",
-  })
-
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 60,
-    y = 100 + 20 - i * 20,
-    w = 12,
-    h = 12,
-    body_type = "dynamic",
-    shape = "hexagon",
-    __scale = true,
-    img="hexagon",
-  })
-
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 40,
-    y = 100 + 20 - i * 25,
-    radius = 3,
-    body_type = "dynamic",
-    shape = "circle",
-    __scale = true,
-    img="x10",
-  })
-
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 40,
-    y = 100 + 20 - i * 30,
-    w = 16,
-    h = 16,
-    body_type = "dynamic",
-    shape = "glass",
-    __scale = true,
-    img="glass",
-  })
-
-  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 20,
-    y = 100 + 20 - i * 25,
-    radius = 3,
-    body_type = "dynamic",
-    shape = "circle",
-    __scale = true,
-    img="x10",
+    density = 5,
   })
   
-
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
-    x = 20,
-    y = 100 + 20 - i * 20,
+    x = 195,
+    y = 0,
     w = 8,
-    h = 18,
+    h = 8,
     body_type = "dynamic",
-    shape = "wine-glass",
+    shape = "triangle",
     __scale = true,
-    img="wine",
+    name = "saw"
+  })
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 160,
+    y = -100,
+    w = 8,
+    h = 8,
+    body_type = "dynamic",
+    shape = "triangle",
+    __scale = true,
+    bullet = true,
+  })
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 0,
+    y = 0,
+    w = 2,
+    h = 2,
+    body_type = "dynamic",
+    shape = "rectangle",
+    sensor = true,
+    __scale = true,
+    bullet = true,
+    gravity_scale = 0,
+    name = "mouse_boy"
   })
 
+  -- Joints should create 
+
+
+  obj_pool[#obj_pool].joint = {love.physics.newRevoluteJoint(obj_pool[5].body, obj_pool[5-1].body, obj_pool[5].settings.cx+0, obj_pool[5].settings.cy-4, true)}
 
 
 
-  end
+Wblock.add_rule("pre", "test", function (a, b, coll)
 
 
+
+end)
 
 Wblock.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
+
+end)
+
+Wblock.add_rule("begin", "test", function (a, b, coll)
+  if b:getUserData().settings.name == "mouse_boy" or a:getUserData().settings.name == "mouse_boy" then 
+    if a:getUserData().settings.name == "mouse_boy" then 
+    else 
+
+    end
+    if b:getUserData().settings.name == "mouse_boy" then 
+    else 
+
+    end
+
+  end
+end)
+
+Wblock.add_rule("end", "test", function (a, b, coll)
+
 
 end)
 
@@ -189,6 +162,13 @@ end)
   * 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function scene:update(dt)
+  if dt > 1/29 then return end
+  if not run_right_away then 
+    dt = 0
+  end
+  obj_pool[#obj_pool].body:setX(Utilities.pixel_scale.mouse.x) 
+  obj_pool[#obj_pool].body:setY(Utilities.pixel_scale.mouse.y) 
+
   Utilities.pixel_scale.update(dt)
   Wblock.update(dt, list_of_obj_pools)
 end
@@ -207,7 +187,7 @@ function scene:draw()
 
   -- Draw outlines of shapes. 
   if debug_shapes then 
-    Wblock.debug_draw_pool(obj_pool)
+    Wblock.debug_draw_pool(obj_pool, debug_name)
   end
 
 
@@ -241,12 +221,26 @@ function scene:keypressed( key, scancode, isrepeat )
       end      
     end
   end
+  if key == "3" then 
+    for i=1, #obj_pool do 
+      if obj_pool[i].body then
+        obj_pool[i].body:applyLinearImpulse(0, -50)
+      end      
+    end
+  end
   if key == "0" then 
     Wblock.remove_all_from_pool(obj_pool)
   end
-
+  if key == "9" then 
+    run_right_away = true
+  end
 end
 
+function scene:mousepressed(x,y,button)
+  if button == 1 then 
+
+  end
+end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--

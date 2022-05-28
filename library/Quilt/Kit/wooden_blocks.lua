@@ -30,10 +30,18 @@ local m = {
   ]],
   __LICENSE_TITLE = "MIT LICENSE"
 }
--- TODO: Simple object, expose all properties
--- Create Complex Object 
+-- TODO: 
+-- Create Custom Object [Allow a shapes table to be passed in.]
+
 -- Test Area (Rect/Circle)
--- Drawing helpers [Started]
+
+-- Drawing helpers 
+  -- Debug [X]
+  -- Basic [X]
+  -- Own Draw Function [ ]
+-- Joints
+  -- Joints should create a record in both bodies for tracking.
+  -- Oh god joints are a nightmare.
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -244,7 +252,7 @@ local function draw_shape(shape_type, shape, body)
   love.graphics.setColor(1,1,1,1)
 end
 
-function m.debug_draw_pool(pool)
+function m.debug_draw_pool(pool, names)
   -- Draw From Pool
   for i=1, #pool do 
     if pool[i].body then
@@ -260,8 +268,25 @@ function m.debug_draw_pool(pool)
         draw_shape(shape_type, pool[i].shape, pool[i].body)
         -- Step out of table check
       end
+      if names then 
+        love.graphics.print(pool[i].settings.name, pool[i].body:getX(), pool[i].body:getY())
+      end
       -- Step out of body check
+
     end
+    -- Highlight Joints
+    love.graphics.setColor(1,0,0,1)
+    if pool[i].joint then 
+      for jo = 1, #pool[i].joint do
+        local x1, y1, x2, y2 = pool[i].joint[jo]:getAnchors( )
+        love.graphics.rectangle("fill", x1, y1, 1, 1)
+        if x2 then 
+          love.graphics.rectangle("fill", x2, y2, 1, 1)
+        end
+      end
+    end
+    love.graphics.setColor(1,1,1,1)
+    -- End Joints 
     -- Step out of loop
   end
   -- End Function
@@ -330,18 +355,21 @@ function m.create_simple_object(settings, world)
   -- W/H are not required but will cause an error if left out.
   -- settings.w, settings.h, settings.x, settings.y
 
-  -- Triangle Scaling Hack
-  settings.tri_scale_w = settings.tri_scale_w or 1
-  settings.tri_scale_h = settings.tri_scale_h or 1
+  -- Name
+  settings.name = settings.name or tostring(settings.shape) .. tostring(settings.x) .. tostring(settings.y) .. tostring(settings.y * settings.x)
+
   -- If we have just radius, set width/height based on it.
   if settings.radius then 
     settings.w = settings.radius * 2
     settings.h = settings.radius * 2
   end
 
-  -- Weight of the object, default is about 12 Pounds. (5 KG)
-  settings.mass = settings.mass or settings.weight
-  settings.mass = settings.mass or 5
+  settings.cx = settings.x + settings.w/2
+  settings.cy = settings.y + settings.h/2
+
+  -- Weight of the object, default is about 100 Pounds. (45~ KG)
+  settings.mass = settings.mass or 45
+
   -- Angle the object is created at
   settings.angle = settings.angle or 0
   -- Shape Type - Expected: rectangle, circle
@@ -372,6 +400,8 @@ function m.create_simple_object(settings, world)
   else
     settings.can_sleep = settings.can_sleep
   end
+  -- Gravity Scale
+  settings.gravity_scale = settings.gravity_scale or 1
 
   --[[--------------------------------------------
   * Fixture Settings (Simple shapes apply it to all)
@@ -393,16 +423,17 @@ function m.create_simple_object(settings, world)
   settings.friction = settings.friction or 0.5
 
   --[[--------------------------------------------
-  * Convience Settings
+  * 'Hidden' Settings
   ---------------------------------------------]]--
   settings.__type = "simple"
   settings.__scale = settings.__scale or false
+  settings.__joint_record_table = {}
   -- settings.img = draw simple image.
 
   -- PUT THE PARTS TOGETHER
   -- Step 1 - Make Body 
  -- obj.body = love.physics.newBody(world, settings.x + settings.w/2, settings.y + settings.h/2, settings.body_type)
-  obj.body = love.physics.newBody(world, settings.x + settings.w/2, settings.y + settings.h/2, settings.body_type)
+  obj.body = love.physics.newBody(world, settings.cx, settings.cy, settings.body_type)
   obj.body:setMass(settings.mass)
   obj.body:setAngle(settings.angle)
   obj.body:setAngularDamping(settings.angular_damping)
@@ -411,185 +442,11 @@ function m.create_simple_object(settings, world)
   obj.body:setBullet(settings.bullet)
   obj.body:setFixedRotation(settings.lock_angle)
   obj.body:setSleepingAllowed(settings.can_sleep)
+  obj.body:setGravityScale(settings.gravity_scale)
 
 
   -- Step 2 - Make the shape 
-  if settings.shape == "rectangle" then 
-    obj.shape = {love.physics.newRectangleShape(0, 0, settings.w, settings.h)}
-  end
-
-  if settings.shape == "circle" then
-    obj.shape = {love.physics.newCircleShape(0, 0, settings.radius)}
-  end
-
-  if settings.shape == "triangle" then
-    obj.shape = {love.physics.newPolygonShape(
-      (-6/5) * settings.w/2,   (5/5) * settings.h/2,
-      (0/5) * settings.w/2,  (-5/5) * settings.h/2,
-      (6/5) * settings.w/2,  (5/5) * settings.h/2
-    )}
-  end
-
-  if settings.shape == "triangle-right" then
-    obj.shape = {love.physics.newPolygonShape(
-      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
-      (-5/5) * settings.w/2,  (5/5) * settings.h/2,
-      (5/5) * settings.w/2,  (5/5) * settings.h/2
-    )}
-  end
-
-  if settings.shape == "hexagon" then
-    obj.shape = {
-      love.physics.newPolygonShape(
-      (0) * settings.w/2,   (0) * settings.h/2,
-      (-3/6) * settings.w/2,  (-5/6) * settings.h/2,
-      (3/6) * settings.w/2,  (-5/6) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0) * settings.w/2,   (0) * settings.h/2,
-      (-3/6) * settings.w/2,  (5/6) * settings.h/2,
-      (-6/6) * settings.w/2,  (0) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0) * settings.w/2,   (0) * settings.h/2,
-      (-3/6) * settings.w/2,  (-5/6) * settings.h/2,
-      (-6/6) * settings.w/2,  (0) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0) * settings.w/2,   (0) * settings.h/2,
-      (-3/6) * settings.w/2,  (5/6) * settings.h/2,
-      (3/6) * settings.w/2,  (5/6) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0) * settings.w/2,   (0) * settings.h/2,
-      (6/6) * settings.w/2,  (0) * settings.h/2,
-      (3/6) * settings.w/2,  (5/6) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0) * settings.w/2,   (0) * settings.h/2,
-      (6/6) * settings.w/2,  (0) * settings.h/2,
-      (3/6) * settings.w/2,  (-5/6) * settings.h/2
-    ),
-  }
-end
-
-  if settings.shape == "glass" then
-    obj.shape = {
-      love.physics.newPolygonShape(
-      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
-      (-4/5) * settings.w/2,  (-4/5) * settings.h/2,
-      (-3/5) * settings.w/2,  (5/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (5/5) * settings.w/2,   (-5/5) * settings.h/2,
-      (4/5) * settings.w/2,  (-4/5) * settings.h/2,
-      (3/5) * settings.w/2,  (5/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (-3/5) * settings.w/2,   (4/5) * settings.h/2,
-      (3/5) * settings.w/2,  (4/5) * settings.h/2,
-      (-3/5) * settings.w/2,  (5/5) * settings.h/2,
-      (3/5) * settings.w/2,  (5/5) * settings.h/2
-    ),
-  }
-  end
-
-  if settings.shape == "wine-glass" then
-    obj.shape = {
-      love.physics.newPolygonShape(
-        (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
-        (-5/5) * settings.w/2,  (1/5) * settings.h/2,
-        (-4/5) * settings.w/2,  (1/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
-        (-4/5) * settings.w/2,  (-5/5) * settings.h/2,
-        (-4/5) * settings.w/2,  (1/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (5/5) * settings.w/2,   (-5/5) * settings.h/2,
-        (5/5) * settings.w/2,  (1/5) * settings.h/2,
-        (4/5) * settings.w/2,  (-5/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (4/5) * settings.w/2,   (-5/5) * settings.h/2,
-        (4/5) * settings.w/2,  (1/5) * settings.h/2,
-        (5/5) * settings.w/2,  (1/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-5/5) * settings.w/2,   (1/5) * settings.h/2,
-        (-4/5) * settings.w/2,  (1/5) * settings.h/2,
-        (-3/5) * settings.w/2,  (2/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (5/5) * settings.w/2,   (1/5) * settings.h/2,
-        (4/5) * settings.w/2,  (1/5) * settings.h/2,
-        (3/5) * settings.w/2,  (2/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-4/5) * settings.w/2,   (1/5) * settings.h/2,
-        (-2/5) * settings.w/2,  (2/5) * settings.h/2,
-        (-3/5) * settings.w/2,  (2/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (4/5) * settings.w/2,   (1/5) * settings.h/2,
-        (2/5) * settings.w/2,  (2/5) * settings.h/2,
-        (3/5) * settings.w/2,  (2/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-3/5) * settings.w/2,   (2/5) * settings.h/2,
-        (3/5) * settings.w/2,  (2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (3/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-1/5) * settings.w/2,   (2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (5/5) * settings.h/2,
-        (1/5) * settings.w/2,  (2/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-3/5) * settings.w/2,   (5/5) * settings.h/2,
-        (0/5) * settings.w/2,  (4/5) * settings.h/2,
-        (3/5) * settings.w/2,  (5/5) * settings.h/2
-      ),
-       
-    }
-  end
-
-  if settings.shape == "triforce" then
-    obj.shape = {
-      love.physics.newPolygonShape(
-        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
-        (-2/5) * settings.w/2,  (-2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (0/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
-        (2/5) * settings.w/2,  (-2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (0/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-2/5) * settings.w/2,   (-2/5) * settings.h/2,
-        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (0/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (2/5) * settings.w/2,   (-2/5) * settings.h/2,
-        (5/5) * settings.w/2,  (-2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (0/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (-3/5) * settings.w/2,   (-1/5) * settings.h/2,
-        (-3/5) * settings.w/2,  (2/5) * settings.h/2,
-        (0/5) * settings.w/2,  (0/5) * settings.h/2
-      ),
-       love.physics.newPolygonShape(
-        (0/5) * settings.w/2,   (0/5) * settings.h/2,
-        (2/5) * settings.w/2,  (2/5) * settings.h/2,
-        (3/5) * settings.w/2,  (-1/5) * settings.h/2
-      ),
-       
-    }
-  end
+  obj.shape = m.get_shape_table_from_name(settings)
 
 
   -- Step 3 - Join the Body to the Shape into a Fixture
@@ -636,6 +493,9 @@ end
 
   obj.body:resetMassData()
 
+  -- Step 6 - Create a joint connection holder
+  obj.joint = {}
+
   return obj
 end
 
@@ -647,6 +507,818 @@ end
 function m.remove_all_from_pool(pool)
   for i = #pool, 1, -1 do
     pool[i].remove = true
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Custom Box2D Shapes from Triangles 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_shape_table_from_name(settings)
+  if settings.shape == "rectangle" then 
+    return {love.physics.newRectangleShape(0, 0, settings.w, settings.h)}
+  end
+
+  if settings.shape == "circle" then
+    return {love.physics.newCircleShape(0, 0, settings.radius)}
+  end
+
+  if settings.shape == "triangle" then
+    return {love.physics.newPolygonShape(
+      (-6/5) * settings.w/2,   (5/5) * settings.h/2,
+      (0/5) * settings.w/2,  (-5/5) * settings.h/2,
+      (6/5) * settings.w/2,  (5/5) * settings.h/2
+    )}
+  end
+
+  if settings.shape == "triangle-right" then
+    return {love.physics.newPolygonShape(
+      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (-5/5) * settings.w/2,  (5/5) * settings.h/2,
+      (5/5) * settings.w/2,  (5/5) * settings.h/2
+    )}
+  end
+
+  if settings.shape == "hexagon" then
+    return {
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (-5/6) * settings.h/2,
+      (3/6) * settings.w/2,  (-5/6) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (5/6) * settings.h/2,
+      (-6/6) * settings.w/2,  (0) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (-5/6) * settings.h/2,
+      (-6/6) * settings.w/2,  (0) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (-3/6) * settings.w/2,  (5/6) * settings.h/2,
+      (3/6) * settings.w/2,  (5/6) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (6/6) * settings.w/2,  (0) * settings.h/2,
+      (3/6) * settings.w/2,  (5/6) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (0) * settings.w/2,   (0) * settings.h/2,
+      (6/6) * settings.w/2,  (0) * settings.h/2,
+      (3/6) * settings.w/2,  (-5/6) * settings.h/2
+    ),
+  }
+  end
+
+  if settings.shape == "glass" then
+    return {
+      love.physics.newPolygonShape(
+      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (-4/5) * settings.w/2,  (-4/5) * settings.h/2,
+      (-3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (5/5) * settings.w/2,   (-5/5) * settings.h/2,
+      (4/5) * settings.w/2,  (-4/5) * settings.h/2,
+      (3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+      love.physics.newPolygonShape(
+      (-3/5) * settings.w/2,   (4/5) * settings.h/2,
+      (3/5) * settings.w/2,  (4/5) * settings.h/2,
+      (-3/5) * settings.w/2,  (5/5) * settings.h/2,
+      (3/5) * settings.w/2,  (5/5) * settings.h/2
+    ),
+  }
+  end
+
+  if settings.shape == "wine-glass" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (1/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2,
+        (4/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (4/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (4/5) * settings.w/2,  (1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (1/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (1/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (1/5) * settings.h/2,
+        (4/5) * settings.w/2,  (1/5) * settings.h/2,
+        (3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-4/5) * settings.w/2,   (1/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (4/5) * settings.w/2,   (1/5) * settings.h/2,
+        (2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-3/5) * settings.w/2,   (2/5) * settings.h/2,
+        (3/5) * settings.w/2,  (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (5/5) * settings.h/2,
+        (1/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-3/5) * settings.w/2,   (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (4/5) * settings.h/2,
+        (3/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      
+    }
+  end
+
+  if settings.shape == "heart" then
+    return {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-4/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-1/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (4/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (1/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-1/5) * settings.w/2,  (-4/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (1/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (1/5) * settings.w/2,  (-4/5) * settings.h/2,
+        (4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-4/5) * settings.h/2,
+        (-1/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (1/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-4/5) * settings.h/2,
+        (1/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-4/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (4/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-4/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-4/5) * settings.h/2,
+        (4/5) * settings.w/2,  (-4/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-3/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "spade" then
+    return {
+      love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (5/5) * settings.h/2,
+        (1/5) * settings.w/2,  (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (2/5) * settings.h/2,
+        (1/5) * settings.w/2,  (4/5) * settings.h/2,
+        (3/5) * settings.w/2,  (4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/5) * settings.w/2,   (4/5) * settings.h/2,
+        (5/5) * settings.w/2,  (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (0/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (2/5) * settings.h/2,
+        (-1/5) * settings.w/2,  (4/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (2/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (4/5) * settings.h/2,
+        (-1/5) * settings.w/2,  (4/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "diamond" then
+    return {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (0/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (3/5) * settings.w/2,  (0/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (3/5) * settings.w/2,  (0/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (0/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "cross" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "star" then
+    return {
+      love.physics.newPolygonShape(
+        (-3/3) * settings.w/2,   (-1/3) * settings.h/2,
+        (3/3) * settings.w/2,  (-1/3) * settings.h/2,
+        (0/3) * settings.w/2,  (1/3) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/3) * settings.w/2,   (-3/3) * settings.h/2,
+        (-2/3) * settings.w/2,  (2/3) * settings.h/2,
+        (0/3) * settings.w/2,  (1/3) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/3) * settings.w/2,   (-3/3) * settings.h/2,
+        (2/3) * settings.w/2,  (2/3) * settings.h/2,
+        (0/3) * settings.w/2,  (1/3) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "arrow" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (0/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (0/5) * settings.h/2,
+        (2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "moon" then
+    return {
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (3/5) * settings.h/2,
+        (2/5) * settings.w/2,  (4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-4/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (4/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-4/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (4/5) * settings.h/2,
+        (5/5) * settings.w/2,  (2/5) * settings.h/2,
+        (2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (-4/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+    }
+  end
+  if settings.shape == "pentagon" then
+    return {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-1/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (5/5) * settings.h/2,
+        (3/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/5) * settings.w/2,   (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-1/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-1/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "octogon" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (2/5) * settings.h/2,
+        (2/5) * settings.w/2,  (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (2/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "trapezoid" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (5/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (5/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "parallelogram" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (5/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (5/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      
+    }
+  end
+
+  if settings.shape == "kite" then
+    return {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+    }
+
+  end
+
+  if settings.shape == "club" then
+    return {
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (-6/6) * settings.h/2,
+        (-3/6) * settings.w/2,  (-3/6) * settings.h/2,
+        (0/6) * settings.w/2,  (0/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (0/6) * settings.h/2,
+        (3/6) * settings.w/2,  (-3/6) * settings.h/2,
+        (0/6) * settings.w/2,  (-6/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/6) * settings.w/2,   (-2/6) * settings.h/2,
+        (0/6) * settings.w/2,  (1/6) * settings.h/2,
+        (3/6) * settings.w/2,  (4/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/6) * settings.w/2,   (4/6) * settings.h/2,
+        (6/6) * settings.w/2,  (1/6) * settings.h/2,
+        (3/6) * settings.w/2,  (-2/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (1/6) * settings.h/2,
+        (-3/6) * settings.w/2,  (-2/6) * settings.h/2,
+        (-6/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-6/6) * settings.w/2,   (1/6) * settings.h/2,
+        (-3/6) * settings.w/2,  (4/6) * settings.h/2,
+        (0/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-1/6) * settings.w/2,   (5/6) * settings.h/2,
+        (0/6) * settings.w/2,  (1/6) * settings.h/2,
+        (1/6) * settings.w/2,  (5/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-3/6) * settings.w/2,   (-2/6) * settings.h/2,
+        (-5/6) * settings.w/2,  (-1/6) * settings.h/2,
+        (-6/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-3/6) * settings.w/2,   (-2/6) * settings.h/2,
+        (-1/6) * settings.w/2,  (-1/6) * settings.h/2,
+        (0/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (1/6) * settings.h/2,
+        (-1/6) * settings.w/2,  (3/6) * settings.h/2,
+        (-3/6) * settings.w/2,  (4/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-3/6) * settings.w/2,   (4/6) * settings.h/2,
+        (-5/6) * settings.w/2,  (3/6) * settings.h/2,
+        (-6/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (1/6) * settings.h/2,
+        (1/6) * settings.w/2,  (3/6) * settings.h/2,
+        (3/6) * settings.w/2,  (4/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/6) * settings.w/2,   (4/6) * settings.h/2,
+        (5/6) * settings.w/2,  (3/6) * settings.h/2,
+        (6/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (6/6) * settings.w/2,   (1/6) * settings.h/2,
+        (5/6) * settings.w/2,  (-1/6) * settings.h/2,
+        (3/6) * settings.w/2,  (-2/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/6) * settings.w/2,   (-2/6) * settings.h/2,
+        (1/6) * settings.w/2,  (-1/6) * settings.h/2,
+        (0/6) * settings.w/2,  (1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (0/6) * settings.h/2,
+        (-3/6) * settings.w/2,  (-3/6) * settings.h/2,
+        (-2/6) * settings.w/2,  (-1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (0/6) * settings.h/2,
+        (3/6) * settings.w/2,  (-3/6) * settings.h/2,
+        (2/6) * settings.w/2,  (-1/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/6) * settings.w/2,   (-3/6) * settings.h/2,
+        (2/6) * settings.w/2,  (-5/6) * settings.h/2,
+        (0/6) * settings.w/2,  (-6/6) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/6) * settings.w/2,   (-6/6) * settings.h/2,
+        (-2/6) * settings.w/2,  (-5/6) * settings.h/2,
+        (-3/6) * settings.w/2,  (-3/6) * settings.h/2
+      ),
+    }
+  end
+
+  if settings.shape == "tall-gem" then
+    return {
+      love.physics.newPolygonShape(
+        (0/3) * settings.w/2,   (-3/3) * settings.h/2,
+        (-2/3) * settings.w/2,  (-2/3) * settings.h/2,
+        (2/3) * settings.w/2,  (-2/3) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/3) * settings.w/2,   (3/3) * settings.h/2,
+        (-2/3) * settings.w/2,  (2/3) * settings.h/2,
+        (2/3) * settings.w/2,  (2/3) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/3) * settings.w/2,   (2/3) * settings.h/2,
+        (-2/3) * settings.w/2,  (-2/3) * settings.h/2,
+        (-2/3) * settings.w/2,  (2/3) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/3) * settings.w/2,   (-2/3) * settings.h/2,
+        (-2/3) * settings.w/2,  (-2/3) * settings.h/2,
+        (2/3) * settings.w/2,  (2/3) * settings.h/2
+      ),
+      
+    }
+  end
+
+  if settings.shape == "gem" then
+    return {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (3/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      
+    }
+  end
+
+  if settings.shape == "four-star" then
+    return {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (2/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (2/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (0/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (2/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (2/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-2/5) * settings.h/2
+      ),
+      
+    }
+  end
+
+  if settings.shape == "stairs" then
+    return {
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (3/5) * settings.h/2,
+        (5/5) * settings.w/2,  (3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-3/5) * settings.w/2,   (3/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (1/5) * settings.h/2,
+        (-1/5) * settings.w/2,  (-1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (1/5) * settings.w/2,   (-1/5) * settings.h/2,
+        (1/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (3/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (3/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (3/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-1/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-1/5) * settings.h/2,
+        (1/5) * settings.w/2,  (-1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-3/5) * settings.h/2
+      ),
+      love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-3/5) * settings.h/2,
+        (3/5) * settings.w/2,  (-3/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+    }
+  end
+
+  -- error if none found
+  if true then 
+    error("Wooden Blocks: Shape not found: " .. settings.shape)
   end
 end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
