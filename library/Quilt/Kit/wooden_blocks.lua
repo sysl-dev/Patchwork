@@ -497,42 +497,98 @@ end
   if settings.shape == "wine-glass" then
     obj.shape = {
       love.physics.newPolygonShape(
-      (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
-      (-5/5) * settings.w/2,  (-1/5) * settings.h/2,
-      (-4/5) * settings.w/2,  (1/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0/5) * settings.w/2,   (1/5) * settings.h/2,
-      (-5/5) * settings.w/2,  (-1/5) * settings.h/2,
-      (-4/5) * settings.w/2,  (1/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (5/5) * settings.w/2,   (-5/5) * settings.h/2,
-      (5/5) * settings.w/2,  (-1/5) * settings.h/2,
-      (4/5) * settings.w/2,  (1/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0/5) * settings.w/2,   (1/5) * settings.h/2,
-      (5/5) * settings.w/2,  (-1/5) * settings.h/2,
-      (4/5) * settings.w/2,  (1/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0/5) * settings.w/2,   (1/5) * settings.h/2,
-      (-1/5) * settings.w/2,  (5/5) * settings.h/2,
-      (1/5) * settings.w/2,  (5/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (0/5) * settings.w/2,   (4/5) * settings.h/2,
-      (-3/5) * settings.w/2,  (5/5) * settings.h/2,
-      (3/5) * settings.w/2,  (5/5) * settings.h/2
-    ),
-      love.physics.newPolygonShape(
-      (3/5) * settings.w/2,   (0/5) * settings.h/2,
-      (-3/5) * settings.w/2,  (0/5) * settings.h/2,
-      (0/5) * settings.w/2,  (2/5) * settings.h/2
-    ),
+        (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (1/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (-5/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2,
+        (4/5) * settings.w/2,  (-5/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (4/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (4/5) * settings.w/2,  (1/5) * settings.h/2,
+        (5/5) * settings.w/2,  (1/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-5/5) * settings.w/2,   (1/5) * settings.h/2,
+        (-4/5) * settings.w/2,  (1/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (5/5) * settings.w/2,   (1/5) * settings.h/2,
+        (4/5) * settings.w/2,  (1/5) * settings.h/2,
+        (3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-4/5) * settings.w/2,   (1/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (4/5) * settings.w/2,   (1/5) * settings.h/2,
+        (2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (3/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-3/5) * settings.w/2,   (2/5) * settings.h/2,
+        (3/5) * settings.w/2,  (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (3/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-1/5) * settings.w/2,   (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (5/5) * settings.h/2,
+        (1/5) * settings.w/2,  (2/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-3/5) * settings.w/2,   (5/5) * settings.h/2,
+        (0/5) * settings.w/2,  (4/5) * settings.h/2,
+        (3/5) * settings.w/2,  (5/5) * settings.h/2
+      ),
+       
+    }
+  end
 
-  }
+  if settings.shape == "triforce" then
+    obj.shape = {
+      love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (-2/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (-5/5) * settings.h/2,
+        (2/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-2/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (-5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (2/5) * settings.w/2,   (-2/5) * settings.h/2,
+        (5/5) * settings.w/2,  (-2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (-3/5) * settings.w/2,   (-1/5) * settings.h/2,
+        (-3/5) * settings.w/2,  (2/5) * settings.h/2,
+        (0/5) * settings.w/2,  (0/5) * settings.h/2
+      ),
+       love.physics.newPolygonShape(
+        (0/5) * settings.w/2,   (0/5) * settings.h/2,
+        (2/5) * settings.w/2,  (2/5) * settings.h/2,
+        (3/5) * settings.w/2,  (-1/5) * settings.h/2
+      ),
+       
+    }
   end
 
 

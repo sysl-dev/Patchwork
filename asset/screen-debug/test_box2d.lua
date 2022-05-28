@@ -64,11 +64,16 @@ obj_pool[#obj_pool+1] = Wblock.create_simple_object({
   mass = 100,
 })
 
-for i = 1, 4 do 
-
-
-
-  
+for i = 1, 1 do 
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 200,
+    y = 100 + 20 - i * 20,
+    w = 16,
+    h = 16,
+    body_type = "dynamic",
+    shape = "triforce",
+    __scale = true,
+  })
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
     x = 180,
     y = 100 + 20 - i * 20,
@@ -125,6 +130,16 @@ for i = 1, 4 do
 
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
     x = 40,
+    y = 100 + 20 - i * 25,
+    radius = 3,
+    body_type = "dynamic",
+    shape = "circle",
+    __scale = true,
+    img="x10",
+  })
+
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 40,
     y = 100 + 20 - i * 30,
     w = 16,
     h = 16,
@@ -134,6 +149,16 @@ for i = 1, 4 do
     img="glass",
   })
 
+  obj_pool[#obj_pool+1] = Wblock.create_simple_object({
+    x = 20,
+    y = 100 + 20 - i * 25,
+    radius = 3,
+    body_type = "dynamic",
+    shape = "circle",
+    __scale = true,
+    img="x10",
+  })
+  
 
   obj_pool[#obj_pool+1] = Wblock.create_simple_object({
     x = 20,
