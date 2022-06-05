@@ -32,16 +32,44 @@ local m = {
 }
 -- TODO: 
 -- Create Custom Object [Allow a shapes table to be passed in.]
+-- Change obj pool to just obj [x]
 
--- Test Area (Rect/Circle)
+-- Check Area
+  -- Rect
+  -- Circle
+  -- Raycast
 
 -- Drawing helpers 
   -- Debug [X]
   -- Basic [X]
   -- Own Draw Function [ ]
+
+-- Update Helpers
+  -- Correct Remove to always use tables since that's how the system works [x]
+
 -- Joints
-  -- Joints should create a record in both bodies for tracking.
-  -- Oh god joints are a nightmare.
+  -- Joints should create a record in joints table. [ ]
+  -- Oh god joints are a nightmare. [X]
+  -- Create mouse joint helper [/]
+    -- DistanceJoint [ ]
+    -- FrictionJoint [ ]
+    -- GearJoint [ ]
+    -- MotorJoint [ ]
+    -- MouseJoint [ ]
+    -- PrismaticJoin [ ]
+    -- PulleyJoint [ ]
+    -- RevoluteJoint [ ]
+    -- RopeJoint [ ]
+    -- WeldJoint [ ]
+    -- WheelJoint [ ]
+
+-- Helper Functions
+  -- Update Shape
+    -- Fixture [ ]
+    -- Body [ ]
+    -- Shape [ ]
+
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -66,6 +94,12 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 -- Container to hold world
 m.world = nil
+
+-- Don't update if slower than
+m.maxdt = 1/15
+
+-- Don't update if we're paused
+m.paused = false
 
 -- Callback and Rules Containers 
 m.rules_beginContact = {}
@@ -150,84 +184,87 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.setup(settings)
   settings = settings or {}
-  -- Step 1 - Create/Get World 
-  -- Check if we're passed a world.
-  if type(settings.world) == "userdata" and settings.world.getGravity then 
-    -- We were passed a world, we're going to use it.
-    m.world = settings.world
-  else
-    -- Create a new world with the settings.
+
+  -- Step 1 - Create a new world with the settings.
     settings.world_gravity_x = settings.world_gravity_x or 0
     settings.world_gravity_y = settings.world_gravity_y or 0
     settings.world_allow_sleep = settings.world_allow_sleep or true
     m.world = love.physics.newWorld(settings.world_gravity_x, settings.world_gravity_y, settings.world_allow_sleep)
-  end
 
   -- Step 2 - Apply Callbacks 
   m.world:setCallbacks(m.beginContact, m.endContact, m.preSolve, m.postSolve)
 
   -- Step 3 - Set 1 Meter = 16 PX
-  love.physics.setMeter(settings.meter or 16)
+  love.physics.setMeter(settings.pixels_per_meter or 16)
+
+  -- Step 4 - Other Settings
+  m.maxdt = settings.maxdt or m.maxdt
+  m.pause = settings.pause or m.pause
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Update the world.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.update(dt, physics_watch_list)
-  if m.world then 
+function m.update(dt, object_pool, joint_pool)
+  -- Don't update if we're going to slow. (Usually happens when dragging the love2d window.)
+  if dt > m.maxdt then return end
 
-    -- We run though things to do pre-update and remove them once done.
+  -- If the world is paused, don't update.
+  if m.pause then return end
+
+  -- If the world exists we can start work.
+  if m.world then 
+    --[[--------------------------------------------
+    * Pre Update Callbacks
+    ---------------------------------------------]]--
     for i=#m.do_before_update, 1, -1 do 
       m.do_before_update[i].fun()
       table.remove(m.do_before_update, i)
     end
 
-    -- For each pool we're asked to monitor we step though and remove items tagged for removal.
-    if type(physics_watch_list) == "table" then
-      -------------------------------------- 
-      -- For each pool we are watching
-      for physics_pool = #physics_watch_list, 1, -1 do
-        -- Get a pool
-        for i=#physics_watch_list[physics_pool], 1, -1 do 
-          -- Check if the object is set to remove
-          if physics_watch_list[physics_pool][i].remove then 
-            -- Destroy Fixtures
-            if type(physics_watch_list[physics_pool][i].fixture) == "table" then 
-              for x=1, #physics_watch_list[physics_pool][i].fixture do
-                physics_watch_list[physics_pool][i].fixture[x]:destroy()
-              end
-            else
-              physics_watch_list[physics_pool][i].fixture:destroy()
+    --[[--------------------------------------------
+    * Pool Loop
+    ---------------------------------------------]]--
+    for physics_item = #object_pool, 1, -1 do
+      local selected_physics_item = object_pool[physics_item]
+      local b = selected_physics_item.body
+      local f = selected_physics_item.fixture
+      local s = selected_physics_item.shape
+      local j = b:getJoints()
+      --[[--------------------------------------------
+      * Removal
+      ---------------------------------------------]]--
+      if selected_physics_item.__remove then 
+        -- Destory Joints
+        for obj_joint=1, #j do 
+          for joint=#joint_pool, 1, -1 do
+            if joint_pool[joint] == j[obj_joint] then
+              j[obj_joint]:destroy()
+              table.remove(joint_pool, joint)
             end
-           -- Destroy Shapes
-            if physics_watch_list[physics_pool][i].shape then 
-              if type(physics_watch_list[physics_pool][i].shape) == "table" then 
-                for x=1, #physics_watch_list[physics_pool][i].shape do
-                  physics_watch_list[physics_pool][i].shape[x]:release()
-                end
-              else
-                physics_watch_list[physics_pool][i].shape:release()
-              end
-            end
-            -- Destory Joints
-            if physics_watch_list[physics_pool][i].joint then 
-              if type(physics_watch_list[physics_pool][i].joint) == "table" then 
-                for x=1, #physics_watch_list[physics_pool][i].joint do
-                  physics_watch_list[physics_pool][i].joint[x]:destroy()
-                end
-              else
-                physics_watch_list[physics_pool][i].joint:destroy()
-              end
-            end
-            -- Destory the Body
-            physics_watch_list[physics_pool][i].body:destroy()
-            -- Remove the object from thr pool.
-            table.remove(physics_watch_list[physics_pool],i)
           end
         end
+        -- Destroy Fixtures
+          for x=1, #f do
+            f[x]:destroy()
+          end
+        -- Release Shapes
+        if s then 
+          for x=1, #s do
+            s[x]:release()
+          end
+        end
+        -- Destory the Body
+        b:destroy()
+        -- Remove the object from thr pool.
+        table.remove(object_pool,physics_item)
       end
-      --------------------------------------
+      --[[--------------------------------------------
+      * /Removal
+      ---------------------------------------------]]--
     end
+    --------------------------------------
+  
     -- Update the world 
     m.world:update(dt)
 
@@ -252,37 +289,44 @@ local function draw_shape(shape_type, shape, body)
   love.graphics.setColor(1,1,1,1)
 end
 
-function m.debug_draw_pool(pool, names)
+function m.debug_draw_pool(object_pool, names, joint_pool)
   -- Draw From Pool
-  for i=1, #pool do 
-    if pool[i].body then
-      if type(pool[i].shape) == "table" then 
+  for item=1, #object_pool do 
+    if object_pool[item].body then
+      if type(object_pool[item].shape) == "table" then 
         -- Table Stuff
-        for x=1, #pool[i].shape do 
-          local shape_type = pool[i].shape[x]:getType()
-        draw_shape(shape_type, pool[i].shape[x], pool[i].body)
+        for x=1, #object_pool[item].shape do 
+          local shape_type = object_pool[item].shape[x]:getType()
+        draw_shape(shape_type, object_pool[item].shape[x], object_pool[item].body)
         end
       else 
         -- Check and draw shapes
-        local shape_type = pool[i].shape:getType()
-        draw_shape(shape_type, pool[i].shape, pool[i].body)
+        local shape_type = object_pool[item].shape:getType()
+        draw_shape(shape_type, object_pool[item].shape, object_pool[item].body)
         -- Step out of table check
       end
       if names then 
-        love.graphics.print(pool[i].settings.name, pool[i].body:getX(), pool[i].body:getY())
+        love.graphics.print(object_pool[item].settings.name, object_pool[item].body:getX(), object_pool[item].body:getY())
       end
       -- Step out of body check
 
     end
     -- Highlight Joints
     love.graphics.setColor(1,0,0,1)
-    if pool[i].joint then 
-      for jo = 1, #pool[i].joint do
-        local x1, y1, x2, y2 = pool[i].joint[jo]:getAnchors( )
+    if joint_pool then 
+      for jo = 1, #joint_pool do
+        local x1, y1, x2, y2 = joint_pool[jo]:getAnchors( )
         love.graphics.rectangle("fill", x1, y1, 1, 1)
         if x2 then 
           love.graphics.rectangle("fill", x2, y2, 1, 1)
         end
+      end
+    end
+    if joint_pool.mouse then 
+      local x1, y1, x2, y2 = joint_pool.mouse:getAnchors( )
+      love.graphics.rectangle("fill", x1, y1, 1, 1)
+      if x2 then 
+        love.graphics.rectangle("fill", x2, y2, 1, 1)
       end
     end
     love.graphics.setColor(1,1,1,1)
@@ -294,40 +338,44 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw images for things
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.draw(pool_table, settings)
-  local img = Texture.zzzzz_test.kit_wooden_block
-  if type(pool_table) == "table" then
-    for pool=1, #pool_table do 
-      for selected_pool=1, #pool_table[pool] do
-        -- Shortcut to the current pool.
-        local current_pool = pool_table[pool][selected_pool]
-        local s = current_pool.fixture[1]:getUserData().settings
-        --[[--------------------------------------------
-        * Simple Draw
-        ---------------------------------------------]]--
-        if current_pool.settings.__type == "simple" and s.img then
-          local image = img[s.img]
-          local image_w = image:getWidth()
-          local image_h = image:getHeight()
-          local iw = round(s.w/2) + round(img[s.img]:getWidth()/2 - s.w/2)
-          local ih = round(s.h/2) + round(img[s.img]:getHeight()/2 - s.h/2)
-          local sx = 1
-          local sy = 1
-          -- Should we scale our image to fit the object?
-          if s.__scale then
-            sx = ((s.w - image_w)) / image_w
-            sx = 1 + 1 * (sx)
-            sy = ((s.h - image_h)) / image_h
-            sy = 1 + 1 * (sy)
-          end
-  
-          love.graphics.draw(image, round(current_pool.body:getX()), round(current_pool.body:getY()), current_pool.body:getAngle(), sx, sy, iw, ih)
-        end
-        -- End Simple Draw
+function m.draw(object_pool, settings)
+  local image_table = settings.image_table
+    for item=1, #object_pool do 
+    -- Shortcut to the current pool.
+    local b = object_pool[item].body
+    local s = b:getUserData().settings
+    --[[--------------------------------------------
+    * Simple Draw
+    ---------------------------------------------]]--
+    if s.__type == "simple" and s.img then
+      local image = image_table[s.img]
+      local image_w = image:getWidth()
+      local image_h = image:getHeight()
+      local iw = round(s.w/2) + round(image_table[s.img]:getWidth()/2 - s.w/2)
+      local ih = round(s.h/2) + round(image_table[s.img]:getHeight()/2 - s.h/2)
+      local sx = 1
+      local sy = 1
+      -- Should we scale our image to fit the object?
+      if s.__scale then
+        sx = ((s.w - image_w)) / image_w
+        sx = 1 + 1 * (sx)
+        sy = ((s.h - image_h)) / image_h
+        sy = 1 + 1 * (sy)
       end
+      -- Draw the final image
+      love.graphics.draw(image, round(b:getX()), round(b:getY()), b:getAngle(), sx, sy, iw, ih)
     end
+    -- End Simple Draw
+    --[[--------------------------------------------
+    * x Draw
+    ---------------------------------------------]]--
+    if s.__type == "x" then
+
+    end
+    -- End X Draw 
   end
 end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -338,9 +386,9 @@ end
   * Simple Shape
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 -- A simple object is an object with only one shape
-function m.create_simple_object(settings, world)
+function m.create_simple_object(settings)
   -- Use our world if none was provided.
-  world = world or m.world
+  local world = settings.world or m.world
 
   -- Create a table to store our new object
   local obj = {}
@@ -425,9 +473,9 @@ function m.create_simple_object(settings, world)
   --[[--------------------------------------------
   * 'Hidden' Settings
   ---------------------------------------------]]--
-  settings.__type = "simple"
-  settings.__scale = settings.__scale or false
-  settings.__joint_record_table = {}
+  settings.__type = "simple" -- Just for reference 
+  settings.__scale = settings.__scale or false -- Scale Image w/ Size of Object // Draw Helper
+  settings.__remove = settings.__remove or false -- Remove this object if true // Update Helper
   -- settings.img = draw simple image.
 
   -- PUT THE PARTS TOGETHER
@@ -486,15 +534,12 @@ function m.create_simple_object(settings, world)
     obj.fixture[i]:setDensity(settings.density)
     -- Friction
     obj.fixture[i]:setFriction(settings.friction)
-    -- Data
-    obj.fixture[i]:setUserData(obj)
-  
   end
 
   obj.body:resetMassData()
 
-  -- Step 6 - Create a joint connection holder
-  obj.joint = {}
+  -- The body holds the user data for the object.
+  obj.body:setUserData(obj)
 
   return obj
 end
@@ -506,8 +551,9 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.remove_all_from_pool(pool)
   for i = #pool, 1, -1 do
-    pool[i].remove = true
+    pool[i].__remove = true
   end
+
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -921,6 +967,7 @@ function m.get_shape_table_from_name(settings)
       ),
     }
   end
+
   if settings.shape == "pentagon" then
     return {
       love.physics.newPolygonShape(
