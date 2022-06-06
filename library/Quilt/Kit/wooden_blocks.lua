@@ -35,9 +35,10 @@ local m = {
 -- Change obj pool to just obj [x]
 
 -- Check Area
-  -- Rect
+  -- Rectangle
   -- Circle
   -- Raycast
+  -- Point
 
 -- Drawing helpers 
   -- Debug [X]
@@ -50,12 +51,12 @@ local m = {
 -- Joints
   -- Joints should create a record in joints table. [ ]
   -- Oh god joints are a nightmare. [X]
-  -- Create mouse joint helper [/]
+  -- Create mouse joint helper [X]
     -- DistanceJoint [ ]
     -- FrictionJoint [ ]
     -- GearJoint [ ]
     -- MotorJoint [ ]
-    -- MouseJoint [ ]
+    -- MouseJoint [X]
     -- PrismaticJoin [ ]
     -- PulleyJoint [ ]
     -- RevoluteJoint [ ]
@@ -68,6 +69,11 @@ local m = {
     -- Fixture [ ]
     -- Body [ ]
     -- Shape [ ]
+
+  -- Update World 
+    -- Gravity
+    -- Meter 
+    -- ??
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -100,6 +106,19 @@ m.maxdt = 1/15
 
 -- Don't update if we're paused
 m.paused = false
+
+-- Debug Colors 
+m.debug_colors = {
+shape = {1,1,1,0.8},
+joint = {1,1,1,1},
+name = {0,1,1,1},
+}
+
+-- Mouse Functions 
+m.mouse = {
+  love.mouse.getX,
+  love.mouse.getY,
+  }
 
 -- Callback and Rules Containers 
 m.rules_beginContact = {}
@@ -200,6 +219,8 @@ function m.setup(settings)
   -- Step 4 - Other Settings
   m.maxdt = settings.maxdt or m.maxdt
   m.pause = settings.pause or m.pause
+  m.debug_colors = settings.debug_colors or m.debug_colors
+  m.mouse = settings.mouse or m.mouse
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -223,7 +244,7 @@ function m.update(dt, object_pool, joint_pool)
     end
 
     --[[--------------------------------------------
-    * Pool Loop
+    * Pool Loop - Object
     ---------------------------------------------]]--
     for physics_item = #object_pool, 1, -1 do
       local selected_physics_item = object_pool[physics_item]
@@ -238,7 +259,7 @@ function m.update(dt, object_pool, joint_pool)
         -- Destory Joints
         for obj_joint=1, #j do 
           for joint=#joint_pool, 1, -1 do
-            if joint_pool[joint] == j[obj_joint] then
+            if joint_pool[joint].data == j[obj_joint] then
               j[obj_joint]:destroy()
               table.remove(joint_pool, joint)
             end
@@ -263,78 +284,27 @@ function m.update(dt, object_pool, joint_pool)
       * /Removal
       ---------------------------------------------]]--
     end
-    --------------------------------------
-  
-    -- Update the world 
+    --[[--------------------------------------------
+    * Pool Loop - Joints
+    ---------------------------------------------]]--
+    for i=#joint_pool, 1, -1 do 
+      --[[--------------------------------------------
+      * Mouse Joints Move Towards Mouse
+      ---------------------------------------------]]--
+      if joint_pool[i].data:getType() == "mouse" then 
+        joint_pool[i].data:setTarget(m.mouse[1](), m.mouse[2]())
+      end
+    end
+
+    --[[--------------------------------------------
+    * World Update
+    ---------------------------------------------]]--
     m.world:update(dt)
 
   end
   -- End of world only updates
 end
 
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Draw Debug Shapes (oof)
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function draw_shape(shape_type, shape, body)
-  love.graphics.setColor(1,1,1,1)
-  if shape_type == "polygon" then
-    love.graphics.polygon("fill", body:getWorldPoints(shape:getPoints()))
-  end
-  -- Round Shapes
-  if shape_type == "circle" then
-    local x, y = body:getWorldPoint(shape:getPoint())
-    local r = shape:getRadius()
-    love.graphics.circle("fill", x, y, r)
-  end
-  love.graphics.setColor(1,1,1,1)
-end
-
-function m.debug_draw_pool(object_pool, names, joint_pool)
-  -- Draw From Pool
-  for item=1, #object_pool do 
-    if object_pool[item].body then
-      if type(object_pool[item].shape) == "table" then 
-        -- Table Stuff
-        for x=1, #object_pool[item].shape do 
-          local shape_type = object_pool[item].shape[x]:getType()
-        draw_shape(shape_type, object_pool[item].shape[x], object_pool[item].body)
-        end
-      else 
-        -- Check and draw shapes
-        local shape_type = object_pool[item].shape:getType()
-        draw_shape(shape_type, object_pool[item].shape, object_pool[item].body)
-        -- Step out of table check
-      end
-      if names then 
-        love.graphics.print(object_pool[item].settings.name, object_pool[item].body:getX(), object_pool[item].body:getY())
-      end
-      -- Step out of body check
-
-    end
-    -- Highlight Joints
-    love.graphics.setColor(1,0,0,1)
-    if joint_pool then 
-      for jo = 1, #joint_pool do
-        local x1, y1, x2, y2 = joint_pool[jo]:getAnchors( )
-        love.graphics.rectangle("fill", x1, y1, 1, 1)
-        if x2 then 
-          love.graphics.rectangle("fill", x2, y2, 1, 1)
-        end
-      end
-    end
-    if joint_pool.mouse then 
-      local x1, y1, x2, y2 = joint_pool.mouse:getAnchors( )
-      love.graphics.rectangle("fill", x1, y1, 1, 1)
-      if x2 then 
-        love.graphics.rectangle("fill", x2, y2, 1, 1)
-      end
-    end
-    love.graphics.setColor(1,1,1,1)
-    -- End Joints 
-    -- Step out of loop
-  end
-  -- End Function
-end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw images for things
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -404,7 +374,7 @@ function m.create_simple_object(settings)
   -- settings.w, settings.h, settings.x, settings.y
 
   -- Name
-  settings.name = settings.name or tostring(settings.shape) .. tostring(settings.x) .. tostring(settings.y) .. tostring(settings.y * settings.x)
+  settings.name = settings.name or tostring(settings.shape) .. tostring(m.world:getBodyCount())
 
   -- If we have just radius, set width/height based on it.
   if settings.radius then 
@@ -545,17 +515,310 @@ function m.create_simple_object(settings)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Complex Object??
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Joint
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Joint Type Cheater
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.joint_type = {
+
+  distance = love.physics.newDistanceJoint,
+
+  -- Applies Friction To a Body when inside another body?
+  friction = love.physics.newFrictionJoint,
+  friction2 = love.physics.newFrictionJoint,
+
+  gear = love.physics.newGearJoint,
+
+  motor = love.physics.newMotorJoint,
+
+  mouse = love.physics.newMouseJoint, 
+
+  prismatic = love.physics.newPrismaticJoint,
+  prismatic2 = love.physics.newPrismaticJoint,
+
+  pulley = love.physics.newPulleyJoint,
+
+  revolute = love.physics.newRevoluteJoint,
+  revolute2 = love.physics.newRevoluteJoint,
+
+  rope = love.physics.newRopeJoint,
+
+  weld = love.physics.newWeldJoint,
+  weld2 = love.physics.newWeldJoint,
+
+  wheel = love.physics.newWheelJoint,
+  wheel2 = love.physics.newWheelJoint,
+}
+
+m.joint_requirements = {
+  distance = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"},
+
+  friction = {"body1", "body2", "x", "y", "collide_connected"},
+  friction2 = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"},
+
+  gear = {"joint1", "joint2", "ratio", "collide_connected"},
+
+  motor = {"body1", "body2", "correction_factor", "collide_connected"},
+
+  mouse = {"body1", "x", "y"},
+
+  prismatic = {"body1", "body2", "x", "y", "ax", "ay", "collide_connected"},
+  prismatic2 = {"body1", "body2", "x1", "y1", "x2", "y2", "ax", "ay", "collide_connected", "reference_angle"},
+
+  pulley = {"body1", "body2", "gx1", "gy1", "gx2", "gy2", "x1", "y1", "x2", "y2", "ratio", "collide_connected"},
+
+  revolute = {"body1", "body2", "x", "y", "collide_connected"},
+  revolute2 = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected", "reference_angle"},
+
+  rope = {"body1", "body2", "x1", "y1", "x2", "y2", "max_length", "collide_connected"},
+
+  weld = {"body1", "body2", "x", "y", "collide_connected"},
+  weld2 = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"},
+
+  wheel = {"body1", "body2", "x", "y", "ax", "ay", "collide_connected"},
+  wheel2 = {"body1", "body2", "x1", "y1", "x2", "y2", "ax", "ay", "collide_connected"},
+}
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Joint - Create
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.create_joint(settings)
+  local joint = {}
+  local s = settings
+
+  -- Joints require a name
+  assert(s.name, "Joints must have a name.")
+  joint.name = s.name 
+
+  -- Create the joint w/ arguments
+  local joint_args = {}
+  for i=1, #m.joint_requirements[s.type] do 
+    -- Note to self:
+    -- This reads the list of required arguements in order, assignes them in order as a table with the matching settings.
+    -- Ex: m.joint_requirements[s.type][i] = body 1, 1 = s.body1
+    joint_args[i] = s[m.joint_requirements[s.type][i]]
+  end
+  
+  joint.data = m.joint_type[s.type](unpack(joint_args))
+  joint.data:setUserData(joint)
+
+  if s.max_force then joint.data:setMaxForce(s.max_force) end
+  return joint
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Joint - Helper - Mouse Joint
+  - Creates a Mouse Joint if there is a fixture under it that overlaps with the point.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.create_mouse_joint(settings)
+  local created = false
+  local s = settings
+  s.mx = s.mx or m.mouse[1]()
+  s.my = s.my or m.mouse[2]()
+  s.fixed_rotation = s.fixed_rotation or false
+  s.more_than_one_mouse_joint = s.more_than_one_mouse_joint or false
+  s.name = s.name or "mouse"
+
+  m.world:queryBoundingBox(s.mx, s.my, s.mx, s.my, function(found_fixture) 
+    -- Clear the found point in fixture
+    local found_point_in_fixture = false
+
+    -- Return if we've already got a mouse fixture
+    if not s.more_than_one_mouse_joint then 
+      for i=#s.joint_pool, 1, -1 do
+        if s.joint_pool[i].data:getType() == "mouse" then 
+          return false
+        end
+      end
+    end
+
+    -- Do a test to see if the mouse is really on a fixture inside the AABB test
+    local fixture_list = found_fixture:getBody():getUserData().fixture
+    for i=1, #fixture_list do 
+      if fixture_list[i]:testPoint(s.mx, s.my) then 
+        found_point_in_fixture = true
+      end
+    end
+
+    -- If it is inside, create the joint.
+    if found_point_in_fixture then 
+      s.joint_pool[#s.joint_pool+1] = m.create_joint({
+        name = s.name,
+        type = "mouse",
+        collide_connected = false,
+        body1 = found_fixture:getBody(),
+        x = s.mx,
+        y = s.my,
+      })
+      -- Confirm we created it
+      created = true
+      -- Lock the rotation?
+      found_fixture:getBody():getUserData().body:setFixedRotation(s.fixed_rotation)
+    end
+
+    return not found_point_in_fixture
+  end )
+  -- We return if we created the joint or not to track the number we created. We can use this for multi-mouse joint push/pop queues
+  return created
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Joint - Helper - Mouse Joint
+  - Remove the mouse joint if it exists
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.remove_mouse_joint(settings)
+  local s = settings
+  local removed = false
+  local removed_count = 0
+  s.remove_one = s.remove_one or false
+  s.name = s.name or ""
+  -- Scan the pool, check for a mouse type joint
+  for i=#s.joint_pool, 1, -1 do
+    if s.joint_pool[i].data:getType() == "mouse" and not s.remove_one or s.joint_pool[i].name == s.name then 
+
+      -- Get the bodies and restore the default settings for locked rotation/angle
+      local mouse_body = s.joint_pool[i].data:getBodies()
+      mouse_body:setFixedRotation(mouse_body:getUserData().settings.lock_angle)
+      -- Destory the joint, clear from pool.
+      s.joint_pool[i].data:destroy()
+      table.remove(s.joint_pool, i)
+      removed = true
+      removed_count = removed_count + 1
+
+    end
+  end
+  -- We return if we created the joint or not to track the number we created. We can use this for multi-mouse joint push/pop queues
+  -- We return the number removed if we're mixing a push/pop queue with a remove all queue
+  return removed, removed_count
+end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+  * Helper Functions
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Remove All Objects
-
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.remove_all_from_pool(pool)
   for i = #pool, 1, -1 do
     pool[i].__remove = true
   end
-
 end
 
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+  * Debug
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Draw Debug Shapes (oof)
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local function draw_shape(shape_type, shape, body)
+  -- Polygon Shapes (Tri, Quad) are drawn by world points.
+  if shape_type == "polygon" then
+    love.graphics.polygon("fill", body:getWorldPoints(shape:getPoints()))
+  end
+  -- Round Shapes are drawn from center point.
+  if shape_type == "circle" then
+    local x, y = body:getWorldPoint(shape:getPoint())
+    local r = shape:getRadius()
+    love.graphics.circle("fill", x, y, r)
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Draw Filled In Shape Pool + Joints + Names 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.debug_draw_pool(object_pool, joint_pool, names)
+  -- Capture Color 
+  local cr,cg,cb,ca = love.graphics.getColor()
+
+  -- OBJECT POOL LOOP START
+  for item=1, #object_pool do 
+
+    -- Shape Color
+    love.graphics.setColor(m.debug_colors.shape)
+
+    -- Create references 
+    local selected_physics_item = object_pool[item]
+    local p = selected_physics_item.settings
+    local b = selected_physics_item.body
+    local s = selected_physics_item.shape
+
+    -- Draw each shape in the body
+    for current_shape=1, #s do 
+      local shape_type = s[current_shape]:getType()
+      draw_shape(shape_type, s[current_shape], b)
+    end
+
+    -- Name Color
+    love.graphics.setColor(m.debug_colors.name)
+    if names then 
+      love.graphics.print(p.name, b:getX(), b:getY())
+    end
+  end
+  -- OBJECT POOL LOOP END
+
+  -- Joint Color 
+  love.graphics.setColor(m.debug_colors.joint)
+
+  -- JOINT POOL LOOP START
+  if joint_pool then 
+    for jo = 1, #joint_pool do
+      local x1, y1, x2, y2 = joint_pool[jo].data:getAnchors( )
+      love.graphics.rectangle("fill", x1, y1, 1, 1)
+      if x2 then 
+        love.graphics.rectangle("fill", x2, y2, 1, 1)
+      end
+    end
+  end
+  -- JOINT POOL LOOP END
+
+  -- Reset Color
+  love.graphics.setColor(cr,cg,cb,ca)
+  -- End Joints 
+  -- End Function
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Print World Shapes
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.print_world_items(object_pool, joint_pool)
+  print("Object Pool")
+  for k,v in pairs(object_pool) do 
+    print(k,v,v.body)
+  end
+  print("Joint Pool")
+  for k,v in pairs(joint_pool) do 
+    print(k,v,v.data)
+  end
+  print("World Body List", m.world:getBodyCount())
+  for k,v in pairs(m.world:getBodies()) do 
+    print(k,v)
+  end
+  print("World Joint List", m.world:getJointCount())
+  for k,v in pairs(m.world:getJoints()) do 
+    print(k,v)
+  end
+end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+  * DATA FUNCTIONS
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Custom Box2D Shapes from Triangles 
@@ -1368,6 +1631,7 @@ function m.get_shape_table_from_name(settings)
     error("Wooden Blocks: Shape not found: " .. settings.shape)
   end
 end
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--

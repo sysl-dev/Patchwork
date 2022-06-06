@@ -1,34 +1,39 @@
 local scene = {}
 local debug_shapes = true
 local debug_name = false
-local run_right_away = true
 
 local function color(str)
   str = str or "FFFFFF"
   love.graphics.setColor(Utilities.color.hex2color(str))
 end
 
-local img = Texture.zzzzz_test.kit_wooden_block
-
 -------------------------------------------------------------------------------------------------------------------
 
 local Wblock = require("library.Quilt.Kit.wooden_blocks")
+scene.object_pool = {}
+scene.joint_pool = {}
+
 Wblock.setup({
   -- We can pass x/y/sleep options if we are not passing a world.
   world_gravity_x = 0,
   world_gravity_y = 1000,
   world_allow_sleep = true,
   pixels_per_meter = 16,
+  mouse = {Utilities.pixel_scale.mouse.get_x, Utilities.pixel_scale.mouse.get_y},
   maxdt = 1/15,
   pause = false,
+  debug_colors = {
+    shape = {0.9,0.9,0.9,1},
+    joint = {1,0.2,0,1},
+    name = {0,0.8,1,1},
+    }
 })
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * 
+  * Test Items
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-scene.object_pool = {}
-scene.joint_pool = {}
+
 
 scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
   x = 0,
@@ -67,8 +72,10 @@ scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
     shape = "rectangle",
     __scale = true,
     name = "dave",
-    img = "wall",
+    img = "floor",
+    density = 5,
   })
+
   scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
     x = 150 + 32 - 4,
     y = 126,
@@ -80,25 +87,27 @@ scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
   })
   
   scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 40 + 32 - 4,
-    y = 126,
-    w = 16,
-    h = 8,
-    body_type = "dynamic",
-    shape = "glass",
-    __scale = true,
-  })
-  
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
     x = 195,
     y = 0,
     w = 16,
     h = 16,
     body_type = "dynamic",
-    shape = "star",
+    shape = "heart",
     __scale = true,
     name = "star",
     density = 1,
+  })
+
+  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+    x = 160,
+    y = -100,
+    w = 16,
+    h = 16,
+    body_type = "dynamic",
+    shape = "diamond",
+    __scale = true,
+    bullet = true,
+    density = 20,
   })
   scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
     x = 160,
@@ -106,19 +115,34 @@ scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
     w = 16,
     h = 16,
     body_type = "dynamic",
-    shape = "moon",
+    shape = "spade",
+    __scale = true,
+    bullet = true,
+    density = 20,
+  })
+  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+    x = 160,
+    y = -100,
+    w = 16,
+    h = 16,
+    body_type = "dynamic",
+    shape = "club",
     __scale = true,
     bullet = true,
     density = 20,
   })
 
 
-
-  -- Joints should create 
-
-
-  scene.joint_pool[#scene.joint_pool + 1] = love.physics.newRevoluteJoint(scene.object_pool[5].body, scene.object_pool[5-1].body, scene.object_pool[5].settings.cx+0, scene.object_pool[5].settings.cy-4, true)
-
+-- Joints
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "revolute",
+  collide_connected = false,
+  body1 = scene.object_pool[5].body,
+  body2 = scene.object_pool[5-1].body,
+  x = scene.object_pool[5].settings.cx+0,
+  y = scene.object_pool[5].settings.cy-4,
+})
 
 
 Wblock.add_rule("pre", "test", function (a, b, coll)
@@ -141,44 +165,38 @@ end)
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * 
+  * Update
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function scene:update(dt)
-
-  if not run_right_away then 
-    dt = 0
-  end
-
-  if scene.joint_pool.mouse then 
-    scene.joint_pool.mouse:setTarget(Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y)
-  end
   Utilities.pixel_scale.update(dt)
   Wblock.update(dt, scene.object_pool, scene.joint_pool)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * 
+  * Draw
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function scene:draw()
   Utilities.pixel_scale.start()
-  color("000000")
-  love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+  -- Lazy Background 
+  color("0f0f0f")
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
   color()
 
+  -- Draw with draw functions on Wooden Block Bodies
   Wblock.draw(scene.object_pool, {image_table = Texture.zzzzz_test.kit_wooden_block})
 
-
-  -- Draw outlines of shapes. 
+  -- Draw Debug
   if debug_shapes then 
-    Wblock.debug_draw_pool(scene.object_pool, debug_name, scene.joint_pool)
+    Wblock.debug_draw_pool(scene.object_pool, scene.joint_pool, debug_name)
   end
 
-
+  -- Drag Debug Mouse Pos
   color("00FFFF")
   love.graphics.rectangle("fill", Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y, 1, 1)
   color()
 
   Utilities.pixel_scale.stop()
+  -- Small Text - Debug Data 
   Utilities.debug_tools.on_screen_debug_info()
 end
 
@@ -189,105 +207,64 @@ function scene:keypressed( key, scancode, isrepeat )
   if key == "`" then 
     debug_shapes = not debug_shapes
   end
-
-  if key == "1" then 
-    for i=1, #scene.object_pool do 
-      if scene.object_pool[i].body then
-        scene.object_pool[i].body:applyLinearImpulse(math.random(-40, 40),math.random(-40, 40) )
-      end      
-    end
-  end
-  if key == "2" then 
-    for i=1, #scene.object_pool do 
-      if scene.object_pool[i].body then
-        scene.object_pool[i].body:applyAngularImpulse(math.random(1,360))
-      end      
-    end
-  end
-  if key == "3" then 
-    for i=1, #scene.object_pool do 
-      if scene.object_pool[i].body then
-        scene.object_pool[i].body:applyLinearImpulse(0, -50)
-      end      
-    end
-  end
   if key == "0" then 
-    scene.joint_pool.mouse = nil 
     Wblock.remove_all_from_pool(scene.object_pool)
   end
+  if key == "1" then 
+    Wblock.print_world_items(scene.object_pool, scene.joint_pool)
+  end
+  if key == "2" then 
+
+  end
+  if key == "3" then 
+
+  end
+  if key == "4" then 
+
+  end
+  if key == "5" then 
+
+  end
+  if key == "6" then 
+
+  end
+  if key == "7" then 
+
+  end
+  if key == "8" then 
+
+  end
   if key == "9" then 
-    print("Object Pool")
-    for k,v in pairs(scene.object_pool) do 
-      print(k,v)
-    end
-    print("Joint Pool")
-    for k,v in pairs(scene.joint_pool) do 
-      print(k,v)
-    end
-    print("World Body List", Wblock.world:getBodyCount())
-    for k,v in pairs(Wblock.world:getBodies()) do 
-      print(k,v)
-    end
-    print("World Joint List", Wblock.world:getJointCount())
-    for k,v in pairs(Wblock.world:getJoints()) do 
-      print(k,v)
-    end
-    
+
   end
   if key == "space" then 
-    run_right_away = true
+    Wblock.pause = not Wblock.pause
   end
 end
 
+local mousecount = 0
 function scene:mousepressed(x,y,button)
   if button == 1 then 
-    Wblock.world:queryBoundingBox(Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y, Utilities.pixel_scale.mouse.x + 1, Utilities.pixel_scale.mouse.y + 1, function(f) 
-      local fnum = false
-      print(f) 
-      print(f:getBody():getUserData().fixture)
-      for i=1, #f:getBody():getUserData().fixture do 
-        print(f:getBody():getUserData().fixture[i]:testPoint(Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y ))
-        if f:getBody():getUserData().fixture[i]:testPoint(Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y) then 
-          fnum = true
-        end
-      end
-      if scene.joint_pool.mouse then 
-        local bodya, bodyb = scene.joint_pool.mouse:getBodies()
-        print("b", bodya)
-        print("gud", bodya:getUserData())
-
-          bodya:setFixedRotation(bodya:getUserData().settings.lock_angle)
-          print(bodya)
-          print(bodyb)
-
-        scene.joint_pool.mouse:destroy()
-        scene.joint_pool.mouse = nil
-      end
-      if fnum then 
-        scene.joint_pool.mouse = love.physics.newMouseJoint(f:getBody(), Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y)
-        f:getBody():getUserData().body:setFixedRotation(true)
-      end
-      return not fnum
-    
-    end )
+    local created = Wblock.create_mouse_joint({
+      joint_pool = scene.joint_pool,
+      more_than_one_mouse_joint = true,
+      name = "mouse" .. tostring(mousecount)
+    })
+    if created then mousecount = mousecount + 1 end
   end
   if button == 2 then 
-      Wblock.add_pre_update("toot", function()      
-        if scene.joint_pool.mouse then 
-          local bodya, bodyb = scene.joint_pool.mouse:getBodies()
-          print("b", bodya)
-          print("gud", bodya:getUserData())
-
-            bodya:setFixedRotation(bodya:getUserData().settings.lock_angle)
-            print(bodya)
-            print(bodyb)
-
-          scene.joint_pool.mouse:destroy()
-          scene.joint_pool.mouse = nil
-        end
-    end)
+    local removed, removed_count = Wblock.remove_mouse_joint({
+      joint_pool = scene.joint_pool,
+      name = "mouse" .. tostring(mousecount - 1),
+      remove_one = false,
+    })
+    if removed then mousecount = mousecount - removed_count end
   end
+
+  print(mousecount)
+
 end
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -331,4 +308,31 @@ WBox.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpuls
     end 
   end)
 end)
+
+
+Counting Attachments with the Mouse 
+
+local mousecount = 0
+function scene:mousepressed(x,y,button)
+  if button == 1 then 
+    local created = Wblock.create_mouse_joint({
+      joint_pool = scene.joint_pool,
+      more_than_one_mouse_joint = true,
+      name = "mouse" .. tostring(mousecount)
+    })
+    if created then mousecount = mousecount + 1 end
+  end
+  if button == 2 then 
+    local removed, removed_count = Wblock.remove_mouse_joint({
+      joint_pool = scene.joint_pool,
+      name = "mouse" .. tostring(mousecount - 1),
+      remove_one = false,
+    })
+    if removed then mousecount = mousecount - removed_count end
+  end
+
+  print(mousecount)
+
+end
+
 ]]--

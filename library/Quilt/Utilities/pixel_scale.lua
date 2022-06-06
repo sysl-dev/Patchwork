@@ -83,6 +83,15 @@ m.mouse = {
   y = 0,
 }
 
+-- Helper functions for the mosue.
+function m.mouse.get_x()
+  return m.mouse.x
+end
+
+function m.mouse.get_y()
+  return m.mouse.y
+end
+
 -- Shader Effects
 -- Scale Breaking Filters, apples after scaling.
 m.scale_breaking_shader = {}
