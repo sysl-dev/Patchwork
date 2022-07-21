@@ -32,21 +32,28 @@ Utilities.setup("library.Quilt.Utilities", {
   mouse = {},
 })
 
-Font = {
-  golden_apple = love.graphics.newFont(
-    "asset/font/golden_apple/golden_apple.fnt",
-    "asset/font/golden_apple/golden_apple.png"
-  ),
-}
-Font.default = Font.golden_apple
-love.graphics.setFont(Font.default)
-
---/DEL
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Assets
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Fonts - Load all fonts used in this project.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+Font = {
+  golden_apple = love.graphics.newFont(
+    "asset/font/golden_apple/golden_apple.fnt",
+    "asset/font/golden_apple/golden_apple.png"
+  ),
+  earth_illusion = love.graphics.newFont(
+    "asset/font/earth_illusion/earth_illusion.fnt",
+    "asset/font/earth_illusion/earth_illusion.png"
+  ),
+  ack_recall = love.graphics.newFont("asset/font/ack_recall/AckRecall.ttf", 16, "mono"),
+}
+
+Font.default = Font.golden_apple
+love.graphics.setFont(Font.default)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--

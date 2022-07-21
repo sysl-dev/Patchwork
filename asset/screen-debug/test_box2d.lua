@@ -1,167 +1,65 @@
 local scene = {}
+local Wb = require("library.Quilt.Wooden_Blocks")
+Wb.setup({
+  world_gravity_x = 0, -- Gravity V (Negitive is ^)
+  world_gravity_y = 320, -- Gravity > (Negitive is <)
+  world_allow_sleep = true, -- Allow non-moving objects to sleep. (Likely will always be true)
+  pixels_per_meter = 16, -- How big is a meter in your world in pixels.
+  mouse = {Utilities.pixel_scale.mouse.get_x, Utilities.pixel_scale.mouse.get_y}, -- Using a non-standard mouse? Pass the function here.
+  pause = false, -- Start Paused?
+  -- You can also pass a table to change the debug colors used for testing.
+})
+
 local debug_shapes = true
 local debug_name = false
 
-local function color(str)
-  str = str or "FFFFFF"
-  love.graphics.setColor(Utilities.color.hex2color(str))
-end
 
--------------------------------------------------------------------------------------------------------------------
 
-local Wblock = require("library.Quilt.Kit.wooden_blocks")
-scene.object_pool = {}
-scene.joint_pool = {}
-
-Wblock.setup({
-  -- We can pass x/y/sleep options if we are not passing a world.
-  world_gravity_x = 0,
-  world_gravity_y = 1000,
-  world_allow_sleep = true,
-  pixels_per_meter = 16,
-  mouse = {Utilities.pixel_scale.mouse.get_x, Utilities.pixel_scale.mouse.get_y},
-  maxdt = 1/15,
-  pause = false,
-  debug_colors = {
-    shape = {0.9,0.9,0.9,1},
-    joint = {1,0.2,0,1},
-    name = {0,0.8,1,1},
-    }
-})
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Test Items
+  * Create Objects
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-
-
-scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "floor",
   x = 0,
-  y = BASE_HEIGHT - 10,
+  y = BASE_HEIGHT - 16,
   w = BASE_WIDTH,
-  h = 10,
-  body_type = "static",
-  img = "wall",
-  __scale = true,
-})
-scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-  x = 0,
-  y = -10,
-  w = 10,
-  h = BASE_HEIGHT,
+  h = 16,
   body_type = "static",
   img = "floor",
   __scale = true,
 })
-scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-  x = BASE_WIDTH - 10,
-  y = 0,
-  w = 10,
-  h = BASE_HEIGHT,
-  body_type = "static",
-  img = "wall",
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
+  x = BASE_WIDTH/2 - 18 * 3,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "kite",
 })
 
 
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 150,
-    y = 122,
-    w = 64,
-    h = 4,
-    body_type = "dynamic",
-    shape = "rectangle",
-    __scale = true,
-    name = "dave",
-    img = "floor",
-    density = 5,
-  })
-
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 150 + 32 - 4,
-    y = 126,
-    w = 8,
-    h = 8,
-    body_type = "static",
-    shape = "triangle",
-    __scale = true,
-  })
-  
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 195,
-    y = 0,
-    w = 16,
-    h = 16,
-    body_type = "dynamic",
-    shape = "heart",
-    __scale = true,
-    name = "star",
-    density = 1,
-  })
-
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 160,
-    y = -100,
-    w = 16,
-    h = 16,
-    body_type = "dynamic",
-    shape = "diamond",
-    __scale = true,
-    bullet = true,
-    density = 20,
-  })
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 160,
-    y = -100,
-    w = 16,
-    h = 16,
-    body_type = "dynamic",
-    shape = "spade",
-    __scale = true,
-    bullet = true,
-    density = 20,
-  })
-  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
-    x = 160,
-    y = -100,
-    w = 16,
-    h = 16,
-    body_type = "dynamic",
-    shape = "club",
-    __scale = true,
-    bullet = true,
-    density = 20,
-  })
-
-
--- Joints
-scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
-  name = "see-saw",
-  type = "revolute",
-  collide_connected = false,
-  body1 = scene.object_pool[5].body,
-  body2 = scene.object_pool[5-1].body,
-  x = scene.object_pool[5].settings.cx+0,
-  y = scene.object_pool[5].settings.cy-4,
-})
-
-
-Wblock.add_rule("pre", "test", function (a, b, coll)
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * World Rules 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+Wb.add_rule("pre", "test", function (a, b, coll)
 
 end)
 
-Wblock.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
+Wb.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
 
 end)
 
-Wblock.add_rule("begin", "test", function (a, b, coll)
+Wb.add_rule("begin", "test", function (a, b, coll)
 
 end)
 
-Wblock.add_rule("end", "test", function (a, b, coll)
+Wb.add_rule("end", "test", function (a, b, coll)
 
 end)
-
-
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -169,7 +67,8 @@ end)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function scene:update(dt)
   Utilities.pixel_scale.update(dt)
-  Wblock.update(dt, scene.object_pool, scene.joint_pool)
+ 
+  Wb.update(dt, Wb.object_pool, Wb.joint_pool)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -178,22 +77,17 @@ end
 function scene:draw()
   Utilities.pixel_scale.start()
   -- Lazy Background 
-  color("0f0f0f")
+  love.graphics.setColor(0.1,0.1,0.1,1)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-  color()
+  love.graphics.setColor(1,1,1,1)
 
   -- Draw with draw functions on Wooden Block Bodies
-  Wblock.draw(scene.object_pool, {image_table = Texture.zzzzz_test.kit_wooden_block})
+  Wb.draw(Wb.object_pool, {image_table = Texture.zzzzz_test.kit_wooden_block})
 
   -- Draw Debug
   if debug_shapes then 
-    Wblock.debug_draw_pool(scene.object_pool, scene.joint_pool, debug_name)
+    Wb.debug_draw_pool(Wb.object_pool, Wb.joint_pool, debug_name)
   end
-
-  -- Drag Debug Mouse Pos
-  color("00FFFF")
-  love.graphics.rectangle("fill", Utilities.pixel_scale.mouse.x, Utilities.pixel_scale.mouse.y, 1, 1)
-  color()
 
   Utilities.pixel_scale.stop()
   -- Small Text - Debug Data 
@@ -208,53 +102,29 @@ function scene:keypressed( key, scancode, isrepeat )
     debug_shapes = not debug_shapes
   end
   if key == "0" then 
-    Wblock.remove_all_from_pool(scene.object_pool)
+    Wb.remove_all_from_pool(Wb.object_pool)
   end
   if key == "1" then 
-    Wblock.print_world_items(scene.object_pool, scene.joint_pool)
+    Wb.print_world_items(Wb.object_pool, Wb.joint_pool)
   end
   if key == "2" then 
-
-  end
-  if key == "3" then 
-
-  end
-  if key == "4" then 
-
-  end
-  if key == "5" then 
-
-  end
-  if key == "6" then 
-
-  end
-  if key == "7" then 
-
-  end
-  if key == "8" then 
-
-  end
-  if key == "9" then 
-
-  end
-  if key == "space" then 
-    Wblock.pause = not Wblock.pause
+    Wb.pause = not Wb.pause
   end
 end
 
 local mousecount = 0
 function scene:mousepressed(x,y,button)
   if button == 1 then 
-    local created = Wblock.create_mouse_joint({
-      joint_pool = scene.joint_pool,
+    local created = Wb.create_mouse_joint({
+      joint_pool = Wb.joint_pool,
       more_than_one_mouse_joint = true,
       name = "mouse" .. tostring(mousecount)
     })
     if created then mousecount = mousecount + 1 end
   end
   if button == 2 then 
-    local removed, removed_count = Wblock.remove_mouse_joint({
-      joint_pool = scene.joint_pool,
+    local removed, removed_count = Wb.remove_mouse_joint({
+      joint_pool = Wb.joint_pool,
       name = "mouse" .. tostring(mousecount - 1),
       remove_one = false,
     })
@@ -334,5 +204,231 @@ function scene:mousepressed(x,y,button)
   print(mousecount)
 
 end
+
+]]--
+
+--[[
+  -- JOINT SNAKE TEST 
+  
+
+scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+  x = 0,
+  y = BASE_HEIGHT - 10,
+  w = BASE_WIDTH,
+  h = 10,
+  body_type = "static",
+  img = "wall",
+  __scale = true,
+})
+scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+  x = 0,
+  y = -10,
+  w = 10,
+  h = BASE_HEIGHT,
+  body_type = "static",
+  img = "floor",
+  __scale = true,
+})
+scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+  x = BASE_WIDTH - 10,
+  y = 0,
+  w = 10,
+  h = BASE_HEIGHT,
+  body_type = "static",
+  img = "wall",
+})
+
+
+for box=0, 7 do
+scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+  x = 48,
+  y = -40 + 16 * box,
+  w = 8,
+  h = 8,
+  body_type = "dynamic",
+  shape = "rectangle",
+  __scale = true,
+  name = "wood1",
+  density = 1,
+})
+end
+
+
+
+-- Joints
+-- Rope 
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "rope",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[5].body,
+  body2 = scene.object_pool[5-1].body,
+  x1 = scene.object_pool[5].settings.cx+0,
+  y1 = scene.object_pool[5].settings.cy-scene.object_pool[5].settings.h/2,
+  x2 = scene.object_pool[4].settings.cx+0,
+  y2 = scene.object_pool[4].settings.cy+scene.object_pool[5].settings.h/2,
+  max_length = 8,
+})
+-- Distance
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "distance",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[6].body,
+  body2 = scene.object_pool[5].body,
+  x1 = scene.object_pool[6].settings.cx+0,
+  y1 = scene.object_pool[6].settings.cy-scene.object_pool[5].settings.h/2,
+  x2 = scene.object_pool[5].settings.cx+0,
+  y2 = scene.object_pool[5].settings.cy+scene.object_pool[5].settings.h/2,
+  max_length = 8,
+})
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "distance",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[6].body,
+  body2 = scene.object_pool[5].body,
+  x1 = scene.object_pool[6].settings.cx+scene.object_pool[5].settings.w/2,
+  y1 = scene.object_pool[6].settings.cy-scene.object_pool[5].settings.h/2,
+  x2 = scene.object_pool[5].settings.cx+scene.object_pool[5].settings.w/2,
+  y2 = scene.object_pool[5].settings.cy+scene.object_pool[5].settings.h/2,
+  max_length = 8,
+})
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "distance",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[6].body,
+  body2 = scene.object_pool[5].body,
+  x1 = scene.object_pool[6].settings.cx-scene.object_pool[5].settings.w/2,
+  y1 = scene.object_pool[6].settings.cy-scene.object_pool[5].settings.h/2,
+  x2 = scene.object_pool[5].settings.cx-scene.object_pool[5].settings.w/2,
+  y2 = scene.object_pool[5].settings.cy+scene.object_pool[5].settings.h/2,
+  max_length = 8,
+})
+-- Weld
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "weld",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[7].body,
+  body2 = scene.object_pool[6].body,
+  x = scene.object_pool[6].settings.cx+0,
+  y = scene.object_pool[7].settings.cy-scene.object_pool[5].settings.h,
+})
+-- Revolute
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "revolute",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[8].body,
+  body2 = scene.object_pool[7].body,
+  x = scene.object_pool[7].settings.cx+0,
+  y = scene.object_pool[8].settings.cy-scene.object_pool[5].settings.h,
+})
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "revolute",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[9].body,
+  body2 = scene.object_pool[8].body,
+  x = scene.object_pool[8].settings.cx+0,
+  y = scene.object_pool[9].settings.cy-scene.object_pool[5].settings.h,
+})
+-- Gear
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "gear",
+  collide_connected = true,
+  pool = scene.object_pool,
+joint1 = scene.joint_pool[#scene.joint_pool - 0].data,
+joint2 = scene.joint_pool[#scene.joint_pool - 1].data,
+ratio = -1,
+})
+
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "wheel",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[10].body,
+  body2 = scene.object_pool[9].body,
+  x1 = scene.object_pool[10].settings.cx+0,
+  y1 = scene.object_pool[10].settings.cy-scene.object_pool[5].settings.h/2,
+  x2 = scene.object_pool[9].settings.cx+0,
+  y2 = scene.object_pool[9].settings.cy+scene.object_pool[5].settings.h/2,
+  ax = 0,
+  ay = 2,
+})
+scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+  name = "see-saw",
+  type = "prismatic",
+  collide_connected = true,
+  pool = scene.object_pool,
+  body1 = scene.object_pool[11].body,
+  body2 = scene.object_pool[10].body,
+  x1 = scene.object_pool[11].settings.cx+0,
+  y1 = scene.object_pool[11].settings.cy-scene.object_pool[5].settings.h,
+  x2 = scene.object_pool[10].settings.cx+0,
+  y2 = scene.object_pool[10].settings.cy+scene.object_pool[5].settings.h,
+  ax = 0,
+  ay = 2,
+})
+
+---
+
+for box=0, 1 do
+  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+    x = 205 - 20 * box,
+    y = 20,
+    w = 8,
+    h = 8,
+    body_type = "dynamic",
+    shape = "rectangle",
+    __scale = true,
+    name = "wood1",
+    density = 20,
+  })
+  end
+
+  scene.object_pool[#scene.object_pool+1] = Wblock.create_simple_object({
+    x = 170,
+    y = 0,
+    w = 50,
+    h = 8,
+    body_type = "static",
+    shape = "rectangle",
+    __scale = true,
+    name = "wood1",
+    density = 1,
+  })
+
+  scene.joint_pool[#scene.joint_pool + 1] = Wblock.create_joint({
+    name = "see-saw",
+    type = "pulley",
+    collide_connected = true,
+    pool = scene.object_pool,
+    body1 = scene.object_pool[#scene.object_pool-1].body,
+    body2 = scene.object_pool[#scene.object_pool-2].body,
+    x1 = scene.object_pool[#scene.object_pool-1].settings.cx,
+    y1 = scene.object_pool[#scene.object_pool-1].settings.cy-scene.object_pool[5].settings.h,
+    x2 = scene.object_pool[#scene.object_pool-2].settings.cx+0,
+    y2 = scene.object_pool[#scene.object_pool-2].settings.cy+scene.object_pool[5].settings.h,
+    ax = 0,
+    ay = 0,
+    gx1 = scene.object_pool[#scene.object_pool].settings.x + 10,
+    gy1 = scene.object_pool[#scene.object_pool].settings.y,
+    gx2 = scene.object_pool[#scene.object_pool].settings.cx + 10,
+    gy2 = scene.object_pool[#scene.object_pool].settings.cy,
+    ratio = 1,
+  })
+
 
 ]]--

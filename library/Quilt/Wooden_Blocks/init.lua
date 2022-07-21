@@ -48,27 +48,13 @@ local m = {
 -- Update Helpers
   -- Correct Remove to always use tables since that's how the system works [x]
 
--- Joints
-  -- Joints should create a record in joints table. [ ]
-  -- Oh god joints are a nightmare. [X]
-  -- Create mouse joint helper [X]
-    -- DistanceJoint [ ]
-    -- FrictionJoint [ ]
-    -- GearJoint [ ]
-    -- MotorJoint [ ]
-    -- MouseJoint [X]
-    -- PrismaticJoin [ ]
-    -- PulleyJoint [ ]
-    -- RevoluteJoint [ ]
-    -- RopeJoint [ ]
-    -- WeldJoint [ ]
-    -- WheelJoint [ ]
 
 -- Helper Functions
   -- Update Shape
     -- Fixture [ ]
     -- Body [ ]
     -- Shape [ ]
+      -- Create Body Pos Based on Last Shape Pos
 
   -- Update World 
     -- Gravity
@@ -101,16 +87,21 @@ end
 -- Container to hold world
 m.world = nil
 
--- Don't update if slower than
-m.maxdt = 1/15
+-- Container to hold all objects
+m.object_pool = {}
+
+--- Container to hold all joints 
+m.joint_pool = {}
 
 -- Don't update if we're paused
 m.paused = false
 
 -- Debug Colors 
 m.debug_colors = {
-shape = {1,1,1,0.8},
-joint = {1,1,1,1},
+shape = {1,1,1,1},
+joint = {0.8,0,0,1},
+joint_rope = {0.8,0.6,0,1},
+joint_mouse = {1,1,0,1},
 name = {0,1,1,1},
 }
 
@@ -150,7 +141,7 @@ m.postSolve = function(a, b, coll, normalimpulse, tangentimpulse)
 end
 
 -- Commands to do before update
-m.do_before_update = {}
+m.do_once_before_update = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Add a rule to the callback list above
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -195,7 +186,7 @@ end
   * Add to the 'Do before update' list.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.add_pre_update(rule_name, rule_function)
-  m.do_before_update[#m.do_before_update + 1] = {name = rule_name, fun = rule_function} 
+  m.do_once_before_update[#m.do_once_before_update + 1] = {name = rule_name, fun = rule_function} 
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -205,10 +196,10 @@ function m.setup(settings)
   settings = settings or {}
 
   -- Step 1 - Create a new world with the settings.
-    settings.world_gravity_x = settings.world_gravity_x or 0
-    settings.world_gravity_y = settings.world_gravity_y or 0
-    settings.world_allow_sleep = settings.world_allow_sleep or true
-    m.world = love.physics.newWorld(settings.world_gravity_x, settings.world_gravity_y, settings.world_allow_sleep)
+  settings.world_gravity_x = settings.world_gravity_x or 0
+  settings.world_gravity_y = settings.world_gravity_y or 0
+  settings.world_allow_sleep = settings.world_allow_sleep or true
+  m.world = love.physics.newWorld(settings.world_gravity_x, settings.world_gravity_y, settings.world_allow_sleep)
 
   -- Step 2 - Apply Callbacks 
   m.world:setCallbacks(m.beginContact, m.endContact, m.preSolve, m.postSolve)
@@ -217,7 +208,6 @@ function m.setup(settings)
   love.physics.setMeter(settings.pixels_per_meter or 16)
 
   -- Step 4 - Other Settings
-  m.maxdt = settings.maxdt or m.maxdt
   m.pause = settings.pause or m.pause
   m.debug_colors = settings.debug_colors or m.debug_colors
   m.mouse = settings.mouse or m.mouse
@@ -227,9 +217,6 @@ end
   * Update the world.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.update(dt, object_pool, joint_pool)
-  -- Don't update if we're going to slow. (Usually happens when dragging the love2d window.)
-  if dt > m.maxdt then return end
-
   -- If the world is paused, don't update.
   if m.pause then return end
 
@@ -238,9 +225,9 @@ function m.update(dt, object_pool, joint_pool)
     --[[--------------------------------------------
     * Pre Update Callbacks
     ---------------------------------------------]]--
-    for i=#m.do_before_update, 1, -1 do 
-      m.do_before_update[i].fun()
-      table.remove(m.do_before_update, i)
+    for i=#m.do_once_before_update, 1, -1 do 
+      m.do_once_before_update[i].fun()
+      table.remove(m.do_once_before_update, i)
     end
 
     --[[--------------------------------------------
@@ -358,7 +345,7 @@ end
 -- A simple object is an object with only one shape
 function m.create_simple_object(settings)
   -- Use our world if none was provided.
-  local world = settings.world or m.world
+  local world =  m.world
 
   -- Create a table to store our new object
   local obj = {}
@@ -374,7 +361,7 @@ function m.create_simple_object(settings)
   -- settings.w, settings.h, settings.x, settings.y
 
   -- Name
-  settings.name = settings.name or tostring(settings.shape) .. tostring(m.world:getBodyCount())
+  assert(settings.name, "Objects *MUST* have a name.")
 
   -- If we have just radius, set width/height based on it.
   if settings.radius then 
@@ -427,8 +414,8 @@ function m.create_simple_object(settings)
   -- Between 0.0 (Brick) - 1.0 (Infinite Energy Ball
   settings.restitution = settings.restitution or settings.bounciness
   settings.restitution = settings.restitution or 0.2
-  -- What masking catagory do we fall into?
-  settings.catagory = settings.catagory or 1
+  -- What masking category do we fall into?
+  settings.category = settings.category or 1
   -- What do we mask? Expected Table or Number
   settings.mask = settings.mask or nil
   -- Group (Default 0)
@@ -488,11 +475,11 @@ function m.create_simple_object(settings)
         obj.fixture[i]:setMask(settings.mask)
       end
     end
-    -- Catagory
-    if settings.catagory == "table" then 
-      obj.fixture[i]:setCategory(unpack(settings.catagory))
+    -- category
+    if settings.category == "table" then 
+      obj.fixture[i]:setCategory(unpack(settings.category))
     else
-      obj.fixture[i]:setCategory(settings.catagory)
+      obj.fixture[i]:setCategory(settings.category)
     end
     -- Group
     obj.fixture[i]:setGroupIndex(settings.group)
@@ -556,32 +543,27 @@ m.joint_type = {
 }
 
 m.joint_requirements = {
-  distance = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"},
+  distance = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"}, -- Stick
 
-  friction = {"body1", "body2", "x", "y", "collide_connected"},
-  friction2 = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"},
+  friction = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"}, -- A pain to use, might be better when tagged with a watcher for the sprite.
 
-  gear = {"joint1", "joint2", "ratio", "collide_connected"},
+  gear = {"joint1", "joint2", "ratio", "collide_connected"}, -- Combine Revolve/prismatic joits to force them to work together.
 
-  motor = {"body1", "body2", "correction_factor", "collide_connected"},
+  motor = {"body1", "body2", "correction_factor", "collide_connected"}, -- Lock rotation/postion stuff. Used for cars?
 
-  mouse = {"body1", "x", "y"},
+  mouse = {"body1", "x", "y"}, -- Follow the cursor
 
-  prismatic = {"body1", "body2", "x", "y", "ax", "ay", "collide_connected"},
-  prismatic2 = {"body1", "body2", "x1", "y1", "x2", "y2", "ax", "ay", "collide_connected", "reference_angle"},
+  prismatic = {"body1", "body2", "x1", "y1", "x2", "y2", "ax", "ay", "collide_connected", "reference_angle"}, -- Like a Pisiton 
 
   pulley = {"body1", "body2", "gx1", "gy1", "gx2", "gy2", "x1", "y1", "x2", "y2", "ratio", "collide_connected"},
 
-  revolute = {"body1", "body2", "x", "y", "collide_connected"},
-  revolute2 = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected", "reference_angle"},
+  revolute = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected", "reference_angle"}, -- Rotate around point. x/y are set the same.
 
-  rope = {"body1", "body2", "x1", "y1", "x2", "y2", "max_length", "collide_connected"},
+  rope = {"body1", "body2", "x1", "y1", "x2", "y2", "max_length", "collide_connected"}, -- Rope
 
-  weld = {"body1", "body2", "x", "y", "collide_connected"},
-  weld2 = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"},
+  weld = {"body1", "body2", "x1", "y1", "x2", "y2", "collide_connected"}, -- (Glue) Weld always has two points, x/y are set the same.
 
-  wheel = {"body1", "body2", "x", "y", "ax", "ay", "collide_connected"},
-  wheel2 = {"body1", "body2", "x1", "y1", "x2", "y2", "ax", "ay", "collide_connected"},
+  wheel = {"body1", "body2", "x1", "y1", "x2", "y2", "ax", "ay", "collide_connected"}, -- Can act like an elastic band. Higher A values force it to stick to the ancors better.
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -590,10 +572,25 @@ m.joint_requirements = {
 function m.create_joint(settings)
   local joint = {}
   local s = settings
+  -- If only x/y are sent, set to X1/X2/Y1/Y2
+  s.x1 = s.x1 or s.x
+  s.x2 = s.x2 or s.x
+  s.y1 = s.y1 or s.y
+  s.y2 = s.y2 or s.y
+
 
   -- Joints require a name
   assert(s.name, "Joints must have a name.")
   joint.name = s.name 
+  
+  -- Helper Functions
+  joint.__remove = "false"
+  joint.__scale = "false"
+  joint.__type = "simple"
+
+  if type(s.body1) == "string" then
+
+  end
 
   -- Create the joint w/ arguments
   local joint_args = {}
@@ -759,6 +756,7 @@ function m.debug_draw_pool(object_pool, joint_pool, names)
     -- Draw each shape in the body
     for current_shape=1, #s do 
       local shape_type = s[current_shape]:getType()
+      if p.sensor then love.graphics.setColor(1,0,0,0.8) end
       draw_shape(shape_type, s[current_shape], b)
     end
 
@@ -770,16 +768,66 @@ function m.debug_draw_pool(object_pool, joint_pool, names)
   end
   -- OBJECT POOL LOOP END
 
-  -- Joint Color 
-  love.graphics.setColor(m.debug_colors.joint)
+ 
 
   -- JOINT POOL LOOP START
   if joint_pool then 
     for jo = 1, #joint_pool do
       local x1, y1, x2, y2 = joint_pool[jo].data:getAnchors( )
+      local jtype = joint_pool[jo].data:getType()
+      --print(jtype, x1, y1, x2, y2)
+      if jtype == "weld" then 
+        love.graphics.setColor(0.5,0.5,0.5,1) 
+        love.graphics.rectangle("fill", x1, y1-1, 1, 3)
+        love.graphics.rectangle("fill", x1-1, y1, 3, 1)
+      end
+      if jtype == "revolute" then 
+        love.graphics.setColor(0.5,0.9,0.5,1) 
+        love.graphics.rectangle("fill", x1-2, y1-2, 5, 5)
+      end
+       -- Joint Color 
+      love.graphics.setColor(m.debug_colors.joint)
+
       love.graphics.rectangle("fill", x1, y1, 1, 1)
       if x2 then 
         love.graphics.rectangle("fill", x2, y2, 1, 1)
+      end
+      if x1 and y1 and x2 and y2 then
+        if jtype == "rope" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(m.debug_colors.joint_rope)
+          love.graphics.line(x1,y1,x2,y2)
+        end
+        if jtype == "mouse" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(m.debug_colors.joint_mouse)
+          love.graphics.line(x1,y1,x2,y2)
+        end
+        if jtype == "distance" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(0,1,0,1)
+          love.graphics.line(x1,y1,x2,y2)
+        end
+        if jtype == "weld" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(0.5,0.5,0.5,1)
+          love.graphics.line(x1,y1,x2,y2)
+        end
+        if jtype == "revolute" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(0.5,0.9,0.5,1)
+          love.graphics.line(x1,y1,x2,y2)
+        end
+        if jtype == "wheel" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(0.2,0.4,0.9,1)
+          love.graphics.line(x1,y1,x2,y2)
+        end
+        if jtype == "prismatic" then 
+          -- Joint Rope Color 
+          love.graphics.setColor(1, 215/255, 0,1)
+          love.graphics.line(x1,y1,x2,y2)
+        end
       end
     end
   end

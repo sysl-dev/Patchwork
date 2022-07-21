@@ -34,7 +34,7 @@ function scene:draw(dt)
     love.graphics.setColor(0.4,0.4,0.4,1)
     love.graphics.rectangle("fill",0,20,BASE_WIDTH,BASE_HEIGHT-40)
     love.graphics.setColor(1,1,1,1)
-    love.graphics.printf("Utilities - Menu - " .. screens[current],0, 0, BASE_WIDTH, "center")
+    love.graphics.printf("Make ajoke, adjust the size. - " .. screens[current],0, 0, BASE_WIDTH, "center")
     love.graphics.printf("Z - Previous Screen   X - Switch Scene   C - Next Screen",0, BASE_HEIGHT - 20, BASE_WIDTH, "center")
 
     love.graphics.printf(ascreens[current], 0, BASE_HEIGHT/2-8, BASE_WIDTH, "center")
