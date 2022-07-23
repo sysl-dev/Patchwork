@@ -1,5 +1,5 @@
 local scene = {}
-local Wb = require("library.Quilt.Wooden_Blocks")
+local Wb = require("library.Quilt.Kit.Wooden_Blocks")
 Wb.setup({
   world_gravity_x = 0, -- Gravity V (Negitive is ^)
   world_gravity_y = 320, -- Gravity > (Negitive is <)
@@ -33,12 +33,21 @@ Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
 
 Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
   name = "block1",
-  x = BASE_WIDTH/2 - 18 * 3,
+  x = BASE_WIDTH/2 - 18 * 1,
   y = BASE_HEIGHT/2, 
   w = 16,
   h = 16,
   body_type = "dynamic",
-  shape = "kite",
+  shape = "rectangle",
+})
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 + 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
 })
 
 

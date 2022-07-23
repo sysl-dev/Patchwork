@@ -845,11 +845,11 @@ end
 function m.print_world_items(object_pool, joint_pool)
   print("Object Pool")
   for k,v in pairs(object_pool) do 
-    print(k,v,v.body)
+    print(k,v,v.body,v.settings.name)
   end
   print("Joint Pool")
   for k,v in pairs(joint_pool) do 
-    print(k,v,v.data)
+    print(k,v,v.data, v.name)
   end
   print("World Body List", m.world:getBodyCount())
   for k,v in pairs(m.world:getBodies()) do 
