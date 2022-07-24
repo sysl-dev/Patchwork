@@ -31,8 +31,7 @@ local m = {
   __LICENSE_TITLE = "MIT LICENSE"
 }
 -- TODO: 
--- Create Custom Object [Allow a shapes table to be passed in.]
--- Change obj pool to just obj [x]
+-- Allow changing center of object
 
 -- Check Area
   -- Rectangle
@@ -47,20 +46,6 @@ local m = {
 
 -- Update Helpers
   -- Correct Remove to always use tables since that's how the system works [x]
-
-
--- Helper Functions
-  -- Update Shape
-    -- Fixture [ ]
-    -- Body [ ]
-    -- Shape [ ]
-      -- Create Body Pos Based on Last Shape Pos
-
-  -- Update World 
-    -- Gravity
-    -- Meter 
-    -- ??
-
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
