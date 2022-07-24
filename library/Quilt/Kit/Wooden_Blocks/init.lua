@@ -142,6 +142,7 @@ end
 
 -- Commands to do before update
 m.do_once_before_update = {}
+m.do_every_update = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Add a rule to the callback list above
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -189,6 +190,19 @@ function m.add_pre_update(rule_name, rule_function)
   m.do_once_before_update[#m.do_once_before_update + 1] = {name = rule_name, fun = rule_function} 
 end
 
+function m.add_do_every_update(rule_name, rule_function)
+  m.do_every_update[#m.do_every_update + 1] = {name = rule_name, fun = rule_function} 
+end
+
+function m.remove_do_every_update(rule_name)
+  for i=1, #m.do_every_update do 
+    if m.do_every_update[i].name == rule_name then 
+      table.remove(m.do_every_update, i)
+      return i
+    end
+  end
+end
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Create world or import world, apply rule based contacts or used imported contacts if set.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -230,6 +244,9 @@ function m.update(dt, object_pool, joint_pool)
       table.remove(m.do_once_before_update, i)
     end
 
+    for i=#m.do_every_update, 1, -1 do 
+      m.do_every_update[i].fun()
+    end
     --[[--------------------------------------------
     * Pool Loop - Object
     ---------------------------------------------]]--
@@ -278,7 +295,7 @@ function m.update(dt, object_pool, joint_pool)
       --[[--------------------------------------------
       * Mouse Joints Move Towards Mouse
       ---------------------------------------------]]--
-      if joint_pool[i].data:getType() == "mouse" then 
+      if joint_pool[i].data:getType() == "mouse" and joint_pool[i].__mouse then 
         joint_pool[i].data:setTarget(m.mouse[1](), m.mouse[2]())
       end
     end
@@ -517,7 +534,6 @@ m.joint_type = {
 
   -- Applies Friction To a Body when inside another body?
   friction = love.physics.newFrictionJoint,
-  friction2 = love.physics.newFrictionJoint,
 
   gear = love.physics.newGearJoint,
 
@@ -526,20 +542,16 @@ m.joint_type = {
   mouse = love.physics.newMouseJoint, 
 
   prismatic = love.physics.newPrismaticJoint,
-  prismatic2 = love.physics.newPrismaticJoint,
 
   pulley = love.physics.newPulleyJoint,
 
   revolute = love.physics.newRevoluteJoint,
-  revolute2 = love.physics.newRevoluteJoint,
 
   rope = love.physics.newRopeJoint,
 
   weld = love.physics.newWeldJoint,
-  weld2 = love.physics.newWeldJoint,
 
   wheel = love.physics.newWheelJoint,
-  wheel2 = love.physics.newWheelJoint,
 }
 
 m.joint_requirements = {
@@ -578,6 +590,12 @@ function m.create_joint(settings)
   s.y1 = s.y1 or s.y
   s.y2 = s.y2 or s.y
 
+  s.reference_angle = s.reference_angle or 0
+
+  if not s.joint1 and s.joint2 then
+    assert(s.x1 and s.x2, "If using only one x/y value, use x/y only, not x1/y1")
+    assert(s.y1 and s.y2, "If using only one x/y value, use x/y only, not x1/y1")
+  end
 
   -- Joints require a name
   assert(s.name, "Joints must have a name.")
@@ -652,6 +670,7 @@ function m.create_mouse_joint(settings)
         x = s.mx,
         y = s.my,
       })
+      s.joint_pool[#s.joint_pool].__mouse = true
       -- Confirm we created it
       created = true
       -- Lock the rotation?
@@ -676,7 +695,7 @@ function m.remove_mouse_joint(settings)
   s.name = s.name or ""
   -- Scan the pool, check for a mouse type joint
   for i=#s.joint_pool, 1, -1 do
-    if s.joint_pool[i].data:getType() == "mouse" and not s.remove_one or s.joint_pool[i].name == s.name then 
+    if s.joint_pool[i].data:getType() == "mouse" and s.joint_pool[i].__mouse and not s.remove_one or s.joint_pool[i].name == s.name then 
 
       -- Get the bodies and restore the default settings for locked rotation/angle
       local mouse_body = s.joint_pool[i].data:getBodies()
@@ -704,8 +723,57 @@ end
   * Remove All Objects
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.remove_all_from_pool(pool)
+  pool = pool or m.object_pool
   for i = #pool, 1, -1 do
     pool[i].__remove = true
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get the object by name.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_object_by_name(name, pool)
+  pool = pool or m.object_pool
+  for i = #pool, 1, -1 do
+    if pool[i].settings.name == name then 
+      return pool[i]
+    end
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get the object properties.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_properties_by_name(name, pool)
+  pool = pool or m.object_pool
+  for i = #pool, 1, -1 do
+    if pool[i].settings.name == name then 
+      return pool[i].settings
+    end
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get the object body by name.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_body_by_name(name, pool)
+  pool = pool or m.object_pool
+  for i = #pool, 1, -1 do
+    if pool[i].settings.name == name then 
+      return pool[i].body
+    end
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get the joint by name.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_joint_by_name(name, pool)
+  pool = pool or m.joint_pool
+  for i = #pool, 1, -1 do
+    if pool[i].name == name then 
+      return pool[i].data
+    end
   end
 end
 

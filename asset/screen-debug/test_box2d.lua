@@ -27,14 +27,13 @@ Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
   w = BASE_WIDTH,
   h = 16,
   body_type = "static",
-  img = "floor",
   __scale = true,
 })
 
 Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
   name = "block1",
   x = BASE_WIDTH/2 - 18 * 1,
-  y = BASE_HEIGHT/2, 
+  y = 50, 
   w = 16,
   h = 16,
   body_type = "dynamic",
@@ -42,34 +41,54 @@ Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
 })
 Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
   name = "block2",
-  x = BASE_WIDTH/2 + 18 * 1,
-  y = BASE_HEIGHT/2, 
+  x = BASE_WIDTH/2 - 18 * 2,
+  y = 50, 
   w = 16,
   h = 16,
   body_type = "dynamic",
   shape = "rectangle",
 })
 
+Wb.joint_pool[#Wb.joint_pool + 1] = Wb.create_joint({
+  name = "motorz",
+  type = "motor",
+  collide_connected = true,
+  correction_factor = 0.5,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+})
+
+Wb.get_joint_by_name("motorz"):setLinearOffset(5,5)
+Wb.get_joint_by_name("motorz"):setAngularOffset(20)
+Wb.get_joint_by_name("motorz"):setMaxForce(200)
+Wb.get_joint_by_name("motorz"):setMaxTorque(200)
+
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * World Rules 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Wb.add_rule("pre", "test", function (a, b, coll)
-
+Wb.add_rule("begin", "test_rule_1", function (a, b, coll)
+  print("begin", a, b, coll) -- Print Callback
 end)
 
-Wb.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
-
+Wb.add_rule("end", "test_rule_2", function (a, b, coll)
+  print("end", a, b, coll) -- Print Callback
 end)
 
-Wb.add_rule("begin", "test", function (a, b, coll)
-
+Wb.add_rule("pre", "test_rule_3", function (a, b, coll)
+  print("pre", a, b, coll) -- Print Callback
 end)
 
-Wb.add_rule("end", "test", function (a, b, coll)
-
+Wb.add_rule("post", "test_rule_4", function (a, b, coll, normalimpulse, tangentimpulse)
+  print("post", a, b, coll, normalimpulse, tangentimpulse) -- Print Callback
 end)
 
+Wb.remove_rule("begin", "test_rule_1")
+Wb.remove_rule("end", "test_rule_2")
+Wb.remove_rule("pre", "test_rule_3")
+Wb.remove_rule("post", "test_rule_4")
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Update
@@ -138,10 +157,7 @@ function scene:mousepressed(x,y,button)
       remove_one = false,
     })
     if removed then mousecount = mousecount - removed_count end
-  end
-
-  print(mousecount)
-
+  end -- print(mousecount)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -150,69 +166,8 @@ end
 return scene
 
 --[[
-  Box2D Notes 
-static
-    Static bodies do not move.
-dynamic
-    Dynamic bodies collide with all bodies.
-kinematic
-    Kinematic bodies only collide with dynamic bodies.
-
-WBox.add_rule("begin", "fun", function (a, b, coll)
-  print("begin", a, b, coll)
-end)
-
-WBox.add_rule("end", "fun", function (a, b, coll) -- don't add remove rules here
-  print("end", a, b, coll)
-end)
-
-WBox.add_rule("pre", "fun", function (a, b, coll)
-  print("pre", a, b, coll)
-end)
-
-WBox.add_rule("post", "fun", function (a, b, coll, normalimpulse, tangentimpulse)
-  print("post", a, b, coll, normalimpulse, tangentimpulse)
-end)
-
-WBox.remove_rule("begin", "fun")
-WBox.remove_rule("end", "fun")
-WBox.remove_rule("pre", "fun")
-WBox.remove_rule("post", "fun")
 
 
-WBox.add_rule("post", "test", function (a, b, coll, normalimpulse, tangentimpulse)
-  WBox.add_pre_update("bounce", function ()
-    if a:getUserData().settings.body_type == "dynamic" and normalimpulse > 25 then
-     a:getUserData().remove = true  
-    end 
-  end)
-end)
-
-
-Counting Attachments with the Mouse 
-
-local mousecount = 0
-function scene:mousepressed(x,y,button)
-  if button == 1 then 
-    local created = Wblock.create_mouse_joint({
-      joint_pool = scene.joint_pool,
-      more_than_one_mouse_joint = true,
-      name = "mouse" .. tostring(mousecount)
-    })
-    if created then mousecount = mousecount + 1 end
-  end
-  if button == 2 then 
-    local removed, removed_count = Wblock.remove_mouse_joint({
-      joint_pool = scene.joint_pool,
-      name = "mouse" .. tostring(mousecount - 1),
-      remove_one = false,
-    })
-    if removed then mousecount = mousecount - removed_count end
-  end
-
-  print(mousecount)
-
-end
 
 ]]--
 
