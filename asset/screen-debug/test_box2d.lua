@@ -5,7 +5,7 @@ Wb.setup({
   world_gravity_y = 320, -- Gravity > (Negitive is <)
   world_allow_sleep = true, -- Allow non-moving objects to sleep. (Likely will always be true)
   pixels_per_meter = 16, -- How big is a meter in your world in pixels.
-  mouse = {Utilities.pixel_scale.mouse.get_x, Utilities.pixel_scale.mouse.get_y}, -- Using a non-standard mouse? Pass the function here.
+  mouse = {Pixelscreen.mouse.get_x, Pixelscreen.mouse.get_y}, -- Using a non-standard mouse? Pass the function here.
   pause = false, -- Start Paused?
   -- You can also pass a table to change the debug colors used for testing.
 })
@@ -94,7 +94,7 @@ Wb.remove_rule("post", "test_rule_4")
   * Update
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function scene:update(dt)
-  Utilities.pixel_scale.update(dt)
+  Pixelscreen.update(dt)
  
   Wb.update(dt, Wb.object_pool, Wb.joint_pool)
 end
@@ -103,21 +103,21 @@ end
   * Draw
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function scene:draw()
-  Utilities.pixel_scale.start()
+  Pixelscreen.start()
   -- Lazy Background 
   love.graphics.setColor(0.1,0.1,0.1,1)
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
   love.graphics.setColor(1,1,1,1)
 
   -- Draw with draw functions on Wooden Block Bodies
-  Wb.draw(Wb.object_pool, {image_table = Texture.zzzzz_test.kit_wooden_block})
+  Wb.draw(Wb.object_pool)
 
   -- Draw Debug
   if debug_shapes then 
     Wb.debug_draw_pool(Wb.object_pool, Wb.joint_pool, debug_name)
   end
 
-  Utilities.pixel_scale.stop()
+  Pixelscreen.stop()
   -- Small Text - Debug Data 
   Utilities.debug_tools.on_screen_debug_info()
 end
@@ -137,6 +137,9 @@ function scene:keypressed( key, scancode, isrepeat )
   end
   if key == "2" then 
     Wb.pause = not Wb.pause
+  end
+  if key == "x" then 
+    Gamestate.switch(Debug_screen.menu)
   end
 end
 

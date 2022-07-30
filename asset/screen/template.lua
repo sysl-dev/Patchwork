@@ -113,7 +113,7 @@ function scene:update(dt)
   if current == 1 then 
     for i = 1, 9 do
       if love.keyboard.isDown(i) then 
-        Utilities.pixel_scale.resize_window(i)
+        Pixelscreen.resize_window(i)
       end
     end
   end
@@ -122,7 +122,7 @@ function scene:update(dt)
 end
 
 function scene:draw(dt)
-  Utilities.pixel_scale.start()
+  Pixelscreen.start()
     love.graphics.setColor(0.2,0.2,0.2,1)
     love.graphics.rectangle("fill",0,0,BASE_WIDTH,20)
     love.graphics.rectangle("fill",0,BASE_HEIGHT - 20,BASE_WIDTH,20)
@@ -135,8 +135,8 @@ function scene:draw(dt)
     if current == 1 then 
       love.graphics.printf("1-9: Test Scale / 0: Full Screen / -: (When Full Screen) Toggle Scale Type",0, 20, BASE_WIDTH, "center")
       local scales = ""
-      for i=1, #Utilities.pixel_scale.config.size_details do
-        scales = scales .. Utilities.pixel_scale.config.size_details[i] .. " "
+      for i=1, #Pixelscreen.config.size_details do
+        scales = scales .. Pixelscreen.config.size_details[i] .. " "
       end
       love.graphics.printf(scales,0, 60, BASE_WIDTH, "center")
     end
@@ -144,21 +144,21 @@ function scene:draw(dt)
       love.graphics.printf("1:Pixel Breaking Shader / 2:Normal Shader / 3: Higher Priorty Shader / 456: Remove Shaders / 7: Clear all shaders / 8: Test removing shader by name from Higher Priorty Shader",0, 20, BASE_WIDTH, "center")
 
       love.graphics.printf("Current Shaders: " .. (
-        Utilities.pixel_scale.shader_count(Utilities.pixel_scale.scale_breaking_shader) + 
-        Utilities.pixel_scale.shader_count(Utilities.pixel_scale.always_on_shaders) + 
-        Utilities.pixel_scale.shader_count()
+        Pixelscreen.shader_count(Pixelscreen.scale_breaking_shader) + 
+        Pixelscreen.shader_count(Pixelscreen.always_on_shaders) + 
+        Pixelscreen.shader_count()
       ),0, 100, BASE_WIDTH, "center")
     end
     if current == 3 then 
       love.graphics.printf("1: VSYNC ON / 0: VSYNC OFF / 2: ADAPTIVE VSYNC",0, 20, BASE_WIDTH, "center")
 
-      love.graphics.printf("Current VSYNC: " .. vtable[Utilities.pixel_scale.config.vsync],0, 40, BASE_WIDTH, "center")
+      love.graphics.printf("Current VSYNC: " .. vtable[Pixelscreen.config.vsync],0, 40, BASE_WIDTH, "center")
     end
 
     if current == 4 then 
       love.graphics.printf("1: Capture / 2: Clear / 3 View Capture \n Random Number\n" .. tostring(math.floor(math.random() * 100)),0, 20, BASE_WIDTH, "center")
       if love.keyboard.isDown("3") then 
-        Utilities.pixel_scale.capture_draw()
+        Pixelscreen.capture_draw()
       end
     end
     if current == 5 then 
@@ -166,7 +166,7 @@ function scene:draw(dt)
       love.graphics.draw(psmog, 80, BASE_HEIGHT/2)
       
     end
-  Utilities.pixel_scale.stop({})
+  Pixelscreen.stop({})
   if love.keyboard.isDown("`") then
     Utilities.debug_tools.on_screen_debug_info()
   end
@@ -176,59 +176,59 @@ end
 function scene:keypressed(key, scan, isrepeat)
   if current == 1 then 
     if key == "0" then 
-      Utilities.pixel_scale.resize_fullscreen()
+      Pixelscreen.resize_fullscreen()
     end
     if key == "-" then 
-      Utilities.pixel_scale.resize_scale_fullscreen()
+      Pixelscreen.resize_scale_fullscreen()
     end
   end
 
   if current == 2 then 
     if key == "1" then 
-      Utilities.pixel_scale.shader_push(crtline, Utilities.pixel_scale.scale_breaking_shader)
+      Pixelscreen.shader_push(crtline, Pixelscreen.scale_breaking_shader)
     end
     if key == "2" then 
-      Utilities.pixel_scale.shader_push(scanlines)
+      Pixelscreen.shader_push(scanlines)
     end
     if key == "3" then 
-      Utilities.pixel_scale.shader_push(crt, Utilities.pixel_scale.always_on_shaders)
+      Pixelscreen.shader_push(crt, Pixelscreen.always_on_shaders)
     end
     if key == "4" then 
-      Utilities.pixel_scale.shader_pop(Utilities.pixel_scale.scale_breaking_shader)
+      Pixelscreen.shader_pop(Pixelscreen.scale_breaking_shader)
     end
     if key == "5" then 
-      Utilities.pixel_scale.shader_pop()
+      Pixelscreen.shader_pop()
     end
     if key == "6" then 
-      Utilities.pixel_scale.shader_pop(Utilities.pixel_scale.always_on_shaders)
+      Pixelscreen.shader_pop(Pixelscreen.always_on_shaders)
     end
     if key == "7" then 
-      Utilities.pixel_scale.shader_clear_all()
-      Utilities.pixel_scale.shader_clear_all(Utilities.pixel_scale.always_on_shaders)
-      Utilities.pixel_scale.shader_clear_all(Utilities.pixel_scale.scale_breaking_shader)
+      Pixelscreen.shader_clear_all()
+      Pixelscreen.shader_clear_all(Pixelscreen.always_on_shaders)
+      Pixelscreen.shader_clear_all(Pixelscreen.scale_breaking_shader)
     end
     if key == "8" then 
-      Utilities.pixel_scale.shader_remove(crt, Utilities.pixel_scale.always_on_shaders)
+      Pixelscreen.shader_remove(crt, Pixelscreen.always_on_shaders)
     end
   end
 
   if current == 3 then 
     if key == "0" then 
-      Utilities.pixel_scale.change_vsync(0)
+      Pixelscreen.change_vsync(0)
     end
     if key == "1" then 
-      Utilities.pixel_scale.change_vsync(1)
+      Pixelscreen.change_vsync(1)
     end
     if key == "2" then 
-      Utilities.pixel_scale.change_vsync(-1)
+      Pixelscreen.change_vsync(-1)
     end
   end
   if current == 4 then 
     if key == "1" then 
-      Utilities.pixel_scale.capture_canvas()
+      Pixelscreen.capture_canvas()
     end
     if key == "2" then 
-      Utilities.pixel_scale.capture_remove()
+      Pixelscreen.capture_remove()
     end
   end
 

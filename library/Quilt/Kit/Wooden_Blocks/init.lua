@@ -298,6 +298,7 @@ end
   * Draw images for things
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.draw(object_pool, settings)
+  settings = settings or {}
   local image_table = settings.image_table
     for item=1, #object_pool do 
     -- Shortcut to the current pool.

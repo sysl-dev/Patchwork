@@ -5,7 +5,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.test_box2d)
+  Gamestate.switch(Debug_screen.menu)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -23,14 +23,14 @@ Utilities.setup("library.Quilt.Utilities", {
   global_defaults = {},
   love_patch = {},
   number = {},
-  pixel_scale = { 
-    no_global_changes = false,
-    width = BASE_WIDTH or 256,
-    height = BASE_HEIGHT or 144,
-    --scale = 4,
-  },
   mouse = {},
 })
+
+Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
+Pixelscreen.setup()
+
+Camera = require("library.Quilt.Kit.Camera")
+Camera.setup()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -103,7 +103,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.update(dt)
   if dt > 1/30 then return end
-  Utilities.pixel_scale.update(dt)
+  Pixelscreen.update(dt)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -142,4 +142,4 @@ local function dump(t,i)
     end
 end
 
---dump(Utilities.pixel_scale,"")
+--dump(Pixelscreen,"")

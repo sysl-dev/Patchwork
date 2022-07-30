@@ -69,6 +69,7 @@ m.config = {
   dirty_draw = true, -- People have bad monitors, dirty draw avoids blank frames.
   vsync = 1,
   monitor = 1,
+  padding = 1, -- Padding to the bottom and left of the canvas to allow for optional smooth scrolling.
   size_details = {}
 }
 
@@ -130,8 +131,8 @@ function m.setup(settings)
   end
 
   -- Create Resources
-  m.buffer1 = love.graphics.newCanvas(m.config.base_width, m.config.base_height)
-  m.buffer2 = love.graphics.newCanvas(m.config.base_width, m.config.base_height)
+  m.buffer1 = love.graphics.newCanvas(m.config.base_width + m.config.padding, m.config.base_height + m.config.padding)
+  m.buffer2 = love.graphics.newCanvas(m.config.base_width + m.config.padding, m.config.base_height + m.config.padding)
 
   -- Gather information about the monitor and save it.
   local mwidth, mheight = love.window.getDesktopDimensions(m.config.monitor)
