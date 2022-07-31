@@ -66,6 +66,7 @@ local screens = {
   "Capture",
   "Image/Particles",
   "SmoothCamera",
+  "Fades"
 }
 local current = 1
 
@@ -178,6 +179,10 @@ function scene:draw()
       end
       offsettest = (timer - math.floor(timer)) * Pixelscreen.config.current_scale
     end
+    if current == 7 then 
+      love.graphics.printf("1 Fade in / 2 fade out ",0, 20, BASE_WIDTH, "center")
+      love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, BASE_WIDTH, "center")
+    end
     
   Pixelscreen.stop({x=-offsettest, y=-offsettest})
   if love.keyboard.isDown("`") then
@@ -243,6 +248,39 @@ function scene:keypressed(key, scan, isrepeat)
     end
     if key == "2" then 
       Pixelscreen.capture_remove()
+    end
+  end
+
+  if current == 7 then 
+    if key == "1" then 
+      Pixelscreen.fade_out()
+    end
+    if key == "2" then 
+      Pixelscreen.fade_in()
+    end
+    if key == "3" then 
+      Pixelscreen.fade_color({1,1,1,1})
+    end
+    if key == "4" then 
+      Pixelscreen.fade_color({0,0,0,1})
+    end
+    if key == "5" then 
+      Pixelscreen.fade_image(Texture.system.fade.tiles_top)
+    end
+    if key == "6" then 
+      Pixelscreen.fade_image(Texture.system.fade.spiral)
+    end
+    if key == "7" then 
+      Pixelscreen.fade_image(Texture.system.fade.clock)
+    end
+    if key == "8" then 
+      Pixelscreen.fade_image(Texture.system.fade.web)
+    end
+    if key == "9" then 
+      Pixelscreen.fade_image(Texture.system.fade.warp)
+    end
+    if key == "0" then 
+      Pixelscreen.fade_value(0.5)
     end
   end
 

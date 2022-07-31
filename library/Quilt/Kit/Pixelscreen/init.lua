@@ -70,6 +70,11 @@ m.config = {
   vsync = 1,
   monitor = 1,
   padding = 1, -- Padding to the bottom and left of the canvas to allow for optional smooth scrolling.
+  fade_enabled = true,
+  fade_timer = 0,
+  fade_dir = 1,
+  fade_speed = 1,
+  fade_done = true,
   size_details = {}
 }
 
@@ -219,6 +224,16 @@ function m.stop(settings)
     love.graphics.draw(m.buffer2)
   end  
 
+  -- Fade Out/In Control
+  if m.config.fade_enabled then
+    love.graphics.setCanvas({m.buffer2, stencil = true})
+    love.graphics.setShader(m.built_in_shaders.fade)
+    love.graphics.draw(m.buffer1)
+    love.graphics.setShader()
+    love.graphics.setCanvas({m.buffer1, stencil = true})
+    love.graphics.draw(m.buffer2)
+  end  
+
   -- Will draw after shaders are done, treat like a callback.
   m.shader_draw_after()
 
@@ -231,12 +246,14 @@ function m.stop(settings)
   if m.scale_breaking_shader[1] then 
     love.graphics.setShader()
   end
+
 end
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Update the width/height/offset/mouse
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local d = 0
 function m.update(dt)
   local c = m.config
 
@@ -254,6 +271,15 @@ function m.update(dt)
   m.mouse.x = math.floor((love.mouse.getX() - c.offsetx)/c.current_scale)
   m.mouse.y = math.floor((love.mouse.getY() - c.offsety)/c.current_scale)
 
+  -- Fade Timer
+  if not m.config.fade_done then 
+    m.config.fade_timer = m.config.fade_timer + ((dt * m.config.fade_speed) * m.config.fade_dir)
+    m.built_in_shaders.fade:send("fade_percent", m.config.fade_timer)
+  end
+
+  if m.config.fade_timer > 1.1 then m.config.fade_done = true; m.config.fade_dir = 1 end 
+  if m.config.fade_timer < - 0.1 then m.config.fade_done = true; m.config.fade_dir = 1 end 
+    
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -466,6 +492,98 @@ function m.capture_draw(name, ...)
     love.graphics.draw(m.screen_capture[name], unpack({...}))
   end
 end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Functions / Transition 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Default Fade Image
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+ m.wipe = love.image.newImageData(16,9)
+  for x = 0, 15 do
+    for y = 0, 8 do
+      local color = 1 
+      color = math.random()
+      m.wipe:setPixel(x, y, color, color, color, 1)
+    end
+  end
+  m.wipe = love.graphics.newImage(m.wipe)
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Shader Collection 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.built_in_shaders = {}
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Shader Fade 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.built_in_shaders.fade = love.graphics.newShader([[
+  extern Image fade_image;
+  extern float fade_percent;
+  extern vec4 fade_color;
+  vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+  {
+      // Select the pixel from the image that matches where we are on the screen.
+      vec4 fade_image_colors = Texel(fade_image, uv);
+
+      // Compare - Get away with this because it's a small canvas :v
+      if (fade_image_colors.r + 0.04 >= fade_percent * 1.05) { // Cheap hacks to make sure 0.0 = no fill 1.0 = max fixx
+          return Texel(texture, uv) * color; // Return Canvas
+      } else {
+          return fade_color; // Return Color of Fade Out
+      }
+  }
+]])
+
+m.built_in_shaders.fade:send("fade_image", m.wipe)
+m.built_in_shaders.fade:send("fade_percent", 0.0)
+m.built_in_shaders.fade:send("fade_color", {0.05,0.05,0.05,1})
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Control Fade %
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.fade_value(num)
+  m.built_in_shaders.fade:send("fade_percent", num)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Control Fade Image 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.fade_image(pic)
+  m.built_in_shaders.fade:send("fade_image", pic)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Control Fade color 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.fade_color(tab)
+  m.built_in_shaders.fade:send("fade_color", tab)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Fade In
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.fade_out(speed)
+  speed = speed or 1
+  m.config.fade_dir = 1
+  m.config.fade_timer = 0
+  m.config.fade_speed = speed
+  m.built_in_shaders.fade:send("fade_percent", 0.0)
+  m.config.fade_done = false
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Fade Out
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.fade_in(speed)
+  speed = speed or 1
+  m.config.fade_dir = -1
+  m.config.fade_timer = 1
+  m.config.fade_speed = speed
+  m.built_in_shaders.fade:send("fade_percent", 0.0)
+  m.config.fade_done = false
+end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
