@@ -536,6 +536,7 @@ m.built_in_shaders.fade = love.graphics.newShader([[
   }
 ]])
 
+
 m.built_in_shaders.fade:send("fade_image", m.wipe)
 m.built_in_shaders.fade:send("fade_percent", 0.0)
 m.built_in_shaders.fade:send("fade_color", {0.05,0.05,0.05,1})

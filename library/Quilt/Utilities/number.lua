@@ -52,6 +52,7 @@ end print(m.__DESCRIPTION)
 m.functions_list = {
   "clock_format",
   "cash_format",
+  "tile_number",
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,6 +110,12 @@ m.functions_code = {
     print("clock_format: enabled")
   end,
 
+  -- Return the nearest multiple with no remainder
+  tile_number = function()
+     function m.tile_scale(num, base)
+      return math.floor(num/base)*base
+    end
+  end,
 
 }
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.menu)
+  Gamestate.switch(Debug_screen.misc)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -24,6 +24,7 @@ Utilities.setup("library.Quilt.Utilities", {
   love_patch = {},
   number = {},
   mouse = {},
+  slice9 = {},
 })
 
 Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
@@ -58,6 +59,7 @@ love.graphics.setFont(Font.default)
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Utilities.content_loader.texture("Texture", "asset/texture")
+Utilities.slice9.import_graphics_table({import_texture_container = "Texture.system.slice9"})
 Utilities.content_loader.flat_shader("Shader", "asset/shader")
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
