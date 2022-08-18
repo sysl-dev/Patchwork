@@ -180,11 +180,11 @@ function scene:draw()
       offsettest = (timer - math.floor(timer)) * Pixelscreen.config.current_scale
     end
     if current == 7 then 
-      love.graphics.printf("1 Fade in / 2 fade out ",0, 20, BASE_WIDTH, "center")
+      love.graphics.printf("1 Fade in / 2 fade out / 3 random fade in / 4 random fade out / 5 random color / 6 random color and alpha",0, 20, BASE_WIDTH, "center")
       love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, BASE_WIDTH, "center")
     end
     
-  Pixelscreen.stop({x=-offsettest, y=-offsettest})
+  Pixelscreen.stop(offsettest, offsettest)
   if love.keyboard.isDown("`") then
     Utilities.debug_tools.on_screen_debug_info()
   end
@@ -258,27 +258,31 @@ function scene:keypressed(key, scan, isrepeat)
     if key == "2" then 
       Pixelscreen.fade_in()
     end
-    if key == "3" then 
-      Pixelscreen.fade_color({1,1,1,1})
-    end
-    if key == "4" then 
-      Pixelscreen.fade_color({0,0,0,1})
-    end
     if key == "5" then 
-      Pixelscreen.fade_image(Texture.system.fade.tiles_top)
+      Pixelscreen.fade_color({math.random(),math.random(),math.random(),1})
     end
     if key == "6" then 
-      Pixelscreen.fade_image(Texture.system.fade.spiral)
+      Pixelscreen.fade_color({math.random(),math.random(),math.random(),math.random()})
     end
-    if key == "7" then 
-      Pixelscreen.fade_image(Texture.system.fade.clock)
+    if key == "3" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_out()
     end
-    if key == "8" then 
-      Pixelscreen.fade_image(Texture.system.fade.web)
+    if key == "4" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_in()
     end
-    if key == "9" then 
-      Pixelscreen.fade_image(Texture.system.fade.warp)
-    end
+
     if key == "0" then 
       Pixelscreen.fade_value(0.5)
     end

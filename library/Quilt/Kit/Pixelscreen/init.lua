@@ -128,6 +128,9 @@ function m.setup(settings)
   m.config.base_height = settings.base_height or m.config.base_height
   print("Width/Height " .. m.config.base_width .. "/" .. m.config.base_height)
 
+  -- VSYNC
+  m.config.vsync = settings.vsync or m.config.vsync
+
   -- Apply pixel friendly scaling changes if not disabled
   if not settings.no_global_changes then 
     love.graphics.setDefaultFilter("nearest", "nearest", 1)
@@ -190,19 +193,18 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw captured drawings and apply shaders.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.stop(settings)
+function m.stop(x, y, r, sx, sy, ox, oy, kx, ky)
   -- gather adjustments
-  settings = settings or {}
-  local c = m.config
-  local x = (settings.x or 0) + c.offsetx + (c.base_width/2 * c.current_scale)
-  local y = (settings.y or 0) + c.offsety + (c.base_height/2 * c.current_scale)
-  local r = settings.r or 0
-  local sx = (settings.sx or 0) + c.current_scale
-  local sy = (settings.sy or 0) + c.current_scale
-  local ox = (settings.ox or 0) + c.base_width/2
-  local oy = (settings.oy or 0) + c.base_height/2
-  local kx = (settings.kx or 0)
-  local ky = (settings.ky or 0)
+   local c = m.config
+   x = (x or 0) + c.offsetx + (c.base_width/2 * c.current_scale)
+   y = (y or 0) + c.offsety + (c.base_height/2 * c.current_scale)
+   r = r or 0
+   sx = (sx or 0) + c.current_scale
+   sy = (sy or 0) + c.current_scale
+   ox = (ox or 0) + c.base_width/2
+   oy = (oy or 0) + c.base_height/2
+   kx = (kx or 0)
+   ky = (ky or 0)
 
   -- Shader Pool Shaders
   for i=1, #m.shader_pool do

@@ -109,7 +109,7 @@ end
 
 function m.get_smoothstep_x()
   if m.current.smoothstep then 
-    return  m.current.smoothstepx
+    return -1 * m.current.smoothstepx
   else
     return 0
   end
@@ -117,7 +117,7 @@ end
 
 function m.get_smoothstep_y()
   if m.current.smoothstep then 
-    return  m.current.smoothstepy
+    return -1 * m.current.smoothstepy
   else
     return 0
   end

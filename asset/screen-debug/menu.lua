@@ -4,12 +4,14 @@ local screens = {
   "test_pixel_scale",
   "test_box2d",
   "test_camera",
+  "test_misc",
 }
 
 local ascreens = {
   "Test Screen Scaling Features",
   "Test Box2d Library",
   "Camera Scroll",
+  "Random Tests",
 }
 local current = 1
 
@@ -39,10 +41,10 @@ function scene:draw(dt)
     love.graphics.rectangle("fill",0,20,BASE_WIDTH,BASE_HEIGHT-40)
     love.graphics.setColor(1,1,1,1)
     love.graphics.printf("Z - Previous Screen   X - Switch Scene   C - Next Screen",0, BASE_HEIGHT - 20, BASE_WIDTH, "center")
-
     love.graphics.printf(ascreens[current], 0, BASE_HEIGHT/2-8, BASE_WIDTH, "center")
+
    
-  Pixelscreen.stop({})
+  Pixelscreen.stop()
   if love.keyboard.isDown("`") then
     Utilities.debug_tools.on_screen_debug_info()
   end

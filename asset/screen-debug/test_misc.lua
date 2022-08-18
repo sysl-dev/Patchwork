@@ -22,9 +22,9 @@ function scene:draw()
 
   if mode == 0 then 
     Utilities.repeating_bg.draw(Texture.system.background.pattern_01, "x32", math.floor(-timer), math.floor(-timer))
-    Utilities.slice9.draw("complex", 0, 0, 32 + math.sin(timer/20)*32, 32+ math.sin(timer/20)*32)
-    Utilities.slice9.draw_tiled("complex", 128, 0, 32 + math.sin(timer/20)*32, 32+ math.sin(timer/20)*32)
-    Utilities.slice9.draw("rainbow", 0, 80, 64, 64)
+    Utilities.slice9.draw("peanut", 0, 0, 32 + math.sin(timer/20)*32, 32+ math.sin(timer/20)*32)
+    Utilities.slice9.draw_tiled("peanut", 128, 0, 32 + math.sin(timer/20)*32, 32+ math.sin(timer/20)*32)
+    Utilities.slice9.draw("rainbow", 0, 80, 16 + math.sin(timer/20)*48, 16+ math.sin(timer/20)*48)
     Utilities.slice9.draw_tiled("pattern", 128, 80, tilescale(33 + math.sin(timer/20)*32, 8), tilescale(33 + math.sin(timer/20)*32, 8), {tile_center = true})
   end
   if mode == 1 then 

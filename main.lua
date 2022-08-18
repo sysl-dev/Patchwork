@@ -1,3 +1,28 @@
+-- maps
+-- cool bars
+-- some ui helpers 
+--[[
+Ok so like, a UI object is like it's own thing, it has a width/height and other parts 
+
+So, like, it could be as simple as:
+Volume < Number > 
+Label button value button 
+Or 
+Music Track:
+< Green Sky > 
+Label 
+Button Value Button
+
+These things should give value by returning: Can the cursor select it? Does it have any sub-selections for the cursor?
+
+A list of OI objects then can see if the user presses up/down or left/right what should happen.
+Then the UI could also respond to mouse clicks if they are existing.
+]]--
+-- Some third party 3d library
+-- a pathfinding library
+-- color needs a HSL->RGB and the reverse
+-- 
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Runs after everything in main.lua have been completed.
@@ -5,7 +30,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.misc)
+  Gamestate.switch(Debug_screen.menu)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -28,7 +53,7 @@ Utilities.setup("library.Quilt.Utilities", {
 })
 
 Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
-Pixelscreen.setup()
+Pixelscreen.setup({vsync = 1})
 
 Camera = require("library.Quilt.Kit.Camera")
 Camera.setup()
@@ -85,6 +110,10 @@ Render = require("library.deep")
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Animation = require("library.anim8")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Baton - Game Keyboard/Gamepad Controller - 	Andrew Minnich 	MIT License
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+Baton = require("library.baton")
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Quilt - Game focused libraries - SysL (C. Hall)  - License MIT
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 
@@ -114,7 +143,7 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Utilities.content_loader.flat_lua("Debug_screen", "asset/screen-debug")
-Utilities.content_loader.flat_lua("screen", "asset/screen")
+--Utilities.content_loader.flat_lua("screen", "asset/screen")
 Utilities.debug_tools.print_globals()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,25 +152,3 @@ Utilities.debug_tools.print_globals()
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 
-local seen={}
-
-local function dump(t,i)
-    seen[t]=true
-    local s={}
-    local n=0
-    for k in pairs(t) do
-        n=n+1 s[n]=k
-    end
-    table.sort(s)
-    for k,v in ipairs(s) do
-      if type(t[v]) == "function" then
-          print(i,v)
-      end
-        v=t[v]
-        if type(v)=="table" and not seen[v] then
-            dump(v,i.."\t")
-        end
-    end
-end
-
---dump(Pixelscreen,"")
