@@ -1,5 +1,6 @@
 
 local scene = {}
+local timer = 0
 local screens = {
   "test_pixel_scale",
   "test_box2d",
@@ -29,7 +30,7 @@ local BASE_WIDTH = BASE_WIDTH or love.graphics.getWidth()
 local BASE_HEIGHT = BASE_HEIGHT or love.graphics.getHeight()
 
 function scene:update(dt)
-
+  timer = timer + dt
 end
 
 function scene:draw(dt)
@@ -43,7 +44,9 @@ function scene:draw(dt)
     love.graphics.printf("Z - Previous Screen   X - Switch Scene   C - Next Screen",0, BASE_HEIGHT - 20, BASE_WIDTH, "center")
     love.graphics.printf(ascreens[current], 0, BASE_HEIGHT/2-8, BASE_WIDTH, "center")
 
-   
+    love.gfx.colorDisk(50, 50, 25, 0, math.rad(math.floor(math.sin(timer) * 360)), {1,0,0,1}, {0,0,1,1}, 6, "y")
+
+
   Pixelscreen.stop()
   if love.keyboard.isDown("`") then
     Utilities.debug_tools.on_screen_debug_info()

@@ -20,7 +20,6 @@ Then the UI could also respond to mouse clicks if they are existing.
 ]]--
 -- Some third party 3d library
 -- a pathfinding library
--- color needs a HSL->RGB and the reverse
 -- 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

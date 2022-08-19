@@ -148,25 +148,110 @@ function love.gfx.outlinePrintf(settings, ...)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Gradient Rectangle
+  * Gradient Rectangle -- love.gfx.colorRectangle(20, 20, 100, 10 + 5 * math.sin(timer*5), {0.2,0.8,0.2,1}, {0,0.6,0.45,1}, "y")
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function love.gfx.Grectangle(x, y, w, h, color1, color2)
-  color1 = color1 or love.graphics.getColor()
-  color2 = color2 or love.graphics.getColor()
+-- Create image for scaling
+  local x1pixel_image = love.image.newImageData(1,1)
+  x1pixel_image:setPixel(0, 0, 1, 1, 1, 1) 
+  local x1pix = love.graphics.newImage(x1pixel_image)
+
+-- Local shader 
+  local horizontal_shade = love.graphics.newShader([[
+    extern vec4 color1;
+    extern vec4 color2;
+    vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+    {
+      vec4 fcolor = mix(color1,color2,uv.x);  
+      return Texel(texture, uv) * fcolor;
+    }  
+]])  
+
+  local vertical_shade = love.graphics.newShader([[
+    extern vec4 color1;
+    extern vec4 color2;
+    vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+    {
+      vec4 fcolor = mix(color1,color2,uv.y);
+      return Texel(texture, uv) * fcolor;
+    }  
+]])  
+
+  local both_shade = love.graphics.newShader([[
+    extern vec4 color1;
+    extern vec4 color2;
+    vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+    {
+      vec4 fcolor = mix(color1,color2,(uv.y * uv.x));
+      return Texel(texture, uv) * fcolor;
+    }  
+]])  
+
+function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
+  -- Capture the current color 
+  local r,g,b,a = love.graphics.getColor()
+  local tempcolor = {r,g,b,a}
+  color1 = color1 or tempcolor
+  color2 = color2 or tempcolor
+
+  -- Capture the current shader 
   local curshader = love.graphics.getShader()
 
+  -- Send the colors to the shader and render the shader
+  mode = mode or "x"
+  if mode == "x" then 
+    mode = horizontal_shade 
+    horizontal_shade:send("color1", color1)
+    horizontal_shade:send("color2", color2)
+  end
+
+  if mode == "y" then 
+    mode = vertical_shade 
+    vertical_shade:send("color1", color1)
+    vertical_shade:send("color2", color2)
+  end
+
+  if mode == "xy" then 
+    mode = both_shade 
+    both_shade:send("color1", color1)
+    both_shade:send("color2", color2)
+  end
+
+  love.graphics.setShader(mode)
+
+  -- Make a 1x1 image into a huge box
+  love.graphics.draw(x1pix, x + w/2, y + h/2, math.rad(0), w, h, w/w/2, h/h/2)
+
+  -- Return the shader to normal 
   love.graphics.setShader(curshader)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Gradient Disk  
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function love.gfx.disk(x, y, r, startangle, endangle, color1, color2)
-  color1 = color1 or love.graphics.getColor()
-  color2 = color2 or love.graphics.getColor()
-  local curshader = love.graphics.getShader()
+local mask_effect = love.graphics.newShader[[
+   vec4 effect (vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
+      if (Texel(texture, texture_coords).rgb == vec3(0.0)) {
+         // a discarded pixel wont be applied as the stencil.
+         discard;
+      }
+      return vec4(1.0);
+   }
+]]
 
-  love.graphics.setShader(curshader)
+function love.gfx.colorDisk(x, y, r, startangle, endangle, color1, color2, dwidth, mode)
+  dwidth = dwidth or r/2
+
+  local function xc()
+    love.graphics.arc("fill", x + r, y + r, r, startangle, endangle, 128)
+    love.graphics.arc("fill", x + r, y + r, r, startangle, endangle, 128)
+    love.graphics.circle("fill",  x + r, y + r, r-dwidth)
+ end
+
+  love.graphics.stencil(xc, "increment", 1)
+  love.graphics.setStencilTest("equal", 2)
+  love.gfx.colorRectangle(x, y, r*2, r*2, color1, color2, mode)
+  love.graphics.setStencilTest()
+
 end
 
 

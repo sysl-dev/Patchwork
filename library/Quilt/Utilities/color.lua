@@ -176,6 +176,89 @@ function m.setup(settings)
   end
 end
 
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * RGB -> HSL # Some code from https://github.com/Wavalab/rgb-hsl-rgb/issues/1
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.rgb2hsl(r,g,b,a)
+  -- We can take a table or values
+  if type(r) == "table" then 
+    a = r[4]; b = r[3]; g = r[2]; r = r[1]
+  end
+  -- We pass alpha along
+  a = a or 1
+  -- Get the highest/lowest RGB value
+  local max, min = math.max(r,g,b), math.min(r,g,b)
+
+  -- Set the base HSL
+  local temphsl = (max + min)/2
+  local h,s,l = temphsl, temphsl, temphsl
+  -- Achromatic if max = min (Final will be Black-to-White)
+  if max == min then 
+    h = 0
+    s = 0
+  else -- This has a hue of some sort
+    local diff = max - min
+    if l > 0.5 then 
+      s = diff / (2 - max - min)
+    else
+      s = diff / (max + min)
+    end
+    -- color size check 
+    if max == r then 
+      h = (g - b) / diff 
+      if g < b then h = h + 6 end
+    elseif max == g then 
+      h = (b - r) / diff + 2
+    elseif max == b then 
+      h = (r - g) / diff + 4
+    end
+    -- h is 0-100 (0.0-1.0)
+    h = h / 6 
+  end
+
+  return {h,s,l,a}
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * HSL -> RGB # Some code from https://github.com/Wavalab/rgb-hsl-rgb/issues/1
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.hsl2rgb(h,s,l,a)
+  local r,g,b
+ -- We can take a table or values
+ if type(h) == "table" then 
+  a = h[4]; l = h[3]; s = h[2]; h = h[1]
+end
+  -- We pass alpha along
+  a = a or 1
+
+  if s == 0 then 
+    r = l; g = l; b = l; -- Color will be white-black
+  else 
+    local function convert(p,q,t)
+      if t < 0 then t = t + 1 end
+      if t > 1 then t = t - 1 end
+      if t < 1/6 then return p + (q - p) * 6 * t end
+      if t < 1/2 then return q end
+      if t < 2/3 then return p + (q - p) * (2/3 - t) * 6 end
+      return p
+    end
+    local q = l < .5 and l * (1 + s) or l + s - l * s
+    local p = 2 * l - q
+    r = convert(p, q, h + 1/3)
+    g = convert(p, q, h);
+    b = convert(p, q, h - 1/3)
+  end
+
+  return {r,g,b,a}
+end
+
+debugprint(unpack(m.rgb2hsl(1,0,0,1)))
+debugprint(unpack(m.rgb2hsl(0,1,0,1)))
+debugprint(unpack(m.hsl2rgb(m.rgb2hsl(1,0,0,1))))
+debugprint(unpack(m.hsl2rgb(m.rgb2hsl(0,1,0,1))))
+
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
