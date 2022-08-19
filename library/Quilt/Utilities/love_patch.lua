@@ -228,16 +228,6 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Gradient Disk  
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local mask_effect = love.graphics.newShader[[
-   vec4 effect (vec4 color, Image texture, vec2 texture_coords, vec2 screen_coords) {
-      if (Texel(texture, texture_coords).rgb == vec3(0.0)) {
-         // a discarded pixel wont be applied as the stencil.
-         discard;
-      }
-      return vec4(1.0);
-   }
-]]
-
 function love.gfx.colorDisk(x, y, r, startangle, endangle, color1, color2, dwidth, mode)
   dwidth = dwidth or r/2
 
@@ -251,7 +241,6 @@ function love.gfx.colorDisk(x, y, r, startangle, endangle, color1, color2, dwidt
   love.graphics.setStencilTest("equal", 2)
   love.gfx.colorRectangle(x, y, r*2, r*2, color1, color2, mode)
   love.graphics.setStencilTest()
-
 end
 
 
