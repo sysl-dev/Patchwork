@@ -186,6 +186,21 @@ end
     }  
 ]])  
 
+  local center_shade = love.graphics.newShader([[
+    extern vec4 color1;
+    extern vec4 color2;
+    vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+    {
+      vec2 centeruv = uv;
+      centeruv.x = centeruv.x - 0.5;
+      centeruv.y = centeruv.y - 0.5;
+      float d = length(centeruv);
+      vec4 fcolor = mix(color1,color2,d);
+      return Texel(texture, uv) * fcolor;
+    }  
+]])  
+
+
 function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
   -- Capture the current color 
   local r,g,b,a = love.graphics.getColor()
@@ -216,6 +231,12 @@ function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
     both_shade:send("color2", color2)
   end
 
+  if mode == "c" then 
+    mode = center_shade 
+    center_shade:send("color1", color1)
+    center_shade:send("color2", color2)
+  end
+
   love.graphics.setShader(mode)
 
   -- Make a 1x1 image into a huge box
@@ -227,19 +248,43 @@ end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Gradient Disk  
+  -- Outline Example 
+    love.gfx.disk(49, 49, 26, math.sin(timer) - 0.015 , -90+2, 12)
+    love.gfx.colorDisk(50, 50, 25, math.sin(timer), -90, {1,0,0,1}, {0,0,1,1}, 10, "x")
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function love.gfx.colorDisk(x, y, r, startangle, endangle, color1, color2, dwidth, mode)
+function love.gfx.colorDisk(x, y, r, total, rotate, color1, color2, dwidth, mode)
   dwidth = dwidth or r/2
 
   local function xc()
-    love.graphics.arc("fill", x + r, y + r, r, startangle, endangle, 128)
-    love.graphics.arc("fill", x + r, y + r, r, startangle, endangle, 128)
+    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
     love.graphics.circle("fill",  x + r, y + r, r-dwidth)
  end
 
   love.graphics.stencil(xc, "increment", 1)
   love.graphics.setStencilTest("equal", 2)
   love.gfx.colorRectangle(x, y, r*2, r*2, color1, color2, mode)
+  love.graphics.setStencilTest()
+end
+
+
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Standard Disk  
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function love.gfx.disk(x, y, r, total, rotate, dwidth)
+  dwidth = dwidth or r/2
+
+  local function xc()
+    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.circle("fill",  x + r, y + r, r-dwidth)
+ end
+
+  love.graphics.stencil(xc, "increment", 1)
+  love.graphics.setStencilTest("equal", 2)
+  local w, h = r*2, r*2
+  love.graphics.draw(x1pix, x + w/2, y + h/2, math.rad(0), w, h, w/w/2, h/h/2)
   love.graphics.setStencilTest()
 end
 

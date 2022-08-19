@@ -44,7 +44,11 @@ function scene:draw(dt)
     love.graphics.printf("Z - Previous Screen   X - Switch Scene   C - Next Screen",0, BASE_HEIGHT - 20, BASE_WIDTH, "center")
     love.graphics.printf(ascreens[current], 0, BASE_HEIGHT/2-8, BASE_WIDTH, "center")
 
-    love.gfx.colorDisk(50, 50, 25, 0, math.rad(math.floor(math.sin(timer) * 360)), {1,0,0,1}, {0,0,1,1}, 6, "y")
+    love.gfx.disk(49, 49, 26, math.sin(timer) - 0.015 , -90+2, 12)
+    love.gfx.colorDisk(50, 50, 25, math.sin(timer), -90, {0,0.3,0.15,1}, {0,0.0,0.0,1}, 10, "c")
+
+    love.gfx.colorRectangle(120, 50, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "c")
+    
 
 
   Pixelscreen.stop()
