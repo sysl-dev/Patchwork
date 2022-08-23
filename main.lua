@@ -1,5 +1,6 @@
 -- maps
--- cool bars
+-- Some third party 3d library
+-- a pathfinding library
 -- some ui helpers 
 --[[
 Ok so like, a UI object is like it's own thing, it has a width/height and other parts 
@@ -18,10 +19,6 @@ These things should give value by returning: Can the cursor select it? Does it h
 A list of OI objects then can see if the user presses up/down or left/right what should happen.
 Then the UI could also respond to mouse clicks if they are existing.
 ]]--
--- Some third party 3d library
--- a pathfinding library
--- 
-
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Runs after everything in main.lua have been completed.
@@ -48,11 +45,13 @@ Utilities.setup("library.Quilt.Utilities", {
   love_patch = {},
   number = {},
   mouse = {},
-  slice9 = {},
+  slice9 = {}
 })
 
 Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
-Pixelscreen.setup({vsync = 1})
+Pixelscreen.setup({
+  vsync = 1
+})
 
 Camera = require("library.Quilt.Kit.Camera")
 Camera.setup()
@@ -66,15 +65,11 @@ Camera.setup()
   * Fonts - Load all fonts used in this project.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Font = {
-  golden_apple = love.graphics.newFont(
-    "asset/font/golden_apple/golden_apple.fnt",
-    "asset/font/golden_apple/golden_apple.png"
-  ),
-  earth_illusion = love.graphics.newFont(
-    "asset/font/earth_illusion/earth_illusion.fnt",
-    "asset/font/earth_illusion/earth_illusion.png"
-  ),
-  ack_recall = love.graphics.newFont("asset/font/ack_recall/AckRecall.ttf", 16, "mono"),
+  golden_apple = love.graphics.newFont("asset/font/golden_apple/golden_apple.fnt",
+      "asset/font/golden_apple/golden_apple.png"),
+  earth_illusion = love.graphics.newFont("asset/font/earth_illusion/earth_illusion.fnt",
+      "asset/font/earth_illusion/earth_illusion.png"),
+  ack_recall = love.graphics.newFont("asset/font/ack_recall/AckRecall.ttf", 16, "mono")
 }
 
 Font.default = Font.golden_apple
@@ -83,7 +78,9 @@ love.graphics.setFont(Font.default)
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Utilities.content_loader.texture("Texture", "asset/texture")
-Utilities.slice9.import_graphics_table({import_texture_container = "Texture.system.slice9"})
+Utilities.slice9.import_graphics_table({
+  import_texture_container = "Texture.system.slice9"
+})
 Utilities.content_loader.flat_shader("Shader", "asset/shader")
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,7 +120,7 @@ Baton = require("library.baton")
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw - 
---------------------------------------------------------------------------------------------------------------------------------------------------]]--`
+--------------------------------------------------------------------------------------------------------------------------------------------------]]-- `
 function love.draw()
   love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 end
@@ -132,7 +129,9 @@ end
   * Update - 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.update(dt)
-  if dt > 1/30 then return end
+  if dt > 1 / 30 then
+    return
+  end
   Pixelscreen.update(dt)
 end
 
@@ -142,7 +141,7 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Utilities.content_loader.flat_lua("Debug_screen", "asset/screen-debug")
---Utilities.content_loader.flat_lua("screen", "asset/screen")
+-- Utilities.content_loader.flat_lua("screen", "asset/screen")
 Utilities.debug_tools.print_globals()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,10 +1,10 @@
 local m = {
-  __NAME        = "Quilt-Mouse",
-  __VERSION     = "4.0",
-  __AUTHOR      = "C. Hall (Sysl)",
+  __NAME = "Quilt-Mouse",
+  __VERSION = "4.0",
+  __AUTHOR = "C. Hall (Sysl)",
   __DESCRIPTION = "Graphical Cursor and Mouse Function",
-  __URL         = "http://github.sysl.dev/",
-  __LICENSE     = [[
+  __URL = "http://github.sysl.dev/",
+  __LICENSE = [[
     MIT LICENSE
 
     Copyright (c) 2022 Chris / Systemlogoff
@@ -28,30 +28,36 @@ local m = {
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   ]],
-  __LICENSE_TITLE = "MIT LICENSE"
+  __LICENSE_TITLE = "MIT LICENSE",
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 m.debug = false
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 local print = print
 local debugprint = print
 local function print(...)
   if m.debug then
-    debugprint(m.__NAME .. ": ", unpack({...}))
+    debugprint(m.__NAME .. ": ", unpack({
+      ...,
+    }))
   end
-end print(m.__DESCRIPTION)
+end
+print(m.__DESCRIPTION)
 
-local base = {width = BASE_WIDTH or love.graphics.getWidth(), height = BASE_HEIGHT or love.graphics.getHeight()}
+local base = {
+  width = BASE_WIDTH or love.graphics.getWidth(),
+  height = BASE_HEIGHT or love.graphics.getHeight(),
+}
 
 m.quad = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Setup (if Required)
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function m.setup(settings)
   -- Set reasonable defaults if none are supplied.
   settings = settings or {}
@@ -59,27 +65,23 @@ end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Functions
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function m.create(name, imgw, imgh)
-  m.quad[name] = love.graphics.newQuad(0,0,base.width*2, base.height*2, imgw, imgh or imgw)
+  m.quad[name] = love.graphics.newQuad(0, 0, base.width * 2, base.height * 2, imgw, imgh or imgw)
 end
 
 -- clamp, clampzero, repeat, mirroredrepeat
 function m.set_repeat(img, mode, mode2)
-mode2 = mode2 or mode 
-
-img:setWrap(mode, mode2)
+  mode2 = mode2 or mode
+  img:setWrap(mode, mode2)
 end
 
-
-function m.delete(name)
-  m.quad[name] = nil
-end
+function m.delete(name) m.quad[name] = nil end
 
 function m.draw(img, name, x, y, r, sx, sy, ox, oy, kx, ky)
   love.graphics.draw(img, m.quad[name], x, y, r, sx, sy, ox, oy, kx, ky)
 end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 return m

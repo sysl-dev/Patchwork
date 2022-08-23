@@ -1,10 +1,10 @@
 local m = {
-  __NAME        = "QU-Global-Defaults",
-  __VERSION     = "1.0",
-  __AUTHOR      = "C. Hall (Sysl)",
+  __NAME = "QU-Global-Defaults",
+  __VERSION = "1.0",
+  __AUTHOR = "C. Hall (Sysl)",
   __DESCRIPTION = "Changes global LOVE variables",
-  __URL         = "http://github.sysl.dev/",
-  __LICENSE     = [[
+  __URL = "http://github.sysl.dev/",
+  __LICENSE = [[
     MIT LICENSE
 
     Copyright (c) 2022 Chris / Systemlogoff
@@ -28,27 +28,30 @@ local m = {
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   ]],
-  __LICENSE_TITLE = "MIT LICENSE"
+  __LICENSE_TITLE = "MIT LICENSE",
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 m.debug = false
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 local print = print
 local debugprint = print
 local function print(...)
   if m.debug then
-    debugprint(m.__NAME .. ": ", unpack({...}))
+    debugprint(m.__NAME .. ": ", unpack({
+      ...,
+    }))
   end
-end print(m.__DESCRIPTION)
+end
+print(m.__DESCRIPTION)
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Global Settings to Load
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 m.global_settings_list = {
   "nearest_filter",
   "line_rough",
@@ -57,7 +60,7 @@ m.global_settings_list = {
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Store into a table for easy on/off
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 m.global_settings_functions = {
   nearest_filter = function()
     -- Forces Love to scale everything per pixel
@@ -91,7 +94,7 @@ m.global_settings_functions = {
 }
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Tinker with global settings
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function m.setup(settings)
 
   -- Set reasonable defaults if none are supplied 
@@ -101,23 +104,19 @@ function m.setup(settings)
   local global_settings_to_apply = settings.apply or m.global_settings_list
 
   -- If required, remove items from being applied.
-  if settings.remove then 
-    for x=1, #settings.remove do
-      for i=1, #global_settings_to_apply do
-        if global_settings_to_apply[i] == settings.remove[x] then
-          table.remove(global_settings_to_apply,i)
-        end
+  if settings.remove then
+    for x = 1, #settings.remove do
+      for i = 1, #global_settings_to_apply do
+        if global_settings_to_apply[i] == settings.remove[x] then table.remove(global_settings_to_apply, i) end
       end
     end
   end
 
   -- Apply settings
-  for i=1, #global_settings_to_apply do
-    m.global_settings_functions[global_settings_to_apply[i]]()
-  end
+  for i = 1, #global_settings_to_apply do m.global_settings_functions[global_settings_to_apply[i]]() end
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 return m

@@ -1,10 +1,10 @@
 local m = {
-  __NAME        = "Quilt-Utilities",
-  __VERSION     = "1.0",
-  __AUTHOR      = "C. Hall (Sysl)",
+  __NAME = "Quilt-Utilities",
+  __VERSION = "1.0",
+  __AUTHOR = "C. Hall (Sysl)",
   __DESCRIPTION = "One off code functions - parent loader",
-  __URL         = "http://github.sysl.dev/",
-  __LICENSE     = [[
+  __URL = "http://github.sysl.dev/",
+  __LICENSE = [[
     MIT LICENSE
 
     Copyright (c) 2022 Chris / Systemlogoff
@@ -28,26 +28,27 @@ local m = {
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   ]],
-  __LICENSE_TITLE = "MIT LICENSE"
+  __LICENSE_TITLE = "MIT LICENSE",
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 m.debug = false
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 
 local print = print
 local debugprint = print
 local function print(...)
   if m.debug then
-    debugprint(m.__NAME .. ": ", unpack({...}))
+    debugprint(m.__NAME .. ": ", unpack({
+      ...,
+    }))
   end
-end print(m.__DESCRIPTION)
-
+end
+print(m.__DESCRIPTION)
 
 m.utilities_list = {
   "color",
@@ -62,7 +63,7 @@ m.utilities_list = {
 }
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * 
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function m.setup(path, settings)
   -- Set reasonable defaults if none are supplied.
   path = path or ""
@@ -71,20 +72,18 @@ function m.setup(path, settings)
   local utilities_to_load = settings.load_only or m.utilities_list
 
   -- If required, remove items from being applied.
-  if settings.remove then 
-    for x=1, #settings.remove do
-      for i=1, #utilities_to_load do
-        if utilities_to_load[i] == settings.remove[x] then
-          table.remove(utilities_to_load,i)
-        end
+  if settings.remove then
+    for x = 1, #settings.remove do
+      for i = 1, #utilities_to_load do
+        if utilities_to_load[i] == settings.remove[x] then table.remove(utilities_to_load, i) end
       end
     end
   end
 
   -- Load the items as subtables to Utilities 
-  for i=1, #utilities_to_load do 
+  for i = 1, #utilities_to_load do
     -- Yell
-    print("Loaded:",utilities_to_load[i])
+    print("Loaded:", utilities_to_load[i])
     -- Load the items
     m[utilities_to_load[i]] = require(path .. "." .. utilities_to_load[i])
     -- Apply settings
@@ -94,5 +93,5 @@ end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 return m

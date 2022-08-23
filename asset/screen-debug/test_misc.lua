@@ -2,6 +2,7 @@
 local scene = {}
 local mode = 0
 local timer = 0
+local timer2 = 0
 local tilescale = Utilities.number.tile_scale
 
 -- Mode 0/1 Setup
@@ -11,6 +12,7 @@ Utilities.repeating_bg.set_repeat(Texture.system.background.pattern_01, "repeat"
 
 function scene:update(dt)
   timer = timer + dt * 32
+  timer2 = timer2 + dt
   if timer > 64 then 
     timer = timer - 64 
   end
@@ -29,6 +31,17 @@ function scene:draw()
   end
   if mode == 1 then 
     Utilities.repeating_bg.draw(Texture.system.background.pattern_01, "x5", math.floor(-timer), math.floor(-timer))
+  end
+  if mode == 2 then 
+    Utilities.repeating_bg.draw(Texture.system.background.pattern_01, "x32", math.floor(-timer/2), math.floor(-timer/2))
+    love.gfx.disk(49, 49, 26, math.sin(timer2) - 0.015 , -90+2, 12)
+    love.gfx.colorDisk(50, 50, 25, math.sin(timer2), -90, {1,0,0,1}, {0,0,1,1}, 10, "x")
+
+    love.gfx.colorRectangle(120, 50, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "c")
+    love.gfx.colorRectangle(120, 61, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "x")
+    love.gfx.colorRectangle(120, 72, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "y")
+    love.gfx.colorRectangle(120, 83, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "xy")
+    
   end
 
   Pixelscreen.stop()

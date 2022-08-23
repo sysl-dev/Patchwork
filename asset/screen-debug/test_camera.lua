@@ -160,7 +160,6 @@ end
 
 
 function scene:draw()
-  local dt = love.timer.getDelta() 
   Pixelscreen.start()
   love.graphics.rectangle("fill", 0,0, BASE_WIDTH+1, BASE_HEIGHT+1)
   

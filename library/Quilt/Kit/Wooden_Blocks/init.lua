@@ -197,7 +197,10 @@ function m.setup(settings)
   -- Step 1 - Create a new world with the settings.
   settings.world_gravity_x = settings.world_gravity_x or 0
   settings.world_gravity_y = settings.world_gravity_y or 0
-  settings.world_allow_sleep = settings.world_allow_sleep or true
+  if type(settings.world_allow_sleep) == "nil" then 
+    settings.world_allow_sleep = true
+  end
+  
   m.world = love.physics.newWorld(settings.world_gravity_x, settings.world_gravity_y, settings.world_allow_sleep)
 
   -- Step 2 - Apply Callbacks 
@@ -387,16 +390,12 @@ function m.create_simple_object(settings)
   -- Active or Not?
   if type(settings.active) == "nil" then -- Default True
     settings.active = true
-  else
-    settings.active = settings.active
   end
   -- Angular Damping
   settings.angular_damping = settings.angular_damping or 0.1
   -- Awake or Asleep 
   if type(settings.awake) == "nil" then -- Default True
     settings.awake = true
-  else
-    settings.awake = settings.awake
   end
   -- Bullet or Not
   settings.bullet = settings.bullet or false
@@ -405,8 +404,6 @@ function m.create_simple_object(settings)
   -- Can Sleep?
   if type(settings.can_sleep) == "nil" then -- Default True
     settings.can_sleep = true
-  else
-    settings.can_sleep = settings.can_sleep
   end
   -- Gravity Scale
   settings.gravity_scale = settings.gravity_scale or 1

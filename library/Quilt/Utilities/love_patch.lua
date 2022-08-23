@@ -1,10 +1,10 @@
 local m = {
-  __NAME        = "QU-LOVE-Patch",
-  __VERSION     = "1.0",
-  __AUTHOR      = "C. Hall (Sysl)",
+  __NAME = "QU-LOVE-Patch",
+  __VERSION = "1.0",
+  __AUTHOR = "C. Hall (Sysl)",
   __DESCRIPTION = "Patches the 'love' global library table with more functions",
-  __URL         = "http://github.sysl.dev/",
-  __LICENSE     = [[
+  __URL = "http://github.sysl.dev/",
+  __LICENSE = [[
     MIT LICENSE
 
     Copyright (c) 2022 Chris / Systemlogoff
@@ -28,65 +28,69 @@ local m = {
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   ]],
-  __LICENSE_TITLE = "MIT LICENSE"
+  __LICENSE_TITLE = "MIT LICENSE",
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 m.debug = true
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 local print = print
 local debugprint = print
 local function print(...)
   if m.debug then
-    debugprint(m.__NAME .. ": ", unpack({...}))
+    debugprint(m.__NAME .. ": ", unpack({
+      ...,
+    }))
   end
-end print(m.__DESCRIPTION)
+end
+print(m.__DESCRIPTION)
 love.gfx = {}
 -- Get the base width and height of the window before we resize it later.
-local base = {width = BASE_WIDTH or love.graphics.getWidth(), height = BASE_HEIGHT or love.graphics.getHeight()}
-local tablename = nil
+local base = {
+  width = BASE_WIDTH or love.graphics.getWidth(),
+  height = BASE_HEIGHT or love.graphics.getHeight(),
+}
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Internal Shaders
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Setup 
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function m.setup(settings)
   -- If you allow this to run, it will import everything.
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Reset Background Color 
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function love.gfx.resetColor()
-  love.graphics.setColor(1,1,1,1)
-end
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
+function love.gfx.resetColor() love.graphics.setColor(1, 1, 1, 1) end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Reset Blend Mode
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function love.gfx.resetBlendMode()
-  love.graphics.setBlendMode("alpha", "alphamultiply")
-end
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
+function love.gfx.resetBlendMode() love.graphics.setBlendMode("alpha", "alphamultiply") end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Set the color, under my control.
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function love.gfx.setColor(...)
   local first_color_number = ...
-  if type(first_color_number) == "nil" then love.gfx.resetColor() return end
+  if type(first_color_number) == "nil" then
+    love.gfx.resetColor()
+    return
+  end
   love.graphics.setColor(...)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw Background
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function love.gfx.background(padding)
   padding = padding or 0
   assert(type(padding) == "number", "Padding should be a number.")
@@ -95,68 +99,82 @@ end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Print Outlined Text
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function love.gfx.outlinePrint(settings, ...)
   settings = settings or {}
-  local temp_color = {love.graphics.getColor()}
+  local temp_color = {
+    love.graphics.getColor(),
+  }
   local text_color = settings.color or temp_color
-  local outline_color = settings.color2 or  {math.abs(text_color[1] - 1), math.abs(text_color[2] - 1), math.abs(text_color[3] - 1), 1}
-  local text,x,y,r,sx,sy,ox,oy,kx,ky = ...
+  local outline_color = settings.color2 or {
+    math.abs(text_color[1] - 1),
+    math.abs(text_color[2] - 1),
+    math.abs(text_color[3] - 1),
+    1,
+  }
+  local text, x, y, r, sx, sy, ox, oy, kx, ky = ...
   x = x or 0
   y = y or 0
   love.graphics.setColor(outline_color)
-  if settings.thick then 
-    love.graphics.print(text,x+1,y+1,r,sx,sy,ox,oy,kx,ky)
-    love.graphics.print(text,x-1,y-1,r,sx,sy,ox,oy,kx,ky)
-    love.graphics.print(text,x-1,y+1,r,sx,sy,ox,oy,kx,ky)
-    love.graphics.print(text,x+1,y-1,r,sx,sy,ox,oy,kx,ky)
+  if settings.thick then
+    love.graphics.print(text, x + 1, y + 1, r, sx, sy, ox, oy, kx, ky)
+    love.graphics.print(text, x - 1, y - 1, r, sx, sy, ox, oy, kx, ky)
+    love.graphics.print(text, x - 1, y + 1, r, sx, sy, ox, oy, kx, ky)
+    love.graphics.print(text, x + 1, y - 1, r, sx, sy, ox, oy, kx, ky)
   end
-  love.graphics.print(text,x+1,y,r,sx,sy,ox,oy,kx,ky)
-  love.graphics.print(text,x-1,y,r,sx,sy,ox,oy,kx,ky)
-  love.graphics.print(text,x,y+1,r,sx,sy,ox,oy,kx,ky)
-  love.graphics.print(text,x,y-1,r,sx,sy,ox,oy,kx,ky)
+  love.graphics.print(text, x + 1, y, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.print(text, x - 1, y, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.print(text, x, y + 1, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.print(text, x, y - 1, r, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(text_color)
-  love.graphics.print(text,x,y,r,sx,sy,ox,oy,kx,ky)
+  love.graphics.print(text, x, y, r, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(temp_color)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Printf Outlined Text
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function love.gfx.outlinePrintf(settings, ...)
   settings = settings or {}
-  local temp_color = {love.graphics.getColor()}
+  local temp_color = {
+    love.graphics.getColor(),
+  }
   local text_color = settings.color or temp_color
-  local outline_color = settings.color2 or  {math.abs(text_color[1] - 1), math.abs(text_color[2] - 1), math.abs(text_color[3] - 1), 1}
+  local outline_color = settings.color2 or {
+    math.abs(text_color[1] - 1),
+    math.abs(text_color[2] - 1),
+    math.abs(text_color[3] - 1),
+    1,
+  }
   local text, x, y, limit, align, r, sx, sy, ox, oy, kx, ky = ...
   x = x or 0
   y = y or 0
   love.graphics.setColor(outline_color)
-  if settings.thick then 
-    love.graphics.printf(text,x+1,y+1,limit,align,r,sx,sy,ox,oy,kx,ky)
-    love.graphics.printf(text,x-1,y-1,limit,align,r,sx,sy,ox,oy,kx,ky)
-    love.graphics.printf(text,x-1,y+1,limit,align,r,sx,sy,ox,oy,kx,ky)
-    love.graphics.printf(text,x+1,y-1,limit,align,r,sx,sy,ox,oy,kx,ky)
+  if settings.thick then
+    love.graphics.printf(text, x + 1, y + 1, limit, align, r, sx, sy, ox, oy, kx, ky)
+    love.graphics.printf(text, x - 1, y - 1, limit, align, r, sx, sy, ox, oy, kx, ky)
+    love.graphics.printf(text, x - 1, y + 1, limit, align, r, sx, sy, ox, oy, kx, ky)
+    love.graphics.printf(text, x + 1, y - 1, limit, align, r, sx, sy, ox, oy, kx, ky)
   end
-  love.graphics.printf(text,x+1,y,limit,align,r,sx,sy,ox,oy,kx,ky)
-  love.graphics.printf(text,x-1,y,limit,align,r,sx,sy,ox,oy,kx,ky)
-  love.graphics.printf(text,x,y+1,limit,align,r,sx,sy,ox,oy,kx,ky)
-  love.graphics.printf(text,x,y-1,limit,align,r,sx,sy,ox,oy,kx,ky)
+  love.graphics.printf(text, x + 1, y, limit, align, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.printf(text, x - 1, y, limit, align, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.printf(text, x, y + 1, limit, align, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.printf(text, x, y - 1, limit, align, r, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(text_color)
-  love.graphics.printf(text,x,y,limit,align,r,sx,sy,ox,oy,kx,ky)
+  love.graphics.printf(text, x, y, limit, align, r, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(temp_color)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Gradient Rectangle -- love.gfx.colorRectangle(20, 20, 100, 10 + 5 * math.sin(timer*5), {0.2,0.8,0.2,1}, {0,0.6,0.45,1}, "y")
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 -- Create image for scaling
-  local x1pixel_image = love.image.newImageData(1,1)
-  x1pixel_image:setPixel(0, 0, 1, 1, 1, 1) 
-  local x1pix = love.graphics.newImage(x1pixel_image)
+local x1pixel_image = love.image.newImageData(1, 1)
+x1pixel_image:setPixel(0, 0, 1, 1, 1, 1)
+local x1pix = love.graphics.newImage(x1pixel_image)
 
 -- Local shader 
-  local horizontal_shade = love.graphics.newShader([[
+local horizontal_shade = love.graphics.newShader([[
     extern vec4 color1;
     extern vec4 color2;
     vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
@@ -164,9 +182,9 @@ end
       vec4 fcolor = mix(color1,color2,uv.x);  
       return Texel(texture, uv) * fcolor;
     }  
-]])  
+]])
 
-  local vertical_shade = love.graphics.newShader([[
+local vertical_shade = love.graphics.newShader([[
     extern vec4 color1;
     extern vec4 color2;
     vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
@@ -174,9 +192,9 @@ end
       vec4 fcolor = mix(color1,color2,uv.y);
       return Texel(texture, uv) * fcolor;
     }  
-]])  
+]])
 
-  local both_shade = love.graphics.newShader([[
+local both_shade = love.graphics.newShader([[
     extern vec4 color1;
     extern vec4 color2;
     vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
@@ -184,9 +202,9 @@ end
       vec4 fcolor = mix(color1,color2,(uv.y * uv.x));
       return Texel(texture, uv) * fcolor;
     }  
-]])  
+]])
 
-  local center_shade = love.graphics.newShader([[
+local center_shade = love.graphics.newShader([[
     extern vec4 color1;
     extern vec4 color2;
     vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
@@ -198,13 +216,17 @@ end
       vec4 fcolor = mix(color1,color2,d);
       return Texel(texture, uv) * fcolor;
     }  
-]])  
-
+]])
 
 function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
   -- Capture the current color 
-  local r,g,b,a = love.graphics.getColor()
-  local tempcolor = {r,g,b,a}
+  local r, g, b, a = love.graphics.getColor()
+  local tempcolor = {
+    r,
+    g,
+    b,
+    a,
+  }
   color1 = color1 or tempcolor
   color2 = color2 or tempcolor
 
@@ -213,26 +235,26 @@ function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
 
   -- Send the colors to the shader and render the shader
   mode = mode or "x"
-  if mode == "x" then 
-    mode = horizontal_shade 
+  if mode == "x" then
+    mode = horizontal_shade
     horizontal_shade:send("color1", color1)
     horizontal_shade:send("color2", color2)
   end
 
-  if mode == "y" then 
-    mode = vertical_shade 
+  if mode == "y" then
+    mode = vertical_shade
     vertical_shade:send("color1", color1)
     vertical_shade:send("color2", color2)
   end
 
-  if mode == "xy" then 
-    mode = both_shade 
+  if mode == "xy" then
+    mode = both_shade
     both_shade:send("color1", color1)
     both_shade:send("color2", color2)
   end
 
-  if mode == "c" then 
-    mode = center_shade 
+  if mode == "c" then
+    mode = center_shade
     center_shade:send("color1", color1)
     center_shade:send("color2", color2)
   end
@@ -240,7 +262,7 @@ function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
   love.graphics.setShader(mode)
 
   -- Make a 1x1 image into a huge box
-  love.graphics.draw(x1pix, x + w/2, y + h/2, math.rad(0), w, h, w/w/2, h/h/2)
+  love.graphics.draw(x1pix, x + w / 2, y + h / 2, math.rad(0), w, h, w / w / 2, h / h / 2)
 
   -- Return the shader to normal 
   love.graphics.setShader(curshader)
@@ -251,45 +273,42 @@ end
   -- Outline Example 
     love.gfx.disk(49, 49, 26, math.sin(timer) - 0.015 , -90+2, 12)
     love.gfx.colorDisk(50, 50, 25, math.sin(timer), -90, {1,0,0,1}, {0,0,1,1}, 10, "x")
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function love.gfx.colorDisk(x, y, r, total, rotate, color1, color2, dwidth, mode)
-  dwidth = dwidth or r/2
+  dwidth = dwidth or r / 2
 
   local function xc()
-    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
-    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
-    love.graphics.circle("fill",  x + r, y + r, r-dwidth)
- end
+    love.graphics.arc("fill", x + r, y + r, r, 0 + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.arc("fill", x + r, y + r, r, 0 + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.circle("fill", x + r, y + r, r - dwidth)
+  end
 
   love.graphics.stencil(xc, "increment", 1)
   love.graphics.setStencilTest("equal", 2)
-  love.gfx.colorRectangle(x, y, r*2, r*2, color1, color2, mode)
+  love.gfx.colorRectangle(x, y, r * 2, r * 2, color1, color2, mode)
   love.graphics.setStencilTest()
 end
-
-
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Standard Disk  
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 function love.gfx.disk(x, y, r, total, rotate, dwidth)
-  dwidth = dwidth or r/2
+  dwidth = dwidth or r / 2
 
   local function xc()
-    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
-    love.graphics.arc("fill", x + r, y + r, r, math.rad(0 * 360) + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
-    love.graphics.circle("fill",  x + r, y + r, r-dwidth)
- end
+    love.graphics.arc("fill", x + r, y + r, r, 0 + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.arc("fill", x + r, y + r, r, 0 + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
+    love.graphics.circle("fill", x + r, y + r, r - dwidth)
+  end
 
   love.graphics.stencil(xc, "increment", 1)
   love.graphics.setStencilTest("equal", 2)
-  local w, h = r*2, r*2
-  love.graphics.draw(x1pix, x + w/2, y + h/2, math.rad(0), w, h, w/w/2, h/h/2)
+  local w, h = r * 2, r * 2
+  love.graphics.draw(x1pix, x + w / 2, y + h / 2, math.rad(0), w, h, w / w / 2, h / h / 2)
   love.graphics.setStencilTest()
 end
 
-
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--------------------------------------------------------------------------------------------------------------------------------------------------]] --
 return m
