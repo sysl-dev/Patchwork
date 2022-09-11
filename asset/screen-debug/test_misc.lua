@@ -35,12 +35,12 @@ function scene:draw()
   if mode == 2 then 
     Utilities.repeating_bg.draw(Texture.system.background.pattern_01, "x32", math.floor(-timer/2), math.floor(-timer/2))
     love.gfx.disk(49, 49, 26, math.sin(timer2) - 0.015 , -90+2, 12)
-    love.gfx.colorDisk(50, 50, 25, math.sin(timer2), -90, {1,0,0,1}, {0,0,1,1}, 10, "x")
+    love.gfx.colorDisk(50, 50, 25, math.sin(timer2), -90, {1,0,0,1}, {0,0,1,1}, 10, "c")
 
     love.gfx.colorRectangle(120, 50, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "c")
     love.gfx.colorRectangle(120, 61, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "x")
     love.gfx.colorRectangle(120, 72, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "y")
-    love.gfx.colorRectangle(120, 83, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "xy")
+    love.gfx.colorRectangle(120, 83, 50, 10, {1,0.2,0.2,1}, {0,0.4,0.2,1}, "xy")
     
   end
 

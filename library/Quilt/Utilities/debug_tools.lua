@@ -57,6 +57,20 @@ m.functions_list = {
   "on_screen_debug_info",
 }
 
+
+function m.dump_table(atable) 
+  if type(atable) == 'table' then
+     local s = '{ '
+     for k,v in pairs(atable) do
+        if type(k) ~= 'number' then k = '"'..k..'"' end
+        s = s .. '['..k..'] = ' .. m.dump_table(v) .. ','
+     end
+     return s .. '} '
+  else
+     return tostring(atable)
+  end
+end
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Store into a table for easy on/off
 --------------------------------------------------------------------------------------------------------------------------------------------------]] --

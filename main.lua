@@ -1,7 +1,11 @@
 -- maps
+
 -- Some third party 3d library
+
 -- a pathfinding library
+
 -- some ui helpers 
+
 --[[
 Ok so like, a UI object is like it's own thing, it has a width/height and other parts 
 
@@ -26,7 +30,7 @@ Then the UI could also respond to mouse clicks if they are existing.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.menu)
+  Gamestate.switch(Debug_screen.test_all_map)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -50,7 +54,7 @@ Utilities.setup("library.Quilt.Utilities", {
 
 Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
 Pixelscreen.setup({
-  vsync = 1
+  vsync = 0
 })
 
 Camera = require("library.Quilt.Kit.Camera")
@@ -100,7 +104,7 @@ Bump = require("library.bump.bump-niji")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * DEEP-slog - a tiny library for queuing and executing actions in sequence. - Nikoloz Otiashvili/ patch: SysL - License MIT
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Render = require("library.deep")
+Draw_order = require("library.deep")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Anim8 - Animation library for LÖVE - Enrique García Cota - License MIT
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -112,7 +116,16 @@ Baton = require("library.baton")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Quilt - Game focused libraries - SysL (C. Hall)  - License MIT
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local map_settings = {
+  tileset_table = Texture.tileset,
+  map_folder_path = "asset/map",
+  starting_map = "AAAA_debug0000",
+  starting_x = 10*16,
+  starting_Y = 10*16,
+}
 
+Map = require("library.Quilt.Kit.Map")
+Map.setup("library.Quilt.Kit.Map", map_settings)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Love Callbacks
