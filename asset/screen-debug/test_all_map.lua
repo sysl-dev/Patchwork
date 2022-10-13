@@ -20,10 +20,11 @@ end
 
 function scene:draw()
   Pixelscreen.start()
+  Camera.record(Pixelscreen.mouse.get_x() - 8, Pixelscreen.mouse.get_y() - 32)
   Draw_order.execute()
-
+  Camera.stop_record()
   Pixelscreen.stop()
-  if love.keyboard.isDown("`") then
+  if not love.keyboard.isDown("`") then
     Utilities.debug_tools.on_screen_debug_info()
   end
 end

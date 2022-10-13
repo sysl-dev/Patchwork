@@ -46,6 +46,17 @@ local function print(...)
     debugprint(m.__NAME .. ": ", unpack({...}))
   end
 end print(m.__DESCRIPTION)
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * This library requires bump.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local Bump = Bump
+assert(Bump, "The bump library is required for this class, please update the library to link to it")
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Create our world
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.world = Bump.newWorld(32)
+m.world_collision = {}
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Load these modules 
@@ -88,8 +99,10 @@ m.current = {
   animation_frame = 0,
 
   -- Render Distance 
-  x_render_distance = 4,
-  y_render_distance = 4,
+  x_render_distance = 0,
+  y_render_distance = 0,
+  fixed_x_render_distance = nil,
+  fixed_y_render_distance = nil,
 
   
 }
@@ -134,28 +147,52 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * update / mostly timers and things
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.update(dt)
-  if not Map.current.map then return end 
-  local current_map = Map.map_files[Map.current.map]
+local lastmap = nil
+local function update_render_distance(current_map)
+  m.current.x_render_distance =  m.current.fixed_x_render_distance or m.current.x_render_distance 
+  m.current.y_render_distance =  m.current.fixed_y_render_distance or m.current.y_render_distance
+  if lastmap == m.current.map then return end 
+  local tile_width = current_map.tilewidth
+  local tile_height = current_map.tileheight
+  local game_width = m.current.game_width or BASE_WIDTH
+  local game_height = m.current.game_height or BASE_HEIGHT
+  m.current.x_render_distance = math.floor(game_width/tile_width/2) + 1
+  m.current.y_render_distance = math.floor(game_height/tile_height/2) + 2
+  lastmap = m.current.map
+end
 
-  -- Does this map have the animation property?
-  local has_animation = current_map.properties.animation_settings
-  if has_animation then
-    local animation_frames = has_animation.animation_frames or 0 -- If no frames, disable
-    local animation_time = has_animation.animation_speed or (0.1) -- If no speed, set to reasonable default
-    m.current.timer_animation = m.current.timer_animation + dt -- Timer advances at time
-    -- advance per animation_time
-    if m.current.timer_animation > animation_time then 
-      m.current.animation_frame = m.current.animation_frame + 1
-      m.current.timer_animation = 0
-    end
-    -- Advance until >= animation tiles. (So we can say 4 frames and have it go back to 0 without counting at 0)
-    if m.current.animation_frame >= animation_frames then 
-      m.current.animation_frame = 0 
-    end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * update / mostly timers and things
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.update(dt)
+  if not m.current.map then return end 
+  local current_map = m.map_files[m.current.map]
+  -- update render distance
+  update_render_distance(current_map)
+
+  -- update tile animations
+  m.draw.update(dt, current_map)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * unload a map.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.unload()
+  for i = #m.world_collision, 1, -1  do 
+    m.world_collision[i] = nil
   end
 
+  m.world_collision = {}
+
 end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * load a map.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.load(map_name)
+
+end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 

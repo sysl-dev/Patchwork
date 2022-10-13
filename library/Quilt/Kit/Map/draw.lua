@@ -36,6 +36,12 @@ local m = {
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 m.debug = true
 
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * If you import map as something else, change here 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local Map = Map
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -77,7 +83,12 @@ local function layer_background_color(current_map)
   if current_map.backgroundcolor then 
     return {0, function()
       love.graphics.setColor(current_map.backgroundcolor[1]/255,current_map.backgroundcolor[2]/255,current_map.backgroundcolor[3]/255,1) 
-      love.graphics.rectangle("fill", 0, 0, current_map.width * current_map.tilewidth, current_map.height * current_map.tileheight)
+      love.graphics.rectangle("fill",
+        -current_map.width * current_map.tilewidth / 2,
+        -current_map.height * current_map.tileheight / 2,
+        current_map.width * current_map.tilewidth * 2,
+        current_map.height * current_map.tileheight * 2
+      )
       love.graphics.setColor(1,1,1,1)
     end}
   end
@@ -106,6 +117,12 @@ local function layer_image(current_map, layer, x, y)
   if not layer.repeatx and not layer.repeaty then
     if layer.properties.render_as == "background" then 
       return {0, function()
+        love.graphics.draw(image, layer.offsetx, layer.offsety)
+      end}
+    end 
+
+    if layer.properties.render_as == "y_sort" then 
+      return {layer.offsety + image:getHeight(), function()
         love.graphics.draw(image, layer.offsetx, layer.offsety)
       end}
     end 
@@ -164,12 +181,15 @@ local function layer_no_sort(current_map, layer, level, x, y)
       y_range_high = y + Map.current.y_render_distance
       x_range_low = x - Map.current.x_render_distance
       x_range_high = x + Map.current.x_render_distance
+      x_range_low = math.max(1, x_range_low)
+      x_range_high = math.max(current_map.width, x_range_high)
+      y_range_low = math.max(1, y_range_low)
+      y_range_high = math.max(current_map.height, y_range_high)
     end
     -- Range of rendering 
 
 
     -- limit this to restrict how much we draw.
-      -- TODO: 
     for y = y_range_low, y_range_high do 
       for x = x_range_low, x_range_high do 
         -- Getting the current index uses this format. (X Position) + (Y Position - 1) * width of the map. 
@@ -215,10 +235,11 @@ local function layer_slice(current_map, layer, map_y, x, y)
     if x then 
       x_range_low = x - Map.current.x_render_distance
       x_range_high = x + Map.current.x_render_distance
+      x_range_low = math.max(1, x_range_low)
+      x_range_high = math.max(current_map.width, x_range_high)
     end
 
     -- limit this to restrict how much we draw.
-    -- TODO: 
     for x = x_range_low, x_range_high do 
       -- Getting the current index uses this format. (X Position) + (Y Position - 1) * width of the map. 
       local current_tile = x + (map_y-1) * current_map.width -- Lua starts at 1, so we take it away here 
@@ -245,6 +266,9 @@ local function layer_slice(current_map, layer, map_y, x, y)
   end}
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Sends tiles to the top or bottom of the stack.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function layer_tile(current_map, layer, x, y)
   if layer.properties.render_as == "over_top" then 
     return layer_no_sort(current_map, layer, Map.RENDER_ABOVE, x, y)
@@ -255,7 +279,7 @@ local function layer_tile(current_map, layer, x, y)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Draw the background color of the map.
+  * Return a list of draw commands to be used by a y-sort rendering function.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local draw_commands = {}
 function m.area(x, y)
@@ -305,6 +329,26 @@ function m.area(x, y)
   return draw_commands
 end
 
-
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Update map animations
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.update(dt, current_map)
+  -- Does this map have the animation property?
+  local has_animation = current_map.properties.animation_settings
+  if has_animation then
+    local animation_frames = has_animation.animation_frames or 0 -- If no frames, disable
+    local animation_time = has_animation.animation_speed or (0.1) -- If no speed, set to reasonable default
+    Map.current.timer_animation = Map.current.timer_animation + dt -- Timer advances at time
+    -- advance per animation_time
+    if Map.current.timer_animation > animation_time then 
+      Map.current.animation_frame = Map.current.animation_frame + 1
+      Map.current.timer_animation = 0
+    end
+    -- Advance until >= animation tiles. (So we can say 4 frames and have it go back to 0 without counting at 0)
+    if Map.current.animation_frame >= animation_frames then 
+      Map.current.animation_frame = 0 
+    end
+  end
+end
 
 return m

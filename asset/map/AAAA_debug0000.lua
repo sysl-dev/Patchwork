@@ -9,15 +9,16 @@ return {
   height = 22,
   tilewidth = 16,
   tileheight = 16,
-  nextlayerid = 12,
-  nextobjectid = 12,
+  nextlayerid = 18,
+  nextobjectid = 49,
   backgroundcolor = { 9, 57, 137 },
   properties = {
     ["animation_settings"] = {
       ["animation_frames"] = 4,
       ["animation_speed"] = 0.3,
       ["start_tile_animation_on"] = 2581
-    }
+    },
+    ["get"] = {}
   },
   tilesets = {
     {
@@ -59,8 +60,8 @@ return {
       class = "",
       visible = true,
       opacity = 1,
-      offsetx = -24,
-      offsety = 4,
+      offsetx = 40,
+      offsety = 84,
       parallaxx = 1,
       parallaxy = 1,
       repeatx = false,
@@ -76,7 +77,7 @@ return {
       width = 24,
       height = 22,
       id = 3,
-      name = "Test_BG_Tile",
+      name = "Background",
       class = "",
       visible = true,
       opacity = 1,
@@ -120,7 +121,7 @@ return {
       width = 24,
       height = 22,
       id = 7,
-      name = "Test_BG_Shadows",
+      name = "Background2",
       class = "",
       visible = true,
       opacity = 1,
@@ -146,7 +147,7 @@ return {
         39, 0, 0, 0, 0, 2116, 2117, 2118, 0, 0, 0, 0, 0, 0, 586, 587, 588, 0, 0, 0, 0, 0, 0, 39,
         99, 0, 0, 0, 0, 2116, 2117, 2118, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99,
         39, 0, 0, 0, 0, 2116, 2117, 2118, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 39,
-        99, 0, 0, 0, 0, 2415, 2117, 2416, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 99,
+        99, 0, 0, 0, 0, 2415, 2117, 2416, 0, 0, 0, 2013, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2013, 0, 99,
         39, 0, 0, 0, 0, 2293, 2535, 2295, 0, 0, 0, 0, 0, 0, 463, 464, 465, 0, 0, 0, 0, 0, 0, 39,
         99, 0, 0, 0, 0, 2475, 2535, 2476, 0, 0, 0, 0, 0, 0, 523, 524, 525, 0, 0, 0, 0, 0, 0, 99,
         39, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 583, 584, 585, 0, 0, 0, 0, 0, 0, 39,
@@ -164,7 +165,7 @@ return {
       width = 24,
       height = 22,
       id = 5,
-      name = "Test_Sort_Type",
+      name = "Sorted",
       class = "",
       visible = true,
       opacity = 1,
@@ -188,10 +189,10 @@ return {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 2059, 2057, 2060, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 101, 0, 0, 0, 0, 0, 0, 0, 101, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2187, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2188, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1949, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1950, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2247, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2248, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2308, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31, 32, 31,
@@ -208,7 +209,7 @@ return {
       width = 24,
       height = 22,
       id = 6,
-      name = "Test_Overlayer_Type",
+      name = "OnTop",
       class = "",
       visible = true,
       opacity = 1,
@@ -246,10 +247,46 @@ return {
       }
     },
     {
+      type = "imagelayer",
+      image = "../texture/system/background/pattern_01.png",
+      id = 12,
+      name = "Y_sort_image_test",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 128,
+      offsety = 32,
+      parallaxx = 1,
+      parallaxy = 1,
+      repeatx = false,
+      repeaty = false,
+      properties = {
+        ["render_as"] = "y_sort"
+      }
+    },
+    {
+      type = "imagelayer",
+      image = "../texture/system/palette/vanilla-milkshake-8x.png",
+      id = 11,
+      name = "Top_Test_bg",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 112,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      repeatx = false,
+      repeaty = false,
+      properties = {
+        ["render_as"] = "over_top"
+      }
+    },
+    {
       type = "objectgroup",
       draworder = "topdown",
       id = 8,
-      name = "Test_Collision",
+      name = "Collision",
       class = "",
       visible = true,
       opacity = 1,
@@ -312,25 +349,509 @@ return {
           rotation = 0,
           visible = true,
           properties = {}
+        },
+        {
+          id = 12,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 176,
+          y = 68,
+          width = 48,
+          height = 28,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 13,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 256,
+          y = 68,
+          width = 48,
+          height = 28,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 16,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 112,
+          y = 220,
+          width = 8,
+          height = 36,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 17,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 120,
+          y = 212,
+          width = 8,
+          height = 36,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 18,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 80,
+          y = 212,
+          width = 8,
+          height = 36,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 19,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 88,
+          y = 220,
+          width = 8,
+          height = 36,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 21,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 80,
+          y = 160,
+          width = 4,
+          height = 52,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 22,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 124,
+          y = 160,
+          width = 4,
+          height = 52,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 23,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 96,
+          y = 144,
+          width = 16,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 24,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 112,
+          y = 144,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 25,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 116,
+          y = 148,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 26,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 120,
+          y = 152,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 27,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 124,
+          y = 156,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 28,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 92,
+          y = 144,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 29,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 88,
+          y = 148,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 30,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 84,
+          y = 152,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 31,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 80,
+          y = 156,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 33,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 176,
+          y = 220,
+          width = 16,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 34,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 188,
+          y = 176,
+          width = 4,
+          height = 44,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 35,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 336,
+          y = 220,
+          width = 16,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 36,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 336,
+          y = 176,
+          width = 4,
+          height = 44,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 37,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 192,
+          y = 204,
+          width = 144,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 38,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 192,
+          y = 176,
+          width = 144,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 39,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 184,
+          y = 216,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 40,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 184,
+          y = 212,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 41,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 180,
+          y = 216,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 42,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 340,
+          y = 212,
+          width = 4,
+          height = 8,
+          rotation = 0,
+          visible = true,
+          properties = {}
+        },
+        {
+          id = 43,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 344,
+          y = 216,
+          width = 4,
+          height = 4,
+          rotation = 0,
+          visible = true,
+          properties = {}
         }
       }
     },
     {
-      type = "imagelayer",
-      image = "../texture/system/palette/vanilla-milkshake-8x.png",
-      id = 11,
-      name = "Top_Test_bg",
+      type = "objectgroup",
+      draworder = "topdown",
+      id = 13,
+      name = "Warp",
       class = "",
       visible = true,
       opacity = 1,
-      offsetx = 16,
-      offsety = 16,
+      offsetx = 0,
+      offsety = 0,
       parallaxx = 1,
       parallaxy = 1,
-      repeatx = false,
-      repeaty = false,
       properties = {
-        ["render_as"] = "over_top"
+        ["object_type"] = "sprite"
+      },
+      objects = {
+        {
+          id = 44,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 80,
+          y = 96,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["sprite"] = {
+              ["sprite_type"] = "warp"
+            }
+          }
+        }
+      }
+    },
+    {
+      type = "objectgroup",
+      draworder = "topdown",
+      id = 15,
+      name = "Event",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      properties = {
+        ["object_type"] = "sprite"
+      },
+      objects = {
+        {
+          id = 45,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 48,
+          y = 96,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["sprite"] = {
+              ["sprite_type"] = "event"
+            }
+          }
+        }
+      }
+    },
+    {
+      type = "objectgroup",
+      draworder = "topdown",
+      id = 16,
+      name = "Sign",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      properties = {
+        ["object_type"] = "sprite"
+      },
+      objects = {
+        {
+          id = 47,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 32,
+          y = 32,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["sprite"] = {}
+          }
+        }
+      }
+    },
+    {
+      type = "objectgroup",
+      draworder = "topdown",
+      id = 17,
+      name = "NPCS",
+      class = "",
+      visible = true,
+      opacity = 1,
+      offsetx = 0,
+      offsety = 0,
+      parallaxx = 1,
+      parallaxy = 1,
+      properties = {
+        ["object_type"] = "sprite"
+      },
+      objects = {
+        {
+          id = 48,
+          name = "",
+          class = "",
+          shape = "rectangle",
+          x = 192,
+          y = 96,
+          width = 16,
+          height = 16,
+          rotation = 0,
+          visible = true,
+          properties = {
+            ["sprite"] = {
+              ["sprite_type"] = "npc"
+            }
+          }
+        }
       }
     }
   }
