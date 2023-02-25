@@ -13,7 +13,7 @@ local movecount = 0
 local timer = 200
 local walk_timer = 0
 local camera_timer = 0
-local mode = 0
+local mode = 3
 local character = love.graphics.newQuad(16*28, 16*24, 16, 32, Texture.tileset.open_rpg:getDimensions())
 local qtest = love.graphics.newQuad(16*1, 16*1, 16, 16, Texture.tileset.open_rpg:getDimensions())
 local CAX, CAY = 0, 0
@@ -22,7 +22,7 @@ local spritey = 0
 
 local camerax = 0
 local cameray = 0
-local cameraman = true
+local cameraman = false
 local vx = 0
 local vy = 0
 
@@ -32,6 +32,7 @@ local s = 0
 
 local float_speed_move_x, float_speed_move_y = 0, 0
 local bankx, banky = 0, 0
+local lastmode = 0
 function scene:update(dt)
   --Camera.current.zoom = math.abs(math.sin(timer/20) * 1.1)
   timer = timer + dt * 5
@@ -43,7 +44,10 @@ function scene:update(dt)
     timer = timer + dt * 50
   end
   if timer > 64 + 200 then timer = timer - 64  end
-
+  if lastmode ~= mode then 
+    lastmode = mode
+    walk_timer = 0
+  end
   if mode >= 1 then 
     vx, vy = 0, 0
     s = 1
@@ -87,8 +91,8 @@ function scene:update(dt)
     end
     if mode == 3 then 
         --// works fine, but sprite jitters when camera moves
-        move_x = (vx) * s * 60 * dt
-        move_y = (vy) * s * 60 * dt
+        move_x = (vx) * s * 40 * dt
+        move_y = (vy) * s * 40 * dt
 
     end
     if mode == 4 then 
@@ -133,11 +137,8 @@ function scene:update(dt)
 
   if cameraman  then 
     local lerpmax = 0.2
-
       camerax = lerp(camerax, spritex, lerpmax)
       cameray = lerp(cameray, spritey, lerpmax)
-   
-
   else 
     if mode == 0 then 
       camerax, cameray = timer, timer
@@ -247,6 +248,16 @@ function scene:keypressed(key, scan, isrepeat)
   end
   if key == "/" then 
     Camera.current.zoom = Camera.current.zoom + 0.2
+  end
+
+  if key == "i" then 
+    Pixelscreen.change_vsync(0) -- Off
+  end
+  if key == "o" then 
+    Pixelscreen.change_vsync(1) -- On 
+  end
+  if key == "p" then 
+    Pixelscreen.change_vsync(-1) -- Adabt 
   end
 end
 

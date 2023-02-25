@@ -180,6 +180,7 @@ function scene:draw()
     if current == 7 then 
       love.graphics.printf("1 Fade in / 2 fade out / 3 random fade in / 4 random fade out / 5 random color / 6 random color and alpha",0, 20, BASE_WIDTH, "center")
       love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, BASE_WIDTH, "center")
+      love.graphics.draw(Texture.system.slice9.rainbow_8_32_8_8_32_8, -20, -20, 0, 5, 5)
     end
     
   Pixelscreen.stop(offsettest, offsettest)
@@ -280,7 +281,11 @@ function scene:keypressed(key, scan, isrepeat)
       Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
       Pixelscreen.fade_in()
     end
+    if key == "9" then 
 
+      Pixelscreen.fade_image(Texture.system.fade.lod)
+      Pixelscreen.fade_out()
+    end
     if key == "0" then 
       Pixelscreen.fade_value(0.5)
     end

@@ -32,6 +32,297 @@ Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
 
 Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
   name = "block1",
+  x = BASE_WIDTH/2 - 18 * 2,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "star",
+})
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 - 18 * 3,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "moon",
+})
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "joint2",
+  type = "distance",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x1 = Wb.get_properties_by_name("block1").cx,
+  y1 = Wb.get_properties_by_name("block1", Wb.object_pool).cy,
+  x2 = Wb.get_properties_by_name("block2", Wb.object_pool).cx,
+  y2 = Wb.get_properties_by_name("block2", Wb.object_pool).cy,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "floor",
+  x = 0,
+  y = BASE_HEIGHT - 16,
+  w = BASE_WIDTH,
+  h = 16,
+  body_type = "static",
+  __scale = true,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
+  x = BASE_WIDTH/2 - 16 * 0,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 + 16 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "joint3",
+  type = "weld",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x = Wb.get_properties_by_name("block1").cx + Wb.get_properties_by_name("block1").w/2,
+  y = Wb.get_properties_by_name("block1", Wb.object_pool).cy,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "floor",
+  x = 0,
+  y = BASE_HEIGHT - 16,
+  w = BASE_WIDTH,
+  h = 16,
+  body_type = "static",
+  __scale = true,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
+  x = BASE_WIDTH/2 - 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 + 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "joint4",
+  type = "revolute",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x = Wb.get_properties_by_name("block1").cx + 8 + 10,
+  y = Wb.get_properties_by_name("block1", Wb.object_pool).cy,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "floor",
+  x = 0,
+  y = BASE_HEIGHT - 16,
+  w = BASE_WIDTH,
+  h = 16,
+  body_type = "static",
+  __scale = true,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
+  x = BASE_WIDTH/2 + 16 * 1,
+  y = BASE_HEIGHT/2, 
+  radius = 8,
+  body_type = "dynamic",
+  shape = "circle",
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 - 16 * 1,
+  y = BASE_HEIGHT/2, 
+  radius = 8,
+  body_type = "dynamic",
+  shape = "circle",
+})
+
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "cool_wheel",
+  type = "wheel",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x1 = Wb.get_properties_by_name("block1", Wb.object_pool).cx,
+  y1 = Wb.get_properties_by_name("block1", Wb.object_pool).cy,
+  x2 = Wb.get_properties_by_name("block1", Wb.object_pool).cx,
+  y2 = Wb.get_properties_by_name("block2", Wb.object_pool).cy,
+  ax = 0.5,
+  ay = 0,
+})
+
+Wb.get_joint_by_name("cool_wheel"):setMaxMotorTorque(1000)
+Wb.get_joint_by_name("cool_wheel"):setMotorSpeed(360)
+Wb.get_joint_by_name("cool_wheel"):setMotorEnabled(true)
+Wb.get_joint_by_name("cool_wheel"):setSpringFrequency(10)
+Wb.get_joint_by_name("cool_wheel"):setSpringDampingRatio(0)
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "floor",
+  x = 0,
+  y = BASE_HEIGHT - 16,
+  w = BASE_WIDTH,
+  h = 16,
+  body_type = "static",
+  __scale = true,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
+  x = BASE_WIDTH/2 - 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 + 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block3",
+  x = BASE_WIDTH/2 + 18 * 3,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "jointa",
+  type = "revolute",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x = Wb.get_properties_by_name("block1").cx + 8 + 10,
+  y = Wb.get_properties_by_name("block1", Wb.object_pool).cy,
+})
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "jointb",
+  type = "revolute",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block2", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block3", Wb.object_pool),
+  x = Wb.get_properties_by_name("block2").cx + 8 + 10,
+  y = Wb.get_properties_by_name("block2", Wb.object_pool).cy,
+})
+
+Wb.joint_pool[#Wb.joint_pool + 1] = Wb.create_joint({
+  name = "linked-jointa-jointb",
+  type = "gear",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  joint1 = Wb.get_joint_by_name("jointa", Wb.joint_pool),
+  joint2 = Wb.get_joint_by_name("jointb"),
+  ratio = -1,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "floor",
+  x = 0,
+  y = BASE_HEIGHT - 16,
+  w = BASE_WIDTH,
+  h = 16,
+  body_type = "static",
+  __scale = true,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
+  x = BASE_WIDTH/2 - 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block2",
+  x = BASE_WIDTH/2 + 18 * 1,
+  y = BASE_HEIGHT/2, 
+  w = 16,
+  h = 16,
+  body_type = "dynamic",
+  shape = "rectangle",
+})
+
+
+Wb.joint_pool[#Wb.joint_pool+1] = Wb.create_joint({
+  name = "jointa",
+  type = "prismatic",
+  collide_connected = true,
+  pool = Wb.object_pool,
+  body1 = Wb.get_body_by_name("block1", Wb.object_pool),
+  body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x1 = Wb.get_properties_by_name("block1").cx,
+  y1 = Wb.get_properties_by_name("block1", Wb.object_pool).cy,
+  x2 = Wb.get_properties_by_name("block2").cx,
+  y2 = Wb.get_properties_by_name("block2", Wb.object_pool).cy,
+  ax = 1,
+  ay = 0,
+})
+
+Wb.get_joint_by_name("jointa"):setLowerLimit(24)
+Wb.get_joint_by_name("jointa"):setUpperLimit(32)
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "roof",
+  x = 0,
+  y = 0,
+  w = BASE_WIDTH,
+  h = 16,
+  body_type = "static",
+  __scale = true,
+})
+
+Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
+  name = "block1",
   x = BASE_WIDTH/2 - 18 * 1,
   y = 50, 
   w = 16,
@@ -41,7 +332,7 @@ Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
 })
 Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
   name = "block2",
-  x = BASE_WIDTH/2 - 18 * 2,
+  x = BASE_WIDTH/2 + 18 * 1,
   y = 50, 
   w = 16,
   h = 16,
@@ -50,21 +341,24 @@ Wb.object_pool[#Wb.object_pool+1] = Wb.create_simple_object({
 })
 
 Wb.joint_pool[#Wb.joint_pool + 1] = Wb.create_joint({
-  name = "motorz",
-  type = "motor",
+  name = "platf",
+  type = "pulley",
   collide_connected = true,
-  correction_factor = 0.5,
   pool = Wb.object_pool,
   body1 = Wb.get_body_by_name("block1", Wb.object_pool),
   body2 = Wb.get_body_by_name("block2", Wb.object_pool),
+  x1 = Wb.get_properties_by_name("block1", Wb.object_pool).cx,
+  y1 = Wb.get_properties_by_name("block1", Wb.object_pool).cy-8,
+  x2 = Wb.get_properties_by_name("block2", Wb.object_pool).cx,
+  y2 = Wb.get_properties_by_name("block2", Wb.object_pool).cy-8,
+  ax = 0,
+  ay = 0,
+  gx1 = Wb.get_properties_by_name("block1", Wb.object_pool).cx,
+  gy1 = 16,
+  gx2 = Wb.get_properties_by_name("block2", Wb.object_pool).cx,
+  gy2 = 16,
+  ratio = 1,
 })
-
-Wb.get_joint_by_name("motorz"):setLinearOffset(5,5)
-Wb.get_joint_by_name("motorz"):setAngularOffset(20)
-Wb.get_joint_by_name("motorz"):setMaxForce(200)
-Wb.get_joint_by_name("motorz"):setMaxTorque(200)
-
-
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * World Rules 

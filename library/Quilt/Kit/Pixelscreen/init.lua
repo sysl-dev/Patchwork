@@ -64,7 +64,7 @@ m.config = {
   max_scale = 1,
   max_window_scale = 1,
   current_scale = 1,
-  allow_window_resize = false,
+  allow_window_resize = true,
   pixel_perfect_fullscreen = true,
   dirty_draw = true, -- People have bad monitors, dirty draw avoids blank frames.
   vsync = 1,
@@ -308,6 +308,38 @@ function m.resize_window(scale, force)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Resize the image when love2d resizes (use with callback)
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.resize_love2d_window(w, h, resize)
+  local set_scale = 1
+  local c = m.config
+  for i=1, m.config.max_window_scale do
+    if m.config.base_width * i <= w and m.config.base_height * i <= h then 
+      set_scale = i
+    end
+  end
+  c.current_scale = math.max(1, math.min(m.config.max_window_scale, set_scale))
+  if resize then 
+    c.current_scale = math.max(1, math.min(m.config.max_window_scale, set_scale + 1))
+    love.window.setMode(
+      c.base_width * c.current_scale,
+      c.base_height * c.current_scale,
+      {
+        fullscreen = false, 
+        resizable = m.config.allow_window_resize, 
+        highdpi = false,
+        usedpiscale = false,
+        minwidth = m.config.base_width,
+        minheight = m.config.base_height,
+        centered = true,
+        vsync = m.config.vsync,
+        display = m.config.monitor,
+      }
+      )
+    end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Go back and forward from fullscreen
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.resize_fullscreen(force)
@@ -527,13 +559,35 @@ m.built_in_shaders.fade = love.graphics.newShader([[
   {
       // Select the pixel from the image that matches where we are on the screen.
       vec4 fade_image_colors = Texel(fade_image, uv);
+      vec4 return_vec4;
 
       // Compare - Get away with this because it's a small canvas :v
       if (fade_image_colors.r + 0.04 >= fade_percent * 1.05) { // Cheap hacks to make sure 0.0 = no fill 1.0 = max fixx
-          return Texel(texture, uv) * color; // Return Canvas
+        return_vec4 = Texel(texture, uv) * color; // Return Canvas
       } else {
-          return fade_color; // Return Color of Fade Out
+        return_vec4 = fade_color; // Return Color of Fade Out
       }
+      return return_vec4;
+  }
+]])
+
+m.built_in_shaders.move = love.graphics.newShader([[
+  extern Image fade_image;
+  extern float fade_percent;
+  vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+  {
+      // Select the pixel from the image that matches where we are on the screen.
+      vec4 fade_image_colors = Texel(fade_image, uv);
+      vec4 final_image;
+      float fper = fade_percent;
+
+      fper = max(fade_percent, 0.0);
+      uv.y = uv.y - 1.0 * fper * fade_image_colors.r * love_ScreenSize.y * fper;
+      uv.x = uv.x + (sin(fade_image_colors.g) * fper) - 0.5 * fper;
+
+      final_image = Texel(texture, uv) * color;
+
+      return final_image;
   }
 ]])
 
@@ -544,28 +598,32 @@ m.built_in_shaders.fade:send("fade_color", {0.05,0.05,0.05,1})
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Control Fade %
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.fade_value(num)
-  m.built_in_shaders.fade:send("fade_percent", num)
+function m.fade_value(num, shader_type)
+  shader_type = shader_type or "fade"
+  m.built_in_shaders[shader_type]:send("fade_percent", num)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Control Fade Image 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.fade_image(pic)
-  m.built_in_shaders.fade:send("fade_image", pic)
+function m.fade_image(pic, shader_type)
+  shader_type = shader_type or "fade"
+  m.built_in_shaders[shader_type]:send("fade_image", pic)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Control Fade color 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.fade_color(tab)
-  m.built_in_shaders.fade:send("fade_color", tab)
+function m.fade_color(tab, shader_type)
+  shader_type = shader_type or "fade"
+  m.built_in_shaders[shader_type]:send("fade_color", tab)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Fade In
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.fade_out(speed)
+function m.fade_out(speed, shader_type)
+  shader_type = shader_type or "fade"
   speed = speed or 1
   m.config.fade_dir = 1
   m.config.fade_timer = 0
@@ -577,7 +635,8 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Fade Out
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.fade_in(speed)
+function m.fade_in(speed, shader_type)
+  shader_type = shader_type or "fade"
   speed = speed or 1
   m.config.fade_dir = -1
   m.config.fade_timer = 1

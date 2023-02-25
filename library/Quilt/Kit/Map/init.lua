@@ -103,8 +103,6 @@ m.current = {
   y_render_distance = 0,
   fixed_x_render_distance = nil,
   fixed_y_render_distance = nil,
-
-  
 }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -165,7 +163,7 @@ end
   * update / mostly timers and things
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.update(dt)
-  if not m.current.map then return end 
+  if not m.current.map then error("No Map Loaded") end 
   local current_map = m.map_files[m.current.map]
   -- update render distance
   update_render_distance(current_map)
@@ -190,9 +188,108 @@ end
   * load a map.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.load(map_name)
+  
 
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Tile Helpers  
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * X/Y in game scale pixels
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.tileindex_from_pixels(x,y)
+  if not m.current.map then error("No Map Loaded") end 
+  local current_map = m.map_files[m.current.map]
+  local tile_size_x = current_map.tilewidth
+  local tile_size_y = current_map.tileheight
+  x = math.floor(x/tile_size_x)
+  y = math.floor(y/tile_size_y)
+  local tileindex = (x + (y * current_map.width)) + 1 -- Lua starts at 1
+  return tileindex 
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Tiled sets the top left tile at 0/0
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.tileindex_from_tiled_cord(x,y)
+  if not m.current.map then error("No Map Loaded") end 
+  local current_map = m.map_files[m.current.map]
+  x = math.floor(x)
+  y = math.floor(y)
+  local tileindex = (x + (y * current_map.width)) + 1 -- Lua starts at 1
+  return tileindex 
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Lua respecting starting top left tile at 1/1
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.tileindex_from_cord(x,y)
+  if not m.current.map then error("No Map Loaded") end 
+  local current_map = m.map_files[m.current.map]
+  x = math.floor(x) - 1
+  y = math.floor(y) - 1
+  local tileindex = (x + (y * current_map.width)) + 1 -- Lua starts at 1
+  return tileindex 
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Tileindex to tile 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.tileindex_highlight(tileindex)
+  if not m.current.map then error("No Map Loaded") end 
+  local current_map = m.map_files[m.current.map]
+  local x = math.floor(tileindex % current_map.width - 1) * current_map.tilewidth
+  local y = math.floor(tileindex / current_map.width) * current_map.tileheight
+  love.graphics.setColor(1,0,0,1)
+  love.graphics.rectangle("fill", x, y, current_map.tilewidth, current_map.tileheight)
+  love.graphics.setColor(1,1,1,1)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Set a tile based on index 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.set_tile(tileindex, tile, layer)
+  assert(tileindex and tile and layer, "A Tileindex, Tile and Layer are required.")
+  if not m.current.map then error("No Map Loaded") end 
+  local current_map = m.map_files[m.current.map]
+  local map_layers = current_map.layers
+  for layer_number=1, #map_layers do 
+    if map_layers[layer_number].name == layer then 
+      local oldtile = map_layers[layer_number].data[tileindex]
+      map_layers[layer_number].data[tileindex] = tile
+      return oldtile, tile
+    end
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Set a tilearea based on formated table {width, tile1, tile2 ...}
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.set_tilearea(tileindex, tile_table, layer)
+  assert(tileindex and tile_table and layer, "A Tileindex, Tile and Layer are required.")
+  if not m.current.map then error("No Map Loaded") end 
+  local current_map = m.map_files[m.current.map]
+  local map_layers = current_map.layers
+  for layer_number=1, #map_layers do 
+    local area_count = 0
+    local area_add = 0
+    if map_layers[layer_number].name == layer then 
+      for insert_tiles=0, #tile_table - 2 do 
+        if tile_table[insert_tiles+2] ~= 0 then 
+          map_layers[layer_number].data[tileindex + insert_tiles + area_add] = tile_table[insert_tiles+2]
+        end
+        area_count = area_count + 1
+        if area_count == tile_table[1] then 
+          area_add = area_add + current_map.width - (area_count)
+          area_count = 0
+        end
+      end
+    end
+  end
+end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 

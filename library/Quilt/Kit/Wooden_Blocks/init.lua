@@ -218,8 +218,10 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Update the world.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.update(dt, object_pool, joint_pool)
+function m.update(dt, object_pool, joint_pool, velocity_iterations, position_iterations)
   -- If the world is paused, don't update.
+  local velocity_iterations = velocity_iterations or 25
+  local position_iterations = position_iterations or 25
   if m.pause then return end
 
   -- If the world exists we can start work.
@@ -291,7 +293,7 @@ function m.update(dt, object_pool, joint_pool)
     --[[--------------------------------------------
     * World Update
     ---------------------------------------------]]--
-    m.world:update(dt)
+    m.world:update(dt, velocity_iterations, position_iterations)
 
   end
   -- End of world only updates
