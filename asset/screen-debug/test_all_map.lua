@@ -27,15 +27,6 @@ function scene:draw()
   love.graphics.setBlendMode( "alpha", "alphamultiply" )
   Draw_order.execute()
 
-  love.graphics.setColor(0.5,0.5,0.5,1)
-  love.graphics.setBlendMode( "multiply", "premultiplied" )
-  love.graphics.rectangle("fill", 0, 0, 1000, 1000)
-  love.graphics.rectangle("fill", 0, 0, 32, 32)
-
-
-
-  love.graphics.setColor(1,1,1,1)
-
   Camera.stop_record()
   Pixelscreen.stop()
   if not love.keyboard.isDown("`") then
@@ -53,7 +44,9 @@ function scene:keypressed(key, scan, isrepeat)
     Map.set_tile(1, 46, "OnTop")
   end
   if key == "z" then
-    Map.set_tilearea(27, {3, 0,3,0,3,3,3,0,3,0}, "OnTop")
+    local pm = Pixelscreen.mouse
+    local selected_tile = Map.tileindex_from_pixels(pm.get_x()-16, pm.get_y()-16)
+    Map.set_tilearea(selected_tile, {3, 0,3,0,3,3,3,0,3,0}, "OnTop")
   end
 end
 

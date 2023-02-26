@@ -37,6 +37,9 @@ function scene:draw()
     love.gfx.disk(49, 49, 26, math.sin(timer2) - 0.015 , -90+2, 12)
     love.gfx.colorDisk(50, 50, 25, math.sin(timer2), -90, {1,0,0,1}, {0,0,1,1}, 10, "c")
 
+    love.gfx.disk(199, 49, 26, math.sin(timer2) - 0.015 , -90+2, 12)
+    love.gfx.colorDisk(200, 50, 25, math.sin(timer2), -90, {1,1,1,1}, {0,0,0,1}, 10, "c")
+
     love.gfx.colorRectangle(120, 50, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "c")
     love.gfx.colorRectangle(120, 61, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "x")
     love.gfx.colorRectangle(120, 72, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "y")

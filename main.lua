@@ -30,7 +30,7 @@ Then the UI could also respond to mouse clicks if they are existing.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.test_pixel_scale)
+  Gamestate.switch(Debug_screen.test_misc)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

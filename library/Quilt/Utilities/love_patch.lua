@@ -179,7 +179,7 @@ local horizontal_shade = love.graphics.newShader([[
     extern vec4 color2;
     vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
     {
-      vec4 fcolor = mix(color1,color2,uv.x);  
+      vec4 fcolor = mix(color1,color2,uv.x);
       return Texel(texture, uv) * fcolor;
     }  
 ]])
@@ -214,8 +214,30 @@ local center_shade = love.graphics.newShader([[
       centeruv.y = centeruv.y - 0.5;
       float d = length(centeruv);
       vec4 fcolor = mix(color1,color2,d);
+      float limitcolor = 20.0;
+      fcolor.r = floor((limitcolor - 1.0) * fcolor.r + 0.5) / (limitcolor - 1.0);
+      fcolor.g = floor((limitcolor - 1.0) * fcolor.g + 0.5) / (limitcolor - 1.0);
+      fcolor.b = floor((limitcolor - 1.0) * fcolor.b + 0.5) / (limitcolor - 1.0);
       return Texel(texture, uv) * fcolor;
     }  
+]])
+
+Utilities.debug_tools.test_shader([[
+  extern vec4 color1;
+  extern vec4 color2;
+  vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
+  {
+    vec2 centeruv = uv;
+    centeruv.x = centeruv.x - 0.5;
+    centeruv.y = centeruv.y - 0.5;
+    float d = length(centeruv);
+    vec4 fcolor = mix(color1,color2,d);
+    float limitcolor = 20.0;
+    fcolor.r = floor((limitcolor - 1.0) * fcolor.r + 0.5) / (limitcolor - 1.0);
+    fcolor.g = floor((limitcolor - 1.0) * fcolor.g + 0.5) / (limitcolor - 1.0);
+    fcolor.b = floor((limitcolor - 1.0) * fcolor.b + 0.5) / (limitcolor - 1.0);
+    return Texel(texture, uv) * fcolor;
+  }  
 ]])
 
 function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
