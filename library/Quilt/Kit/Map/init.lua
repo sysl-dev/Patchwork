@@ -61,7 +61,7 @@ m.world_collision = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Load these modules 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local sub_modules = {"draw", }
+local sub_modules = {"draw", "collision_load", "sprite_load", "script" }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Magic Numbers 
@@ -88,7 +88,7 @@ m.current = {
   map = nil,
 
   -- Debug 
-  show_collision = true,
+  show_collision = false,
   collision_color = {1,0,0,0.25},
   collision_color_outline = {1,0,0,0.5},
 
@@ -128,18 +128,19 @@ function m.setup(path, settings)
   -- Load all map files 
   m.map_file_loader(settings.map_folder_path, m.map_files)
 
-  -- Set the active map 
-  m.current.map = settings.starting_map
-
   -- Load all of map's sub modules and run their setup function if it exists.
-  for sub = 1, #sub_modules do 
-    m[sub_modules[sub]] = require(path .. "." .. sub_modules[sub])
-    print("Required:", sub_modules[sub])
-    if m[sub_modules[sub]].setup then 
-      m[sub_modules[sub]].setup() 
-      print("Run Setup:", sub_modules[sub])
-    end 
-  end
+    for sub = 1, #sub_modules do 
+      m[sub_modules[sub]] = require(path .. "." .. sub_modules[sub])
+      print("Required:", sub_modules[sub])
+      if m[sub_modules[sub]].setup then 
+        m[sub_modules[sub]].setup() 
+        print("Run Setup:", sub_modules[sub])
+      end 
+    end
+
+  -- Set the active map 
+  m.load(settings.starting_map)
+
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -170,26 +171,23 @@ function m.update(dt)
 
   -- update tile animations
   m.draw.update(dt, current_map)
+
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * unload a map.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.unload()
-  for i = #m.world_collision, 1, -1  do 
-    m.world_collision[i] = nil
-  end
-
-  m.world_collision = {}
-
+  m.collision_load.unload_collision()
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * load a map.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.load(map_name)
-  
-
+  m.unload()
+  m.current.map = map_name
+  m.collision_load.load_collision(map_name)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -243,7 +241,7 @@ function m.tileindex_highlight(tileindex)
   local current_map = m.map_files[m.current.map]
   local x = math.floor(tileindex % current_map.width - 1) * current_map.tilewidth
   local y = math.floor(tileindex / current_map.width) * current_map.tileheight
-  love.graphics.setColor(1,0,0,1)
+  love.graphics.setColor(1,0,0,0.85)
   love.graphics.rectangle("fill", x, y, current_map.tilewidth, current_map.tileheight)
   love.graphics.setColor(1,1,1,1)
 end

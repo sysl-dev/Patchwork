@@ -218,9 +218,12 @@ function m.flat_shader(name_of_global_table, path)
     -- Split into a table of path parts, add the global table start, remove the file extension
     local folder_bits = split_string_by(lua_list[i][1], "/")
 
+    -- Remove glsl extension~
+    local shader_name = folder_bits[#folder_bits]:sub(1, -6)
+
     -- Flat require the folder, don't worry about levels
     -- TABLE[LAST TABLE NAME] = Require 
-    _G[name_of_global_table][folder_bits[#folder_bits]] = love.graphics.newShader(table.concat(folder_bits, "/"))
+    _G[name_of_global_table][shader_name] = love.graphics.newShader(table.concat(folder_bits, "/"))
 
     -- Yell at me if shaders are not valid.
     -- Allow this yell even if debug is turned off.

@@ -30,6 +30,7 @@ local size = {
 -- There is no nice way to extract these, make them global.
 BASE_WIDTH = size.w
 BASE_HEIGHT = size.h
+BASE_WIDTH_AND_HEIGHT = {BASE_WIDTH, BASE_HEIGHT}
 
 
 function love.conf(t)

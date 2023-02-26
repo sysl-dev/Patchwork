@@ -30,7 +30,7 @@ Then the UI could also respond to mouse clicks if they are existing.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.test_misc)
+  Gamestate.switch(Debug_screen.test_all_map)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -85,8 +85,12 @@ Utilities.content_loader.texture("Texture", "asset/texture")
 Utilities.slice9.import_graphics_table({
   import_texture_container = "Texture.system.slice9"
 })
-Utilities.content_loader.flat_shader("Shader", "asset/shader")
 
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Pixel Shaders - Pre-load all pixel shaders 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+Utilities.content_loader.flat_shader("Shader", "asset/shader")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Libraries

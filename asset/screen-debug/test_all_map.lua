@@ -26,6 +26,9 @@ function scene:draw()
   love.graphics.setColor(1,1,1,1)
   love.graphics.setBlendMode( "alpha", "alphamultiply" )
   Draw_order.execute()
+  if love.keyboard.isDown("0") then
+    Map.collision_load.draw()
+  end
 
   Camera.stop_record()
   Pixelscreen.stop()
@@ -37,6 +40,9 @@ end
 
 
 function scene:keypressed(key, scan, isrepeat)
+  if key == "1" then
+    Map.load("AAAA_debug0000")
+  end
   if key == "x" then
     Gamestate.switch(Debug_screen.menu)
   end

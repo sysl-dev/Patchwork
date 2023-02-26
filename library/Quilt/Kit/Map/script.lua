@@ -1,8 +1,8 @@
 local m = {
-  __NAME        = "Quilt-Kit-Camera",
+  __NAME        = "Quilt-Kit-Map-Sprite-Load",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Camera to help cheat smooth scrolling in pixel games.",
+  __DESCRIPTION = "Let's do this whole tiled map thing a little better this time. Note: Still does not support all the features of tiled.",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -34,7 +34,14 @@ local m = {
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.debug = false
+m.debug = true
+
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * If you import map as something else, change here 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local Map = Map
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -46,84 +53,29 @@ local function print(...)
   end
 end print(m.__DESCRIPTION)
 
--- Not 100% accurate on deep floats, but close enough.
-local function round(x)
-  return x>=0 and math.floor(x+0.5) or math.ceil(x-0.5)
-end
 
--- Camera Settings // What is currently being used.
-m.current = {
-  x = 0,
-  y = 0,
-  w = BASE_WIDTH or love.graphics.getWidth(),
-  h = BASE_HEIGHT or love.graphics.getHeight(),
-  smoothstep = false,
-  smoothstepx = 0,
-  smoothstepy = 0,
-  zoom = 1,
-}
-
--- Set up the defaults
-function m.setup(config)
-  config = config or {}
-  m.current.x = config.x or m.current.x 
-  m.current.y = config.y or m.current.y 
-end
-
--- Start capturing the location sent, supply the smoothstep.
-function m.record(x, y)
-  if type(x) =="table" then 
-    x = x.x
-    y = x.y
+local function get_lua_table_from_string(f)
+  local v = _G    -- start with the global table
+  for w in string.gmatch(f, "[%w_-]+") do
+    --print(w)
+    v = v[w]
   end
-  if type(x) == "number" then 
-    if type(y) == "nil" then 
-      y = x
-    end
-  end
-  love.graphics.push("all")
-  m.current.smoothstepx = x - math.floor(x)
-  m.current.smoothstepy = y - math.floor(y)
-  love.graphics.scale(m.current.zoom)
-  local finalx = -math.floor(x) + m.current.w/2
-  local finaly = -math.floor(y) + m.current.h/2
-  finalx = finalx - (m.current.w/m.current.zoom * (m.current.zoom-1))/2
-  finaly = finaly - (m.current.h/m.current.zoom * (m.current.zoom-1))/2
-
-  love.graphics.translate(finalx, finaly)
+  return v
 end
 
--- Return graphics to normal.
-function m.stop_record()
-  love.graphics.pop()
-end
 
--- Return the smoothstep.
-function m.get_smoothstep()
-  if m.current.smoothstep then 
-    return m.current.smoothstepx, m.current.smoothstepy
-  else
-    return 0, 0
-  end
-end
-
-function m.get_smoothstep_x()
-  if m.current.smoothstep then 
-    return -1 * m.current.smoothstepx
-  else
-    return 0
-  end
-end
-
-function m.get_smoothstep_y()
-  if m.current.smoothstep then 
-    return -1 * m.current.smoothstepy
-  else
-    return 0
-  end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Setup 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.setup()
+ 
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * End of File
+
+  * Draw curent map
+
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+
+
 return m
