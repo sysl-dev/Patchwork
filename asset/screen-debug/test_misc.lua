@@ -8,6 +8,7 @@ local tilescale = Utilities.number.tile_scale
 -- Mode 0/1 Setup
 Utilities.repeating_bg.create("x32", 32, 32)
 Utilities.repeating_bg.set_repeat(Texture.system.background.pattern_01, "repeat")
+Utilities.repeating_bg.set_repeat(Texture.system.background.paper, "repeat")
   Utilities.repeating_bg.create("x5", 5, 5) -- Forcing scaling can have fun effects
 
 function scene:update(dt)
@@ -33,12 +34,12 @@ function scene:draw()
     Utilities.repeating_bg.draw(Texture.system.background.pattern_01, "x5", math.floor(-timer), math.floor(-timer))
   end
   if mode == 2 then 
-    Utilities.repeating_bg.draw(Texture.system.background.pattern_01, "x32", math.floor(-timer/2), math.floor(-timer/2))
+    Utilities.repeating_bg.draw(Texture.system.background.paper, "x32", math.floor(-timer/2), math.floor(-timer/2))
     love.gfx.disk(49, 49, 26, math.sin(timer2) - 0.015 , -90+2, 12)
-    love.gfx.colorDisk(50, 50, 25, math.sin(timer2), -90, {1,0,0,1}, {0,0,1,1}, 10, "c")
+    love.gfx.colorDisk(50, 50, 25, math.sin(timer2), -90, {1,0,0,1}, {0,0,1,1}, 10, "c", 16)
 
     love.gfx.disk(199, 49, 26, math.sin(timer2) - 0.015 , -90+2, 12)
-    love.gfx.colorDisk(200, 50, 25, math.sin(timer2), -90, {1,1,1,1}, {0,0,0,1}, 10, "c")
+    love.gfx.colorDisk(200, 50, 25, 60, -90, {0.5,0.5,0.5,1}, {0,0,0,1}, 10, "c", math.sin(timer/256) * 256)
 
     love.gfx.colorRectangle(120, 50, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "c")
     love.gfx.colorRectangle(120, 61, 50, 10, {0,0.8,0.2,1}, {0,0.4,0.2,1}, "x")

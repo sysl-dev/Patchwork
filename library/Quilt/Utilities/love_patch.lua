@@ -207,6 +207,7 @@ local both_shade = love.graphics.newShader([[
 local center_shade = love.graphics.newShader([[
     extern vec4 color1;
     extern vec4 color2;
+    extern float limit_colors;
     vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
     {
       vec2 centeruv = uv;
@@ -214,33 +215,17 @@ local center_shade = love.graphics.newShader([[
       centeruv.y = centeruv.y - 0.5;
       float d = length(centeruv);
       vec4 fcolor = mix(color1,color2,d);
-      float limitcolor = 20.0;
-      fcolor.r = floor((limitcolor - 1.0) * fcolor.r + 0.5) / (limitcolor - 1.0);
-      fcolor.g = floor((limitcolor - 1.0) * fcolor.g + 0.5) / (limitcolor - 1.0);
-      fcolor.b = floor((limitcolor - 1.0) * fcolor.b + 0.5) / (limitcolor - 1.0);
+      fcolor.r = floor((limit_colors - 1.0) * fcolor.r + 0.5) / (limit_colors - 1.0);
+      fcolor.g = floor((limit_colors - 1.0) * fcolor.g + 0.5) / (limit_colors - 1.0);
+      fcolor.b = floor((limit_colors - 1.0) * fcolor.b + 0.5) / (limit_colors - 1.0);
       return Texel(texture, uv) * fcolor;
     }  
 ]])
 
-Utilities.debug_tools.test_shader([[
-  extern vec4 color1;
-  extern vec4 color2;
-  vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
-  {
-    vec2 centeruv = uv;
-    centeruv.x = centeruv.x - 0.5;
-    centeruv.y = centeruv.y - 0.5;
-    float d = length(centeruv);
-    vec4 fcolor = mix(color1,color2,d);
-    float limitcolor = 20.0;
-    fcolor.r = floor((limitcolor - 1.0) * fcolor.r + 0.5) / (limitcolor - 1.0);
-    fcolor.g = floor((limitcolor - 1.0) * fcolor.g + 0.5) / (limitcolor - 1.0);
-    fcolor.b = floor((limitcolor - 1.0) * fcolor.b + 0.5) / (limitcolor - 1.0);
-    return Texel(texture, uv) * fcolor;
-  }  
-]])
+center_shade:send("limit_colors", 24)
 
-function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
+function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode, colors)
+  colors = colors or 24
   -- Capture the current color 
   local r, g, b, a = love.graphics.getColor()
   local tempcolor = {
@@ -281,6 +266,7 @@ function love.gfx.colorRectangle(x, y, w, h, color1, color2, mode)
     center_shade:send("color2", color2)
   end
 
+  center_shade:send("limit_colors", colors)
   love.graphics.setShader(mode)
 
   -- Make a 1x1 image into a huge box
@@ -296,7 +282,9 @@ end
     love.gfx.disk(49, 49, 26, math.sin(timer) - 0.015 , -90+2, 12)
     love.gfx.colorDisk(50, 50, 25, math.sin(timer), -90, {1,0,0,1}, {0,0,1,1}, 10, "x")
 --------------------------------------------------------------------------------------------------------------------------------------------------]] --
-function love.gfx.colorDisk(x, y, r, total, rotate, color1, color2, dwidth, mode)
+function love.gfx.colorDisk(x, y, r, total, rotate, color1, color2, dwidth, mode, colors)
+  colors = colors or 24
+  
   dwidth = dwidth or r / 2
 
   local function xc()
@@ -307,7 +295,7 @@ function love.gfx.colorDisk(x, y, r, total, rotate, color1, color2, dwidth, mode
 
   love.graphics.stencil(xc, "increment", 1)
   love.graphics.setStencilTest("equal", 2)
-  love.gfx.colorRectangle(x, y, r * 2, r * 2, color1, color2, mode)
+  love.gfx.colorRectangle(x, y, r * 2, r * 2, color1, color2, mode, colors)
   love.graphics.setStencilTest()
 end
 
