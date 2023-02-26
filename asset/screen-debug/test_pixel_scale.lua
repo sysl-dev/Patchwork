@@ -64,9 +64,10 @@ local screens = {
   "Capture",
   "Image/Particles",
   "SmoothCamera",
-  "Fades"
+  "Fades",
+  "Moves"
 }
-local current = 1
+local current = 8
 
 local function scale_up()
   current = current + 1
@@ -180,7 +181,10 @@ function scene:draw()
     if current == 7 then 
       love.graphics.printf("1 Fade in / 2 fade out / 3 random fade in / 4 random fade out / 5 random color / 6 random color and alpha",0, 20, BASE_WIDTH, "center")
       love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, BASE_WIDTH, "center")
-      love.graphics.draw(Texture.system.slice9.rainbow_8_32_8_8_32_8, -20, -20, 0, 5, 5)
+    end
+    if current == 8 then 
+      love.graphics.printf("1 Move in / 2 Move out / 3 random Move in / 4 random Move out ",0, 20, BASE_WIDTH, "center")
+      love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, BASE_WIDTH, "center")
     end
     
   Pixelscreen.stop(offsettest, offsettest)
@@ -263,6 +267,44 @@ function scene:keypressed(key, scan, isrepeat)
     if key == "6" then 
       Pixelscreen.fade_color({math.random(),math.random(),math.random(),math.random()})
     end
+    if key == "3" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_out()
+    end
+    if key == "4" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_in()
+    end
+    if key == "9" then 
+
+      Pixelscreen.fade_image(Texture.system.fade.lod)
+      Pixelscreen.fade_out()
+    end
+    if key == "0" then 
+      Pixelscreen.fade_value(0.5)
+    end
+  end
+
+  if current == 8 then 
+    if key == "1" then 
+      Pixelscreen.fade_image(Texture.system.fade.lod, "move")
+      Pixelscreen.fade_out(0.2, "move")
+    end
+    if key == "2" then 
+      Pixelscreen.fade_image(Texture.system.fade.lod, "move")
+      Pixelscreen.fade_in(0.8, "move")
+    end
+    
     if key == "3" then 
       local derptable = {}
       for k,v in pairs(Texture.system.fade) do 

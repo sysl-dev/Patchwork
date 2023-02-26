@@ -70,7 +70,8 @@ m.config = {
   vsync = 1,
   monitor = 1,
   padding = 1, -- Padding to the bottom and left of the canvas to allow for optional smooth scrolling.
-  fade_enabled = true,
+  fade_enabled = false,
+  move_enabled = true,
   fade_timer = 0,
   fade_dir = 1,
   fade_speed = 1,
@@ -236,6 +237,15 @@ function m.stop(x, y, r, sx, sy, ox, oy, kx, ky)
     love.graphics.draw(m.buffer2)
   end  
 
+  if m.config.move_enabled then
+    love.graphics.setCanvas({m.buffer2, stencil = true})
+    love.graphics.setShader(m.built_in_shaders.move)
+    love.graphics.draw(m.buffer1)
+    love.graphics.setShader()
+    love.graphics.setCanvas({m.buffer1, stencil = true})
+    love.graphics.draw(m.buffer2)
+  end  
+
   -- Will draw after shaders are done, treat like a callback.
   m.shader_draw_after()
 
@@ -276,6 +286,7 @@ function m.update(dt)
   if not m.config.fade_done then 
     m.config.fade_timer = m.config.fade_timer + ((dt * m.config.fade_speed) * m.config.fade_dir)
     m.built_in_shaders.fade:send("fade_percent", m.config.fade_timer)
+    m.built_in_shaders.move:send("fade_percent", m.config.fade_timer)
   end
 
   if m.config.fade_timer > 1.1 then m.config.fade_done = true; m.config.fade_dir = 1 end 
@@ -624,11 +635,13 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.fade_out(speed, shader_type)
   shader_type = shader_type or "fade"
+  if shader_type == "fade" then m.config.fade_enabled = true; m.config.move_enabled = false; end
+  if shader_type == "move" then m.config.fade_enabled = false; m.config.move_enabled = true; end
   speed = speed or 1
   m.config.fade_dir = 1
   m.config.fade_timer = 0
   m.config.fade_speed = speed
-  m.built_in_shaders.fade:send("fade_percent", 0.0)
+  m.built_in_shaders[shader_type]:send("fade_percent", 0.0)
   m.config.fade_done = false
 end
 
@@ -637,11 +650,14 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.fade_in(speed, shader_type)
   shader_type = shader_type or "fade"
+  if shader_type == "fade" then m.config.fade_enabled = true; m.config.move_enabled = false; end
+  if shader_type == "move" then m.config.fade_enabled = false; m.config.move_enabled = true; end
   speed = speed or 1
   m.config.fade_dir = -1
   m.config.fade_timer = 1
+  m.config.fade_timer = 1.1
   m.config.fade_speed = speed
-  m.built_in_shaders.fade:send("fade_percent", 0.0)
+  m.built_in_shaders[shader_type]:send("fade_percent", 0.0)
   m.config.fade_done = false
 end
 
