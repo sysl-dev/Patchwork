@@ -74,7 +74,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Load all collision into the Map.world_collision table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.load_collision(current_map)
+function m.load(current_map)
   print(string.format("Current: %d collision objects", #Map.world_collision))
   print(string.format("Loading collision objects for %s", current_map))
   current_map = current_map or Map.current.map
@@ -110,7 +110,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Unload all collision out of the Map.world_collision table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.unload_collision()
+function m.unload()
   local _, number_of_items = Map.world:getItems()
   print(string.format("Unloading: %d collision objects / %d in world", #Map.world_collision, number_of_items))
   for i = #Map.world_collision, 1, -1  do 

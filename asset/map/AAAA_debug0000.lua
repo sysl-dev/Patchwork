@@ -907,7 +907,7 @@ return {
       objects = {
         {
           id = 44,
-          name = "",
+          name = "WarpTest",
           class = "",
           shape = "rectangle",
           x = 272,
@@ -942,7 +942,7 @@ return {
       objects = {
         {
           id = 45,
-          name = "",
+          name = "EventTest",
           class = "",
           shape = "rectangle",
           x = 240,
@@ -977,7 +977,7 @@ return {
       objects = {
         {
           id = 47,
-          name = "",
+          name = "SignTest",
           class = "",
           shape = "rectangle",
           x = 32,
@@ -1016,7 +1016,7 @@ return {
       objects = {
         {
           id = 48,
-          name = "",
+          name = "Snowman",
           class = "",
           shape = "rectangle",
           x = 32,

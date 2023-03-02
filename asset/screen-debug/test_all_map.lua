@@ -27,7 +27,8 @@ function scene:draw()
   love.graphics.setBlendMode( "alpha", "alphamultiply" )
   Draw_order.execute()
   if love.keyboard.isDown("0") then
-    Map.collision_load.draw()
+    Map.collision.draw()
+    Map.actor.draw_debug_collision()
   end
 
   Camera.stop_record()
@@ -35,6 +36,9 @@ function scene:draw()
   if not love.keyboard.isDown("`") then
     Utilities.debug_tools.on_screen_debug_info()
     love.graphics.print(Pixelscreen.mouse.get_x() .. " " .. Pixelscreen.mouse.get_y() .. " " .. Map.tileindex_from_pixels(Pixelscreen.mouse.get_x(),Pixelscreen.mouse.get_y()), 200, 200)
+  end
+  if love.keyboard.isDown("0") then
+    Map.actor.draw_debug_names(nil, Pixelscreen.config.current_scale, Camera.current.x, Camera.current.y)
   end
 end
 

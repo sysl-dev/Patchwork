@@ -76,6 +76,85 @@ function m.setup()
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Setup 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.load(current_map)
+  m.unload(current_map)
+  current_map = current_map or Map.current.map
+  current_map = Map.map_files[current_map]
+  for map_layer = 1, #current_map.layers do
+    local layer = current_map.layers[map_layer]
+    local layer_type = layer.type
+    local layer_properties = layer.properties
+    if layer_type == "objectgroup" and layer_properties.object_type == "sprite" then
+      local cobj = layer.objects
+      for i=1, #cobj do
+        print(cobj[i].name)
+      end
+    end
+  end
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Setup 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.unload(current_map)
+  current_map = current_map or Map.current.map
+  current_map = Map.map_files[current_map]
+  for map_layer = 1, #current_map.layers do
+    local layer = current_map.layers[map_layer]
+    local layer_type = layer.type
+    local layer_properties = layer.properties
+    
+  end
+end
+
+
+
+function m.draw_debug_names(current_map, scale, cx, cy)
+  current_map = current_map or Map.current.map
+  current_map = Map.map_files[current_map]
+  for map_layer = 1, #current_map.layers do
+    local layer = current_map.layers[map_layer]
+    local layer_type = layer.type
+    local layer_properties = layer.properties
+    if layer_type == "objectgroup" and layer_properties.object_type == "sprite" then
+      local cobj = layer.objects
+      for i=1, #cobj do
+        love.graphics.setColor(0,0,0,1)
+        love.graphics.print(cobj[i].name, cobj[i].x * scale + cx * scale + 1, cobj[i].y * scale + cy * scale)
+        love.graphics.print(cobj[i].name, cobj[i].x * scale + cx * scale - 1, cobj[i].y * scale + cy * scale)
+        love.graphics.print(cobj[i].name, cobj[i].x * scale + cx * scale, cobj[i].y * scale + cy * scale + 1)
+        love.graphics.print(cobj[i].name, cobj[i].x * scale + cx * scale, cobj[i].y * scale + cy * scale - 1)
+        love.graphics.setColor(1,1,1,1)
+        love.graphics.print(cobj[i].name, cobj[i].x * scale + cx * scale, cobj[i].y * scale + cy * scale)
+      end
+    end
+  end
+end
+
+function m.draw_debug_collision(current_map, scale, cx, cy)
+  current_map = current_map or Map.current.map
+  current_map = Map.map_files[current_map]
+  for map_layer = 1, #current_map.layers do
+    local layer = current_map.layers[map_layer]
+    local layer_type = layer.type
+    local layer_properties = layer.properties
+    if layer_type == "objectgroup" and layer_properties.object_type == "sprite" then
+      local cobj = layer.objects
+      for i=1, #cobj do
+        love.graphics.setColor(0.5,0.5,0.5,0.7)
+        love.graphics.rectangle("fill", cobj[i].x, cobj[i].y, cobj[i].width, cobj[i].height)
+        love.graphics.rectangle("fill", cobj[i].x, cobj[i].y, cobj[i].width, 1)
+        love.graphics.rectangle("fill", cobj[i].x, cobj[i].y + cobj[i].height - 1, cobj[i].width, 1)
+        love.graphics.rectangle("fill", cobj[i].x, cobj[i].y, 1, cobj[i].height)
+        love.graphics.rectangle("fill", cobj[i].x + cobj[i].width - 1, cobj[i].y, 1, cobj[i].height)
+        love.graphics.setColor(1,1,1,1)
+      end
+    end
+  end
+end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Draw curent map
 

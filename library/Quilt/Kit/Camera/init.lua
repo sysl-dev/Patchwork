@@ -89,7 +89,8 @@ function m.record(x, y)
   local finaly = -math.floor(y) + m.current.h/2
   finalx = finalx - (m.current.w/m.current.zoom * (m.current.zoom-1))/2
   finaly = finaly - (m.current.h/m.current.zoom * (m.current.zoom-1))/2
-
+  m.current.x = finalx
+  m.current.y = finaly
   love.graphics.translate(finalx, finaly)
 end
 
