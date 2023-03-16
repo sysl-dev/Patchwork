@@ -183,9 +183,9 @@ local function layer_no_sort(current_map, layer, level, x, y)
       x_range_low = x - Map.current.x_render_distance
       x_range_high = x + Map.current.x_render_distance
       x_range_low = math.max(1, x_range_low)
-      x_range_high = math.max(current_map.width, x_range_high)
+      x_range_high = math.min(current_map.width, x_range_high)
       y_range_low = math.max(1, y_range_low)
-      y_range_high = math.max(current_map.height, y_range_high)
+      y_range_high = math.min(current_map.height, y_range_high)
     end
     -- Range of rendering 
 
@@ -237,7 +237,7 @@ local function layer_slice(current_map, layer, map_y, x, y)
       x_range_low = x - Map.current.x_render_distance
       x_range_high = x + Map.current.x_render_distance
       x_range_low = math.max(1, x_range_low)
-      x_range_high = math.max(current_map.width, x_range_high)
+      x_range_high = math.min(current_map.width, x_range_high)
     end
 
     -- limit this to restrict how much we draw.

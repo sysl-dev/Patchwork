@@ -126,6 +126,8 @@ local map_settings = {
   starting_map = "AAAA_debug0000",
   starting_x = 10*16,
   starting_Y = 10*16,
+  actor_collision_image = Texture.system.icons.debug_icons,
+  actor_collision_image_size = 8,
 }
 
 Map = require("library.Quilt.Kit.Map")

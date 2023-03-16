@@ -59,15 +59,15 @@ m.world = Bump.newWorld(32)
 m.world_collision = {}
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Create sprite table
+  * Create actor table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.sprite = {}
+m.actor = {}
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Load these modules 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local sub_modules = {"draw", "collision", "actor", "script" }
+local sub_modules = {"resources", "draw", "collision", "actor", "script" }
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Magic Numbers 
@@ -76,7 +76,7 @@ m.RENDER_ABOVE = -1
 m.RENDER_COLOR = 0
 m.RENDER_REFLECTIONS = 1
 m.RENDER_BACKGROUND = 2
-m.RENDER_SPRITE = 3
+m.RENDER_ACTOR = 3 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Settings
@@ -86,7 +86,8 @@ m.current = {
   tileset_table = nil,
   starting_map = nil,
   starting_x = nil,
-  starting_Y = nil,
+  starting_y = nil,
+  resize_sprite_hitbox_value = -2,
 
   -- We save this to SRAM
   x = nil,
@@ -97,6 +98,8 @@ m.current = {
   show_collision = false,
   collision_color = {1,0,0,0.25},
   collision_color_outline = {1,0,0,0.5},
+  actor_collision_image = nil,
+  actor_collision_image_size = 8,
 
   -- timer
   timer_animation = 0,
@@ -134,6 +137,15 @@ function m.setup(path, settings)
   -- Load all map files 
   m.map_file_loader(settings.map_folder_path, m.map_files)
 
+  -- Import Settings 
+  m.current.starting_map = settings.starting_map
+  m.current.starting_x = settings.starting_x
+  m.current.starting_Y = settings.starting_Y
+  m.current.actor_collision_image = settings.actor_collision_image
+  m.current.actor_collision_image_size = settings.actor_collision_image_size
+  -- TODO: HEY YOU WERE ABOUT TO SET UP THE IMAGE RENDERING FOR ACTOR TYPE
+  -- THE EGG WAS GOING TO CENTER ON THE COLLISION
+
   -- Load all of map's sub modules and run their setup function if it exists.
     for sub = 1, #sub_modules do 
       m[sub_modules[sub]] = require(path .. "." .. sub_modules[sub])
@@ -145,7 +157,7 @@ function m.setup(path, settings)
     end
 
   -- Set the active map 
-  m.load(settings.starting_map)
+  m.load(m.current.starting_map)
 
 end
 
@@ -185,6 +197,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.unload()
   m.collision.unload()
+  m.actor.unload()
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -195,6 +208,22 @@ function m.load(map_name)
   m.current.map = map_name
   m.collision.load(map_name)
   m.actor.load(map_name)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get current map
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_current()
+  if not m.current.map then error("No Map Loaded") end 
+  return m.map_files[m.current.map]
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get current tile sizes
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_current_tile_sizes()
+  if not m.current.map then error("No Map Loaded") end 
+  return m.map_files[m.current.map].tilewidth, m.map_files[m.current.map].tileheight
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

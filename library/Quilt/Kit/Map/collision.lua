@@ -1,5 +1,5 @@
 local m = {
-  __NAME        = "Quilt-Kit-Map-Sprite-Load",
+  __NAME        = "Quilt-Kit-Map-Collision",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
   __DESCRIPTION = "Let's do this whole tiled map thing a little better this time. Note: Still does not support all the features of tiled.",
@@ -75,6 +75,7 @@ end
   * Load all collision into the Map.world_collision table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.load(current_map)
+  print("#### BUILDING COLLISION ####")
   print(string.format("Current: %d collision objects", #Map.world_collision))
   print(string.format("Loading collision objects for %s", current_map))
   current_map = current_map or Map.current.map
@@ -88,29 +89,20 @@ function m.load(current_map)
     if layer_type == "objectgroup" and layer_properties.object_type == "collision" then 
       local cobj = layer.objects
       for i=1, #cobj do
-        Map.world_collision[#Map.world_collision + 1] = {name = tostring(cobj[i].id .. "_collision"), _type = "collision", _unique = cobj[i].properties.unique_collision}
-        Map.world.add(Map.world, Map.world_collision[#Map.world_collision],cobj[i].x,cobj[i].y,cobj[i].width,cobj[i].height)
-        if cobj[i].properties.unique_collision then 
-          print("Unique Collision On:", i, cobj[i].properties.unique_collision)
-        end
-      end
-    end
-    -- Water
-    if layer_type == "objectgroup" and layer_properties.object_type == "water" then 
-      local cobj = layer.objects
-      for i=1, #cobj do
-        Map.world_collision[#Map.world_collision + 1] = {name = tostring(cobj[i].id .. "_water"), _type = "water",  _unique = cobj[i].properties.unique_collision}
+        if cobj[i].name == "" then cobj[i].name = "collision" end
+        Map.world_collision[#Map.world_collision + 1] = {name = tostring(cobj[i].id .. "_" .. cobj[i].name), _type = cobj[i].name, collision = true}
         Map.world.add(Map.world, Map.world_collision[#Map.world_collision],cobj[i].x,cobj[i].y,cobj[i].width,cobj[i].height)
       end
     end
   end
-  print(string.format("Loaded: %d collision objects", #Map.world_collision))
+  print(string.format("Loaded: %d collision objects \n", #Map.world_collision))
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Unload all collision out of the Map.world_collision table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.unload()
+  print("#### UNLOADING ALL COLLISION ####")
   local _, number_of_items = Map.world:getItems()
   print(string.format("Unloading: %d collision objects / %d in world", #Map.world_collision, number_of_items))
   for i = #Map.world_collision, 1, -1  do 
@@ -118,7 +110,7 @@ function m.unload()
     Map.world_collision[i] = nil
   end
   local _, number_of_items = Map.world:getItems()
-  print(string.format("Remaining: %d collision objects / %d in world", #Map.world_collision, number_of_items))
+  print(string.format("Remaining: %d collision objects / %d in world\n", #Map.world_collision, number_of_items))
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -134,8 +126,17 @@ function m.draw()
     if collision_items[i]._type == "water" then 
       love.graphics.setColor(0,0,0.667,0.4)
     end
-    if collision_items[i]._unique == "bridge" then 
+    if collision_items[i]._type == "bridge" then 
       love.graphics.setColor(0.66,0,0.667,0.9)
+    end
+    if collision_items[i]._type == "under_bridge" then 
+      love.graphics.setColor(0.76,0,0.767,0.9)
+    end
+    if collision_items[i]._type == "water" then 
+      love.graphics.setColor(0,0,0.667,0.4)
+    end
+    if collision_items[i]._type == "actor" then 
+      love.graphics.setColor(0,0,0.0,0.0)
     end
     love.graphics.rectangle("fill", x, y, w, h)
     love.graphics.rectangle("fill", x, y, w, 1)

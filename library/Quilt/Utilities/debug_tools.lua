@@ -71,6 +71,19 @@ function m.dump_table(atable)
   end
 end
 
+function m.dump_table_clean(atable) 
+  if type(atable) == 'table' then
+     local s = '\n { '
+     for k,v in pairs(atable) do
+        if type(k) ~= 'number' then k = '\t'..k..'' end
+        s = s .. k ..' = ' .. m.dump_table(v) .. ',\n'
+     end
+     return s .. '} '
+  else
+     return tostring(atable)
+  end
+end
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Store into a table for easy on/off
 --------------------------------------------------------------------------------------------------------------------------------------------------]] --
