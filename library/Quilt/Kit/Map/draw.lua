@@ -2,7 +2,7 @@ local m = {
   __NAME        = "Quilt-Kit-Map-Draw",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Let's do this whole tiled map thing a little better this time. Note: Still does not support all the features of tiled.",
+  __DESCRIPTION = "~~Maps~~",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -34,7 +34,7 @@ local m = {
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.debug = true
+m.debug = false
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

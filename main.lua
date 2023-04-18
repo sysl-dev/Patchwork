@@ -1,5 +1,3 @@
--- maps
-
 -- Some third party 3d library
 
 -- a pathfinding library
@@ -23,6 +21,19 @@ These things should give value by returning: Can the cursor select it? Does it h
 A list of OI objects then can see if the user presses up/down or left/right what should happen.
 Then the UI could also respond to mouse clicks if they are existing.
 ]]--
+
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Logic to Load Save Values
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+-- Import the default save values 
+require('data')
+
+-- Check if save files exist and process them. If the player loads later we can replace them 
+-- TODO 
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Runs after everything in main.lua have been completed.
@@ -54,7 +65,8 @@ Utilities.setup("library.Quilt.Utilities", {
 
 Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
 Pixelscreen.setup({
-  vsync = 0
+  vsync = GAME_CONFIG.video.vsync,
+  scale = GAME_CONFIG.video.scale,
 })
 
 Camera = require("library.Quilt.Kit.Camera")
@@ -117,6 +129,8 @@ Animation = require("library.anim8")
   * Baton - Game Keyboard/Gamepad Controller - 	Andrew Minnich 	MIT License
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Baton = require("library.baton")
+Controller = require("library.Quilt.Kit.Controller")
+Controller.get_all_joysticks()
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Quilt - Game focused libraries - SysL (C. Hall)  - License MIT
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -124,8 +138,11 @@ local map_settings = {
   tileset_table = Texture.tileset,
   map_folder_path = "asset/map",
   starting_map = "AAAA_debug0000",
-  starting_x = 10*16,
-  starting_Y = 10*16,
+  starting_x = 18,
+  starting_y = 32,
+  starting_facing = 4,
+  player_width = 16,
+  player_height = 16,
   actor_collision_image = Texture.system.icons.debug_icons,
   actor_collision_image_size = 8,
 }
@@ -148,10 +165,9 @@ end
   * Update - 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.update(dt)
-  if dt > 1 / 30 then
-    return
-  end
+  if dt > 1 / 12 then return end
   Pixelscreen.update(dt)
+  Timer.update(dt)
 end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Resize - 
@@ -168,6 +184,8 @@ end
 Utilities.content_loader.flat_lua("Debug_screen", "asset/screen-debug")
 -- Utilities.content_loader.flat_lua("screen", "asset/screen")
 Utilities.debug_tools.print_globals()
+
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 

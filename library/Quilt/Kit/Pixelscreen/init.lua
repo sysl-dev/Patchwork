@@ -657,10 +657,9 @@ function m.fade_in(speed, shader_type)
   m.config.fade_timer = 1
   m.config.fade_timer = 1.1
   m.config.fade_speed = speed
-  m.built_in_shaders[shader_type]:send("fade_percent", 0.0)
+  m.built_in_shaders[shader_type]:send("fade_percent", 1.1)
   m.config.fade_done = false
 end
-
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File

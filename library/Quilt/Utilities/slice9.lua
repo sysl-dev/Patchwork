@@ -213,7 +213,7 @@ function m.draw_tiled(name, x, y, w, h, config)
 
   love.graphics.setScissor(x, y, w - padding.right, h)
   -- Middle - Top/Bottom
-  for tile_x = 1, math.floor(height_center + 0.5) + config.overflow do
+  for tile_x = 1, math.floor(width_center + 0.5) + config.overflow do
     love.graphics.draw(frame_selected, frame_data["top_middle"], x + padding.left + frame_data.sizes[2] * (tile_x - 1),
       y)
     love.graphics.draw(frame_selected, frame_data["bottom_middle"],

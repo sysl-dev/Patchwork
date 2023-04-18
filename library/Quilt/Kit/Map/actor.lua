@@ -2,7 +2,7 @@ local m = {
   __NAME        = "Quilt-Kit-Map-Actor",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Let's do this whole tiled map thing a little better this time. Note: Still does not support all the features of tiled.",
+  __DESCRIPTION = "Lights, Camera, Overloaded Tables, Action.",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -50,6 +50,10 @@ local Map = Map
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local Animation = Animation
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Cache for getting actor by name
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.get_by_name_cache = {}
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Monkeypatch Print 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local print = print
@@ -82,7 +86,10 @@ end
 local player_filter = function(item, other)
   --for k,v in pairs(other) do print(k,v) end print("") for k,v in pairs(item) do print(k,v) end print("")
  if other.collision == false then return 'cross'
-  elseif love.keyboard.isDown("lshift") then return 'cross'
+  --elseif love.keyboard.isDown("rctrl") then return 'cross'
+  elseif love.keyboard.isDown("rctrl") then return 'cross'
+    
+  elseif item.collision_z < other.collision_z then return 'cross'
   else return 'slide' 
   end
 end
@@ -110,51 +117,61 @@ local actor_value_table = {
   name = "",
   x = 0,
   y = 0,
+  z = 0,
   width = 0,
   height = 0,
   rotation = 0,
   goal_x = nil,
   goal_y = nil,
   is_moving = false,
-  move_filer = event_filter,
+  is_running = false,
+  move_filter = event_filter,
+  wall_hit_counter = 0,
   --
   wander_pause = false,
   wander_timer_wait = 0,
-  wander_queue = "",
+  movement = "",
   wander_update = true,
   -- 
   animation_speed = 0.2,
   animation_force = false,
   collision = false,
+  collision_round = false,
+  collision_z = 0,
   disable_reflection = false,
   draw_on_top = false,
   draw_below_all = false,
   facing = 1,
   facing_fixed = false,
+  movement_facing_fixed = false,
   flag_hide = "",
   flag_talk = "",
   n = true,
   s = true,
   e = true,
   w = true,
-  item_count = 1,
+  item_count = 0,
   item_name = "",
   item_special = "",
   light_source = false,
   light_color = "#FFFFFFFF",
   light_type = "square",
   light_image = "",
-  movement = "",
   script_name = "",
   speed = 64,
+  run_speed = 100,
+  run_animate_speed = 2,
   sprite_image = nil,
   sprite_image_number = 1,
   sprite_image_type = "normal",
   sprite_type = "warp",
   text_string = "",
   warp_effect = "normal",
-  warp_lock = false,
-  warp_map = "",
+  warp_effect_speed = 8,
+  warp_timer = 0,
+  warp_lock = true,
+  warp_map = nil,
+  warp_facing = 0,
   warp_x = 0,
   warp_y = 0,
 }
@@ -194,10 +211,11 @@ local function create_player_sprite()
   Map.actor[#Map.actor].name = "PLAYER"
   Map.actor[#Map.actor].move_filter = player_filter
   Map.actor[#Map.actor].collision = true
-  Map.actor[#Map.actor].x = 18
-  Map.actor[#Map.actor].y = 18
-  Map.actor[#Map.actor].width = 16 + Map.current.resize_sprite_hitbox_value
-  Map.actor[#Map.actor].height = 16 + Map.current.resize_sprite_hitbox_value
+  Map.actor[#Map.actor].x = Map.current.starting_x
+  Map.actor[#Map.actor].y = Map.current.starting_y
+  Map.actor[#Map.actor].facing = Map.current.starting_facing
+  Map.actor[#Map.actor].width = Map.current.player_width + Map.current.resize_sprite_hitbox_value
+  Map.actor[#Map.actor].height = Map.current.player_height + Map.current.resize_sprite_hitbox_value
   Map.actor[#Map.actor].sprite_type = "player"
   Map.actor[#Map.actor].sprite_image = "xmasf"
   if Map.actor[#Map.actor].sprite_image_type == "normal" then 
@@ -230,6 +248,7 @@ function m.load(current_map)
         Map.actor[#Map.actor].id = cobj[i].id
         Map.actor[#Map.actor].x = cobj[i].x
         Map.actor[#Map.actor].y = cobj[i].y
+        Map.actor[#Map.actor].z = cobj[i].properties.z or 0 
         Map.actor[#Map.actor].width = cobj[i].width 
         Map.actor[#Map.actor].height = cobj[i].height 
         Map.actor[#Map.actor].rotation = cobj[i].rotation
@@ -237,6 +256,7 @@ function m.load(current_map)
         Map.actor[#Map.actor].animation_speed = cobj[i].properties.animation_speed or Map.actor[#Map.actor].animation_speed
         Map.actor[#Map.actor].animation_force = cobj[i].properties.animation_force or Map.actor[#Map.actor].animation_force
         Map.actor[#Map.actor].collision = cobj[i].properties.collision or Map.actor[#Map.actor].collision
+        Map.actor[#Map.actor].collision_round = cobj[i].properties.collision_round or Map.actor[#Map.actor].collision_round
         Map.actor[#Map.actor].disable_reflection = cobj[i].properties.disable_reflection or  Map.actor[#Map.actor].disable_reflection 
         Map.actor[#Map.actor].draw_on_top = cobj[i].properties.draw_on_top or  Map.actor[#Map.actor].draw_on_top 
         Map.actor[#Map.actor].draw_below_all = cobj[i].properties.draw_below_all or  Map.actor[#Map.actor].draw_below_all 
@@ -252,6 +272,7 @@ function m.load(current_map)
           if cobj[i].properties.interact_direction.w == false then Map.actor[#Map.actor].w = false end
         end
         -- End 
+        Map.actor[#Map.actor].is_running = cobj[i].properties.is_running or Map.actor[#Map.actor].is_running
         Map.actor[#Map.actor].item_count = cobj[i].properties.item_count or Map.actor[#Map.actor].item_count
         Map.actor[#Map.actor].item_name = cobj[i].properties.item_name or Map.actor[#Map.actor].item_name
         Map.actor[#Map.actor].item_special = cobj[i].properties.item_special or Map.actor[#Map.actor].item_special
@@ -266,16 +287,20 @@ function m.load(current_map)
         Map.actor[#Map.actor].movement = cobj[i].properties.movement or Map.actor[#Map.actor].movement
         Map.actor[#Map.actor].script_name = cobj[i].properties.script_name or Map.actor[#Map.actor].script_name
         Map.actor[#Map.actor].speed = cobj[i].properties.speed or Map.actor[#Map.actor].speed
+        Map.actor[#Map.actor].run_speed = cobj[i].properties.run_speed or Map.actor[#Map.actor].run_speed
+        Map.actor[#Map.actor].run_animate_speed = cobj[i].properties.run_animate_speed or Map.actor[#Map.actor].run_animate_speed
         Map.actor[#Map.actor].sprite_image = cobj[i].properties.sprite_image or Map.actor[#Map.actor].sprite_image
         Map.actor[#Map.actor].sprite_image_type = cobj[i].properties.sprite_image_type or Map.actor[#Map.actor].sprite_image_type
         Map.actor[#Map.actor].sprite_image_number = cobj[i].properties.sprite_image_number or Map.actor[#Map.actor].sprite_image_number
         Map.actor[#Map.actor].sprite_type = cobj[i].properties.sprite_type or Map.actor[#Map.actor].sprite_type
         Map.actor[#Map.actor].text_string = cobj[i].properties.text_string or Map.actor[#Map.actor].text_string
         Map.actor[#Map.actor].warp_effect = cobj[i].properties.warp_effect or Map.actor[#Map.actor].warp_effect
+        Map.actor[#Map.actor].warp_effect_speed = cobj[i].properties.warp_effect_speed or Map.actor[#Map.actor].warp_effect_speed
         Map.actor[#Map.actor].warp_lock = cobj[i].properties.warp_lock or Map.actor[#Map.actor].warp_lock
         Map.actor[#Map.actor].warp_map = cobj[i].properties.warp_map or Map.actor[#Map.actor].warp_map
         Map.actor[#Map.actor].warp_x = cobj[i].properties.warp_x or Map.actor[#Map.actor].warp_x
         Map.actor[#Map.actor].warp_y = cobj[i].properties.warp_y or Map.actor[#Map.actor].warp_y
+        Map.actor[#Map.actor].warp_facing = cobj[i].properties.warp_facing or Map.actor[#Map.actor].warp_facing
 
         -- Adjust Hitboxes for NPCS and update event filter
         if Map.actor[#Map.actor].sprite_type == "npc" then 
@@ -294,10 +319,10 @@ function m.load(current_map)
         end
 
         -- Load the wander table as a clone 
-        Map.actor[#Map.actor].wander_queue = cobj[i].properties.movement or Map.actor[#Map.actor].wander_queue
-        if Map.actor[#Map.actor].wander_queue ~= "" then 
-          Map.actor[#Map.actor].wander_queue = shallowcopy(Map.resources.movement[Map.actor[#Map.actor].wander_queue])
-          print("Loaded WQ: ", cobj[i].properties.movement, Map.actor[#Map.actor].wander_queue)
+        Map.actor[#Map.actor].movement = cobj[i].properties.movement or Map.actor[#Map.actor].movement
+        if Map.actor[#Map.actor].movement ~= "" then 
+          Map.actor[#Map.actor].movement = shallowcopy(Map.resources.movement[Map.actor[#Map.actor].movement])
+          print("Loaded WQ: ", cobj[i].properties.movement, Map.actor[#Map.actor].movement)
         end
 
         Map.world.add(Map.world, Map.actor[#Map.actor],Map.actor[#Map.actor].x,Map.actor[#Map.actor].y,Map.actor[#Map.actor].width,Map.actor[#Map.actor].height)
@@ -330,23 +355,61 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * special player code 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local function check_if_walking_into_wall(dt, current_actor, move_x, move_y, vector_x, vector_y, collisions, collision_count)
+  -- Wall Bonking 
+  for i=1,collision_count do
+    --debugprint('collided with ' .. tostring(collisions[i].other.name))
+    if collisions[i].other.collision then 
+      current_actor.wall_hit_counter = current_actor.wall_hit_counter + dt
+      -- We don't want the player to stop
+      if not (current_actor.name == "PLAYER") then 
+        current_actor.is_moving = false
+      end
+    end
+    if current_actor.wall_hit_counter > 1 then 
+      debugprint(current_actor.name .. "has bonk") 
+      current_actor.wall_hit_counter = 0 
+    end
+  end
+end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Move
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function update_move(dt, current_actor, move_x, move_y, vector_x, vector_y)
+  -- No image, no movement
   if not current_actor.sprite_image then return end
-  -- Enable or disable animations
+
+  -- Capture the collision information for later
+  local collisions, collision_count
+
+  -- Enable or disable animations / Yes if moving / No if not
   current_actor.is_moving = true
-  local speed = current_actor.speed
   if (vector_x == 0) and (vector_y == 0) then current_actor.is_moving = false end
+
+  -- Get the speed value
+  local speed = current_actor.speed
+  if current_actor.is_running then speed = current_actor.run_speed end
   move_x = vector_x * speed * dt 
   move_y = vector_y * speed * dt
-  current_actor.x, current_actor.y = Map.world:move(current_actor, current_actor.x + move_x, current_actor.y + move_y, current_actor.move_filter)
-  -- TODO: A bunch of special stuff for the player to let them slide around corners for the feel good 
-end
 
+  -- Move the sprite (ONLY MOVE FOR THE SPRITES)
+  current_actor.x, current_actor.y, collisions, collision_count = Map.world:move(current_actor, current_actor.x + move_x, current_actor.y + move_y, current_actor.move_filter)
+
+  -- Special Player Code 
+  --if current_actor.sprite_type == "player" then 
+    check_if_walking_into_wall(dt, current_actor, move_x, move_y, vector_x, vector_y, collisions, collision_count)
+  --end
+
+end
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Update looking direction based on vectors
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function update_facing(current_actor, vector_x, vector_y)
   if not current_actor.sprite_image then return end
   if current_actor.facing_fixed then return end
+  if current_actor.movement_facing_fixed then return end
   if not (current_actor.facing < 5) then return end
   if vector_y == -1 then 
     current_actor.facing = 4
@@ -362,12 +425,13 @@ local function update_facing(current_actor, vector_x, vector_y)
   end
 end
 
-local function follow_goal(current_actor, vector_x, vector_y)
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Update vectors based on goal
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local function follow_currently_set_goal(current_actor, vector_x, vector_y)
   -- If goals are nil, don't bother
   if not current_actor.goal_x then return 0, 0 end 
   if not current_actor.goal_y then return 0, 0 end
-  -- Check if we're near a walk-though sprite/script/warp 
-  --TODO: ABOVE? It might just be fine to let them keep walking into the object.
 
   if math.floor(current_actor.goal_x) > math.floor(current_actor.x) then 
       vector_x = 1
@@ -390,12 +454,15 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Sprite Image
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function update_if_sprite_image(dt, current_actor)
+local function place_sprite_image_actors_in_draw_queue(dt, current_actor)
   if not current_actor.sprite_image then return end
 
   -- Update the animation in the draw queue, we only need to update the current facing animation
   if current_actor.is_moving or current_actor.animation_force then 
-    current_actor.animation[current_actor.facing]:update(dt)
+    -- If we're running, animate faster ;
+    local animate_speed = dt 
+    if current_actor.is_running then animate_speed = animate_speed * current_actor.run_animate_speed end
+    current_actor.animation[current_actor.facing]:update(animate_speed)
   else
     current_actor.animation[current_actor.facing]:gotoFrame(current_actor.animation_idle_frame)
   end
@@ -412,12 +479,15 @@ local function update_if_sprite_image(dt, current_actor)
 
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Process Wander Scripts from Map.Resources
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function wander_around(current_actor, dt) 
   if not current_actor.sprite_image then return end
   -- If we have told the sprite to stop wandering, return 
   if current_actor.wander_pause then return end
-  -- This is checking if a wander_queue exists, if not then don't bother
-  if type(current_actor.wander_queue) ~= "table" then return end
+  -- This is checking if a movement exists, if not then don't bother
+  if type(current_actor.movement) ~= "table" then return end
   -- If the wait timer is below zero 
   if current_actor.wander_timer_wait <= 0 then
       -- and we're waiting for an update then 
@@ -425,47 +495,51 @@ local function wander_around(current_actor, dt)
           -- stop waiting for the update 
           current_actor.wander_update = false
           -- Check the queue for what action we're on.
-          if type(current_actor.wander_queue[1][1]) == "string" then 
+          if type(current_actor.movement[1][1]) == "string" then 
               -- If it's string, it's a command and we can update right away
               current_actor.wander_update = true
               -- WAIT - sets a wait timer before the next action 
-              if current_actor.wander_queue[1][1] == "wait" then 
-                  current_actor.wander_timer_wait = current_actor.wander_queue[1][2]
+              if current_actor.movement[1][1] == "wait" then 
+                  current_actor.wander_timer_wait = current_actor.movement[1][2]
               end
               -- FACE - look in a certain direction
-              if current_actor.wander_queue[1][1] == "face" then 
-                  current_actor.facing = current_actor.wander_queue[1][2]
+              if current_actor.movement[1][1] == "face" then 
+                  current_actor.facing = current_actor.movement[1][2]
                   current_actor.animation[current_actor.facing]:gotoFrame(2)
               end
               -- FORCE ANIMATION - turns on/off the animation
-              if current_actor.wander_queue[1][1] == "force_animation" then 
-                  current_actor.animation_force = current_actor.wander_queue[1][2]
+              if current_actor.movement[1][1] == "force_animation" then 
+                  current_actor.animation_force = current_actor.movement[1][2]
               end
               -- SET - Powerful Direct Control 
-              if current_actor.wander_queue[1][1] == "set" then 
-                current_actor[current_actor.wander_queue[1][2]]  = current_actor.wander_queue[1][3] 
+              if current_actor.movement[1][1] == "set" then 
+                current_actor[current_actor.movement[1][2]]  = current_actor.movement[1][3] 
             end
               -- SPRITE - change the image the sprite uses for animation, does not update hitbox 
-              if current_actor.wander_queue[1][1] == "sprite" then 
-                  current_actor.sprite_image = current_actor.wander_queue[1][2]
+              if current_actor.movement[1][1] == "sprite" then 
+                  current_actor.sprite_image = current_actor.movement[1][2]
                   create_animation_map_3x4(current_actor)
               end
           else
               -- We're setting a goal in tile increments based on location.
               local tw, th = Map.get_current_tile_sizes()
-              m.set_pixel_goal(current_actor, current_actor.x+current_actor.wander_queue[1][1]*tw, current_actor.y+current_actor.wander_queue[1][2]*th) 
+              m.set_pixel_goal(current_actor, current_actor.x+current_actor.movement[1][1]*tw, current_actor.y+current_actor.movement[1][2]*th) 
           end
       end
       if (math.floor(current_actor.goal_x) == math.floor(current_actor.x)) and (math.floor(current_actor.goal_y) == math.floor(current_actor.y)) then 
           current_actor.wander_update = true
-          current_actor.wander_queue[#current_actor.wander_queue +1] = shallowcopy(current_actor.wander_queue[1])
-          table.remove(current_actor.wander_queue, 1) 
+          current_actor.movement[#current_actor.movement +1] = shallowcopy(current_actor.movement[1])
+          table.remove(current_actor.movement, 1) 
       end
   end
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Update all timers
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function update_timers(current_actor, dt)
   if not current_actor.sprite_image then return end
+  -- unlikely to stay on the map long enough to roll over.
   current_actor.wander_timer_wait = current_actor.wander_timer_wait - dt
 end
 
@@ -473,6 +547,7 @@ end
   * Main Update
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.update(dt)
+  if dt > 1/12 then return end
   for i = #Map.actor, 1, -1  do 
     -- Reset any vectors in play
     local vector_x, vector_y = 0,0 
@@ -480,12 +555,18 @@ function m.update(dt)
     -- Get our current actor
     local current_actor = Map.actor[i]
 
+    -- Update Actor Wander Timers 
     update_timers(current_actor, dt)
-    wander_around(current_actor, dt) 
-    vector_x, vector_y = follow_goal(current_actor, vector_x, vector_y)
+    -- Process Wander Scripts 
+    wander_around(current_actor, dt)
+    -- Update our Vectors  
+    vector_x, vector_y = follow_currently_set_goal(current_actor, vector_x, vector_y)
+    -- Process Movement 
     update_move(dt, current_actor, move_x, move_y, vector_x, vector_y)
+    -- Face our new directions 
     update_facing(current_actor, vector_x, vector_y)
-    update_if_sprite_image(dt, current_actor)
+    -- If we have a sprite image, we get drawn
+    place_sprite_image_actors_in_draw_queue(dt, current_actor)
   end
 end
 
@@ -498,6 +579,7 @@ end
   * Get Actor
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.get_by_name(name)
+  -- TODO - cache finds based on map 
   for i = #Map.actor, 1, -1  do 
     if name == Map.actor[i].name then 
       return Map.actor[i]
@@ -529,6 +611,14 @@ function m.set_pixel_goal(current_actor, x, y)
   current_actor.goal_y = y
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Change Facing (Safe)
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.try_change_facing(current_actor, facing_number)
+  if current_actor.facing_fixed then return false end 
+    current_actor.facing = facing_number
+    return facing_number
+end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Debug

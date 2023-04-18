@@ -2,7 +2,7 @@ local m = {
   __NAME        = "Quilt-Kit-Map",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Let's do this whole tiled map thing a little better this time. Note: Still does not support all the features of tiled.",
+  __DESCRIPTION = "Let's do this whole tiled map thing a little better this time.",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -34,7 +34,7 @@ local m = {
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.debug = true
+m.debug = false
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Locals and Housekeeping
@@ -56,13 +56,21 @@ assert(Bump, "The bump library is required for this class, please update the lib
   * Create our world
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 m.world = Bump.newWorld(32)
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Create table to hold collision 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 m.world_collision = {}
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Create actor table
+  * Create table to hold actors 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 m.actor = {}
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Create table to hold timers 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.active_scripts = {}
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Load these modules 
@@ -87,6 +95,8 @@ m.current = {
   starting_map = nil,
   starting_x = nil,
   starting_y = nil,
+  is_player_locked = false,
+  starting_facing = 2,
   resize_sprite_hitbox_value = -2,
 
   -- We save this to SRAM
@@ -138,13 +148,16 @@ function m.setup(path, settings)
   m.map_file_loader(settings.map_folder_path, m.map_files)
 
   -- Import Settings 
-  m.current.starting_map = settings.starting_map
-  m.current.starting_x = settings.starting_x
-  m.current.starting_Y = settings.starting_Y
+  m.current.starting_map = settings.starting_map or m.current.starting_map 
+  m.current.starting_x = settings.starting_x or m.current.starting_x
+  m.current.starting_y = settings.starting_y or m.current.starting_y 
+  m.current.starting_facing = settings.starting_facing or m.current.starting_facing
+  m.current.is_player_locked = settings.is_player_locked or m.current.is_player_locked
+  m.current.player_width = settings.player_width
+  m.current.player_height = settings.player_height
+
   m.current.actor_collision_image = settings.actor_collision_image
   m.current.actor_collision_image_size = settings.actor_collision_image_size
-  -- TODO: HEY YOU WERE ABOUT TO SET UP THE IMAGE RENDERING FOR ACTOR TYPE
-  -- THE EGG WAS GOING TO CENTER ON THE COLLISION
 
   -- Load all of map's sub modules and run their setup function if it exists.
     for sub = 1, #sub_modules do 
@@ -173,8 +186,8 @@ local function update_render_distance(current_map)
   local tile_height = current_map.tileheight
   local game_width = m.current.game_width or BASE_WIDTH
   local game_height = m.current.game_height or BASE_HEIGHT
-  m.current.x_render_distance = math.floor(game_width/tile_width/2) + 1
-  m.current.y_render_distance = math.floor(game_height/tile_height/2) + 2
+  m.current.x_render_distance = math.floor(game_width/tile_width/2) + 2
+  m.current.y_render_distance = math.floor(game_height/tile_height/2) + 3
   lastmap = m.current.map
 end
 
@@ -208,6 +221,40 @@ function m.load(map_name)
   m.current.map = map_name
   m.collision.load(map_name)
   m.actor.load(map_name)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * load a map with effect (Note, the fade out is set outside the function)
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.load_with_effect(map_name, fade_image, map_time)
+  -- How fast the effect is 1 second / time 
+  map_time = map_time or 8
+
+  -- Image used for the effect, default is below 
+  fade_image = fade_image or Texture.system.fade.normal
+  Pixelscreen.fade_image(fade_image)
+
+  -- We're using a timer script for this
+  Timer.script(function(wait)
+    -- Lock the player 
+    Map.current.is_player_locked = true
+    -- Run and wait for the screen to fade 
+    Pixelscreen.fade_out(map_time)
+    while not Pixelscreen.config.fade_done do
+      wait(0.1)
+    end
+    -- Load the map and collect garbage 
+    Map.load(map_name)
+    collectgarbage("collect")
+    wait(0.1)
+    -- Run and wait for the screen to restore 
+    Pixelscreen.fade_in(map_time)
+    while not Pixelscreen.config.fade_done do
+      wait(0.1)
+    end
+    -- Release the player
+    Map.current.is_player_locked = false
+  end)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -324,6 +371,7 @@ function m.set_tilearea(tileindex, tile_table, layer)
     end
   end
 end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 

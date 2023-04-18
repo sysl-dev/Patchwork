@@ -2,7 +2,7 @@ local m = {
   __NAME        = "Quilt-Kit-Map-Collision",
   __VERSION     = "1.0",
   __AUTHOR      = "C. Hall (Sysl)",
-  __DESCRIPTION = "Let's do this whole tiled map thing a little better this time. Note: Still does not support all the features of tiled.",
+  __DESCRIPTION = "Everything is boxes.",
   __URL         = "http://github.sysl.dev/",
   __LICENSE     = [[
     MIT LICENSE
@@ -90,7 +90,13 @@ function m.load(current_map)
       local cobj = layer.objects
       for i=1, #cobj do
         if cobj[i].name == "" then cobj[i].name = "collision" end
-        Map.world_collision[#Map.world_collision + 1] = {name = tostring(cobj[i].id .. "_" .. cobj[i].name), _type = cobj[i].name, collision = true}
+        Map.world_collision[#Map.world_collision + 1] = {
+          name = tostring(cobj[i].id .. "_" .. cobj[i].name),
+          _type = cobj[i].name,
+          collision = true,
+          sprite_type = "wall",
+          collision_z = cobj[i].properties.collision_z or 0
+         }
         Map.world.add(Map.world, Map.world_collision[#Map.world_collision],cobj[i].x,cobj[i].y,cobj[i].width,cobj[i].height)
       end
     end
