@@ -28,9 +28,6 @@ local function scale_down()
 end
 
 
-local BASE_WIDTH = BASE_WIDTH or love.graphics.getWidth()
-local BASE_HEIGHT = BASE_HEIGHT or love.graphics.getHeight()
-
 function scene:update(dt)
   timer = timer + dt
 end

@@ -100,7 +100,40 @@ function m.cash_format(money_value, settings)
 end
 
 -- Return the nearest multiple with no remainder (1-7,8 - 0, 8-15,8 - 8, etc)
-function m.tile_scale(num, base) return math.floor(num / base) * base end
+function m.tile_scale(num, base) 
+  return math.floor(num / base) * base 
+end
+
+-- Format OS Time with some lazy commands 
+function m.format_ostime()
+  --[[
+    %a	abbreviated weekday name (e.g., Wed)
+    %A	full weekday name (e.g., Wednesday)
+    %b	abbreviated month name (e.g., Sep)
+    %B	full month name (e.g., September)
+    %c	date and time (e.g., 09/16/98 23:48:10)
+    %d	day of the month (16) [01-31]
+    %H	hour, using a 24-hour clock (23) [00-23]
+    %I	hour, using a 12-hour clock (11) [01-12]
+    %M	minute (48) [00-59]
+    %m	month (09) [01-12]
+    %p	either "am" or "pm" (pm)
+    %S	second (10) [00-61]
+    %w	weekday (3) [0-6 = Sunday-Saturday]
+    %x	date (e.g., 09/16/98)
+    %X	time (e.g., 23:48:10)
+    %Y	full year (1998)
+    %y	two-digit year (98) [00-99]
+    %%	the character `%´
+    ]]--
+  local current_time = os.time()
+  local default_format = os.date("%A", current_time) -- Wednesday
+  local date_format = os.date("%x", current_time) -- "01/14/22"
+  local time_format = os.date("%X", current_time) -- "22:03:09"
+  local time_format_12h = os.date("%I:%M:%S %p", current_time) -- 07:30:41 PM
+  return default_format, date_format, time_format_12h, time_format
+end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
