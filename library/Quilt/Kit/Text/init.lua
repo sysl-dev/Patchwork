@@ -170,6 +170,11 @@ end
 --[[ String to Table ]] -------------------------------------------------------------------------------
 -- "Change.a.string" to a table: Change[a][string]
 local function string_to_table(string)
+  -- This will allow you to return a table if you don't use global holders for assets.
+  if type(string) == "table" then
+    return table
+  end
+  -- Otherwise, do the deed.
   local table_find = _G -- Select the global table
   for w in string.gmatch(string, "[%w_]+") do -- matches both alphanumeric characters and underscores, more than once
     assert(table_find[w], "This table does not exist: " .. string)
@@ -326,8 +331,13 @@ function M:send(text, wrap_num, show_all)
             pixel_count_last_space = 0
           end
           last_space = 0
-          pixel_count = pixel_count_last_space
-          pixel_count_last_space = 0
+          if self.keep_space_on_line_break then 
+            pixel_count = pixel_count_last_space
+            pixel_count_last_space = 0
+          else
+            pixel_count = 0
+            pixel_count_last_space = 0
+          end
         end
       else
         if self.table_string[i]:match("newline") then
@@ -1483,6 +1493,7 @@ function m.new(rendering, table_settings) -- Todo, configuration at runtime.
   self.waitforinput = false
   -- Text
   self.prefix = autotags or ""
+  self.keep_space_on_line_break = false
   self.default_font = table_settings.font or love.graphics.getFont()
   self.default_color = table_settings.color or {
     0.05,

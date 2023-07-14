@@ -90,6 +90,7 @@ end
 m.functions_code = {
   -- Print a list of all things in the global namespace
   ["print_globals"] = function()
+    
     local known_globals = {
       "_G",
       "_VERSION",

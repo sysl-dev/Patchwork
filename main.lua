@@ -41,7 +41,7 @@ require('data')
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.test_all_map)
+  Gamestate.switch(Debug_screen.ui_test)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -85,10 +85,18 @@ Font = {
       "asset/font/golden_apple/golden_apple.png"),
   earth_illusion = love.graphics.newFont("asset/font/earth_illusion/earth_illusion.fnt",
       "asset/font/earth_illusion/earth_illusion.png"),
-  ack_recall = love.graphics.newFont("asset/font/ack_recall/AckRecall.ttf", 16, "mono")
+  ack_recall = love.graphics.newFont("asset/font/ack_recall/AckRecall.ttf", 16, "mono"),
+  royal_fibre = love.graphics.newFont("asset/font/royal_fibre/RoyalFibre.ttf", 16, "mono"),
+  cardboard_crown = love.graphics.newFont("asset/font/cardboard_crown/CardboardCrown.ttf", 32, "mono"),
+  menu_card = love.graphics.newFont("asset/font/menu_card/MenuCard.ttf", 8, "mono"),
+  nudge_orb = love.graphics.newFont("asset/font/nudge_orb/Nudge Orb.ttf", 8, "mono"),
 }
 
-Font.default = Font.golden_apple
+-- Fix Line Heights
+Font.cardboard_crown:setLineHeight(0.6)
+Font.menu_card:setLineHeight(1.2)
+
+Font.default = Font.menu_card
 love.graphics.setFont(Font.default)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
@@ -149,6 +157,8 @@ local map_settings = {
 
 Map = require("library.Quilt.Kit.Map")
 Map.setup("library.Quilt.Kit.Map", map_settings)
+
+Gui = require("library.Quilt.Kit.PJs.init")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Love Callbacks

@@ -7,6 +7,7 @@ local screens = {
   "test_camera",
   "test_misc",
   "test_all_map",
+  "ui_test",
 }
 
 local ascreens = {
@@ -15,6 +16,7 @@ local ascreens = {
   "Camera Scroll",
   "Random Tests",
   "Map Rendering and Movement",
+  "Testing UI",
 }
 local current = 1
 
