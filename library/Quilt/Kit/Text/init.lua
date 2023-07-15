@@ -172,7 +172,7 @@ end
 local function string_to_table(string)
   -- This will allow you to return a table if you don't use global holders for assets.
   if type(string) == "table" then
-    return table
+    return string
   end
   -- Otherwise, do the deed.
   local table_find = _G -- Select the global table
