@@ -35,7 +35,6 @@ function scene:draw(dt)
   love.graphics.setColor(1,1,1,1)
   Gui.draw("Wow!")
   Gui.draw("Window")
-  
   Pixelscreen.stop()
 end
 

@@ -50,7 +50,6 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Help = require("library.Quilt.Help")
-Help.slice9 = require("library.Quilt.Help.Slice9")
 
 Pixelscreen = require("library.Quilt.Pixel-Perfect")
 Pixelscreen.setup({
@@ -92,9 +91,8 @@ love.graphics.setFont(Font.default)
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Help.load.texture("Texture", "asset/texture")
-Help.slice9.import_graphics_table({
-  import_texture_container = "Texture.system.slice9"
-})
+Help.art.slice9.import_graphics_table("Texture.system.slice9")
+
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------

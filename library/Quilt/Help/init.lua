@@ -820,11 +820,13 @@ m.art = {}
 m.art.storage = {} -- Advanced Art Drawing requires some memory set aside.
 m.art.storage.rb = {} -- Repeating Backgrounds
 m.art.storage.gs = {} -- Gradient Shapes
+m.art.storage.s9 = {}
 -- Image for shapes to apply shaders and colors to for new shapes.
-m.art.storage.gs.pixel_imagdata_x1 = love.image.newImageData(1, 1); m.art.storage.gs.pixel_image_x1:setPixel(0, 0, 1, 1, 1, 1)
+m.art.storage.gs.pixel_imagdata_x1 = love.image.newImageData(1, 1); m.art.storage.gs.pixel_imagdata_x1:setPixel(0, 0, 1, 1, 1, 1)
 m.art.storage.gs.pixel_image_x1 = love.graphics.newImage(m.art.storage.gs.pixel_imagdata_x1)
 local pixel_image_x1 = m.art.storage.gs.pixel_image_x1 -- let's just cache this.
 m.art.repeating_background = {}
+m.art.slice9 = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Hooking and Fallback - If using this in patchwork, grab the background directly, if not do a best guess.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -889,12 +891,6 @@ function m.art.draw_disk(x, y, r, total, rotate, dwidth)
   love.graphics.draw(pixel_image_x1, x + w / 2, y + h / 2, math.rad(0), w, h, w / w / 2, h / h / 2)
   love.graphics.setStencilTest()
 end
-
---[[-------------------------------------------------------------------------
-  *                                                                         -                                                                      
-  * Graphical Border                                                        -
-  *                                                                         -                                                                         
---------------------------------------------------------------------------]]--
 
 
 --[[-------------------------------------------------------------------------
@@ -1020,7 +1016,7 @@ end
     love.gfx.disk(49, 49, 26, math.sin(timer) - 0.015 , -90+2, 12)
     love.gfx.colorDisk(50, 50, 25, math.sin(timer), -90, {1,0,0,1}, {0,0,1,1}, 10, "x")
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function love.gfx.draw_disk_gradient(x, y, r, total, rotate, color1, color2, dwidth, mode, colors)
+function m.art.draw_disk_gradient(x, y, r, total, rotate, color1, color2, dwidth, mode, colors)
   colors = colors or 24
   
   dwidth = dwidth or r / 2
@@ -1037,8 +1033,173 @@ function love.gfx.draw_disk_gradient(x, y, r, total, rotate, color1, color2, dwi
   love.graphics.setStencilTest()
 end
 
+--[[-------------------------------------------------------------------------
+  *                                                                         -                                                                      
+  * Slice9                                                  -
+  *                                                                         -                                                                         
+--------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Import after Graphics are Loaded
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.art.slice9.import_graphics_table(path_to_slice9_format_images)
+  -- Set reasonable defaults if none are supplied.
+  local import_texture_container = path_to_slice9_format_images
+  assert(import_texture_container,
+    "The table where the frames are stored is required. If you do not require slice9, do not load it.")
+  local table_parts = m.text.split_by(import_texture_container, ".")
+  m.image_table = _G
+  for i = 1, #table_parts do m.image_table = m.image_table[table_parts[i]] end
+  -- m.image_table = {}
+  for i, v in pairs(m.image_table) do
+    local temptable = {}
+    temptable = m.text.split_by(i, "_")
+    if #temptable == 2 then
+      temptable[2] = tonumber(temptable[2])
+      m.art.slice9.create(temptable[1], i, temptable[2], temptable[2], temptable[2], temptable[2], temptable[2], temptable[2])
+    elseif #temptable == 7 then
+      m.art.slice9.create(temptable[1], i, tonumber(temptable[2]), tonumber(temptable[3]), tonumber(temptable[4]),
+        tonumber(temptable[5]), tonumber(temptable[6]), tonumber(temptable[7]))
+    else
+      assert(false, "Error: Frame name does not match format. Name_Size, or Name_Size1_Size2_...Size_6")
+    end
+  end
+end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Slice Frame
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.art.slice9.create(name, imagename, size, size2, size3, size4, size5, size6)
+  local image_width = size + size2 + size3
+  local image_height = size4 + size5 + size6
+  m.art.storage.s9[name] = {
+    ["image"] = imagename,
+    ["sizes"] = {
+      size,
+      size2,
+      size3,
+      size4,
+      size5,
+      size6,
+    }, -- X Width 1, 2, 3 Row, Y same Col
+    ["top_left"] = love.graphics.newQuad(0, 0, size, size4, image_width, image_height),
+    ["top_middle"] = love.graphics.newQuad(0 + size, 0, size2, size4, image_width, image_height),
+    ["top_right"] = love.graphics.newQuad(0 + size + size2, 0, size3, size4, image_width, image_height),
+    ["middle_left"] = love.graphics.newQuad(0, 0 + size4, size, size5, image_width, image_height),
+    ["middle_middle"] = love.graphics.newQuad(0 + size, 0 + size4, size2, size5, image_width, image_height),
+    ["middle_right"] = love.graphics.newQuad(0 + size + size2, 0 + size4, size3, size5, image_width, image_height),
+    ["bottom_left"] = love.graphics.newQuad(0, 0 + size4 + size5, size, size6, image_width, image_height),
+    ["bottom_middle"] = love.graphics.newQuad(0 + size, 0 + size4 + size5, size2, size6, image_width, image_height),
+    ["bottom_right"] = love.graphics.newQuad(0 + size + size2, 0 + size4 + size5, size3, size6, image_width,
+      image_height),
+  }
+end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Draw a frame with the middle stretched out.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.art.slice9.draw(name, x, y, w, h)
+  x = math.floor(x)
+  y = math.floor(y)
+  w = math.floor(w)
+  h = math.floor(h)
+  local frame_library = m.image_table
+  local frame_data = m.art.storage.s9[name]
+  assert(frame_data, "Frame chosen must exist in the folder!")
+  local frame_selected = frame_library[frame_data.image]
+  local width_center = (w - frame_data.sizes[1] - frame_data.sizes[3]) / frame_data.sizes[2]
+  local height_center = (h - frame_data.sizes[4] - frame_data.sizes[6]) / frame_data.sizes[5]
+  local padding = {
+    top = frame_data.sizes[4],
+    right = frame_data.sizes[3],
+    bottom = frame_data.sizes[6],
+    left = frame_data.sizes[1],
+  }
+
+  -- Middle - Top
+  love.graphics.draw(frame_selected, frame_data["top_middle"], x + padding.left, y, 0, width_center, 1)
+  -- Middle - Right
+  love.graphics.draw(frame_selected, frame_data["middle_right"], x + w - padding.right, y + padding.top, 0, 1,
+    height_center)
+  -- Middle - Bottom
+  love.graphics.draw(frame_selected, frame_data["bottom_middle"], x + padding.left, y + h - padding.bottom, 0,
+    width_center, 1)
+  -- Middle - Left
+  love.graphics.draw(frame_selected, frame_data["middle_left"], x, y + padding.top, 0, 1, height_center)
+  -- Corners
+  love.graphics.draw(frame_selected, frame_data["top_left"], x, y)
+  love.graphics.draw(frame_selected, frame_data["top_right"], x + w - padding.right, y)
+  love.graphics.draw(frame_selected, frame_data["bottom_left"], x, y + h - frame_data.sizes[6])
+  love.graphics.draw(frame_selected, frame_data["bottom_right"], x + w - padding.right, y + h - padding.bottom)
+  -- Center 
+  love.graphics.draw(frame_selected, frame_data["middle_middle"], x + padding.left, y + padding.top, 0, width_center,
+    height_center)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Draw a frame with tiled.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.art.slice9.draw_tiled(name, x, y, w, h, config)
+  x = math.floor(x)
+  y = math.floor(y)
+  w = math.floor(w)
+  h = math.floor(h)
+  local frame_library = m.image_table
+  local frame_data = m.art.storage.s9[name]
+  assert(frame_data, "Frame chosen must exist in library !")
+  local frame_selected = frame_library[frame_data.image]
+  local width_center = (w - frame_data.sizes[1] - frame_data.sizes[3]) / frame_data.sizes[2]
+  local height_center = (h - frame_data.sizes[4] - frame_data.sizes[6]) / frame_data.sizes[5]
+  local padding = {
+    top = frame_data.sizes[4],
+    right = frame_data.sizes[3],
+    bottom = frame_data.sizes[6],
+    left = frame_data.sizes[1],
+  }
+  config = config or {}
+
+  -- Overflow tiles by one
+  config.overflow = config.overflow or 2
+
+  -- Center 
+  if config.tile_center then
+    for tile_x = 1, math.floor(width_center + 0.5) do
+      for tile_y = 1, math.floor(height_center + 0.5) do
+        love.graphics.draw(frame_selected, frame_data["middle_middle"],
+          x + padding.left + frame_data.sizes[2] * (tile_x - 1), y + padding.top + frame_data.sizes[5] * (tile_y - 1))
+      end
+    end
+  else
+    love.graphics.draw(frame_selected, frame_data["middle_middle"], x + padding.left, y + padding.top, 0, width_center,
+      height_center)
+  end
+
+  love.graphics.setScissor(x, y, w, h - padding.bottom)
+  -- Middle - Left/Righ
+  for tile_y = 1, math.floor(height_center + 0.5) + config.overflow do
+    love.graphics.draw(frame_selected, frame_data["middle_left"], x,
+      y + padding.top + frame_data.sizes[5] * (tile_y - 1))
+    love.graphics.draw(frame_selected, frame_data["middle_right"], x + w - padding.right,
+      y + padding.top + frame_data.sizes[5] * (tile_y - 1))
+  end
+
+  love.graphics.setScissor(x, y, w - padding.right, h)
+  -- Middle - Top/Bottom
+  for tile_x = 1, math.floor(width_center + 0.5) + config.overflow do
+    love.graphics.draw(frame_selected, frame_data["top_middle"], x + padding.left + frame_data.sizes[2] * (tile_x - 1),
+      y)
+    love.graphics.draw(frame_selected, frame_data["bottom_middle"],
+      x + padding.left + frame_data.sizes[2] * (tile_x - 1), y + h - padding.bottom)
+  end
+  love.graphics.setScissor()
+
+  -- Corners
+  love.graphics.draw(frame_selected, frame_data["top_left"], x, y)
+  love.graphics.draw(frame_selected, frame_data["top_right"], x + w - padding.right, y)
+  love.graphics.draw(frame_selected, frame_data["bottom_left"], x, y + h - frame_data.sizes[6])
+  love.graphics.draw(frame_selected, frame_data["bottom_right"], x + w - padding.right, y + h - padding.bottom)
+  -- End Drawing
+
+end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * End of File
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
