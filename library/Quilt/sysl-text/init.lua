@@ -33,14 +33,14 @@ local m = {
 --[[----------------------------------------------------------------------------------------------------
         Convert Global Commands to Local
         Read more: http://lua-users.org/wiki/OptimisingUsingLocalVariables
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 local unpack = unpack
 local love = love
 local utf8 = require("utf8")
 
 --[[----------------------------------------------------------------------------------------------------
         Debug Print - Confirms Loaded when m.debug is true.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 local function dprint(...)
   if m.debug then
     print(m._NAME .. ": ", unpack({
@@ -52,8 +52,8 @@ dprint("Loaded")
 
 --[[----------------------------------------------------------------------------------------------------
         Defaults
-----------------------------------------------------------------------------------------------------]] --
---[[ Default Picture ]] ---------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------]]--
+--[[ Default Picture ]]---------------------------------------------------------------------------------
 -- Creates a picture to draw in case someone passes a non-existent picture.
 local _undefined_image = love.image.newImageData(16, 16)
 for i = 0, 15 do
@@ -65,12 +65,12 @@ for i = 0, 15 do
 end
 local undefined_image = love.graphics.newImage(_undefined_image)
 
---[[ Default Audio ]] -----------------------------------------------------------------------------------
+--[[ Default Audio ]]-----------------------------------------------------------------------------------
 -- Table of voices to use for speaking.
 -- You will need to update this path.
 local text_sounds = {}
 
---[[ Magic Characters ]] ---------------------------------------------------------------------------------
+--[[ Magic Characters ]]---------------------------------------------------------------------------------
 -- 1. Starts a drawing command, the default is "["
 -- 2. Ends a drawing command, the default is "]"
 -- 3. One time commands are tagged with this value after running so they do not run more than once. The default is "#"
@@ -86,7 +86,7 @@ local special_character = {
   "|",
 }
 
---[[ Data Shortcuts ]] ----------------------------------------------------------------------------------
+--[[ Data Shortcuts ]]----------------------------------------------------------------------------------
 -- Text assumes that you are storing your assets in a table for access.
 -- You may have to hack some text commands if this is incorrect for your project.
 -- Note: All commands that pass values convert them to lowercase.
@@ -100,8 +100,8 @@ local function_command = nil
 
 --[[----------------------------------------------------------------------------------------------------
        Local Functions
-----------------------------------------------------------------------------------------------------]] --
---[[ Special Character Conversion ]] --------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------]]--
+--[[ Special Character Conversion ]]--------------------------------------------------------------------
 -- Convert newline and tab characters into their commands.
 local function convert_special_character(char)
   if char == "\n" then
@@ -113,15 +113,15 @@ local function convert_special_character(char)
   end
 end
 
---[[ Get character Width ]] -----------------------------------------------------------------------------
+--[[ Get character Width ]]-----------------------------------------------------------------------------
 -- Get the width of the current character width the current font.
 local function get_character_width(character) return love.graphics.getFont():getWidth(character) end
 
---[[ Get character Height ]] ----------------------------------------------------------------------------
+--[[ Get character Height ]]----------------------------------------------------------------------------
 -- Get the width of the current character height the current font.
 local function get_character_height(character) return love.graphics.getFont():getHeight(character) end
 
---[[ Tag Command ]] --------------------------------------------------------------------------------------
+--[[ Tag Command ]]--------------------------------------------------------------------------------------
 -- Tag the start of the command once run with special_character[3] so it only runs once.
 local function one_time_command(self, check)
   if check then
@@ -142,7 +142,7 @@ local function one_time_command(self, check)
   -- print(table.concat(self.table_string))
 end
 
---[[ Split Sting ]] --------------------------------------------------------------------------------------
+--[[ Split Sting ]]--------------------------------------------------------------------------------------
 -- Split a string into a table with a separator character.
 local function split_string_by(str, sep)
   local return_string = {}
@@ -154,7 +154,7 @@ local function split_string_by(str, sep)
   return return_string
 end
 
---[[ Table Copy ]] ----------------------------------------------------------------------------------------
+--[[ Table Copy ]]----------------------------------------------------------------------------------------
 -- Shallow copy a table
 local function table_shallow_copy(table_string)
   local table_copy
@@ -167,7 +167,7 @@ local function table_shallow_copy(table_string)
   return table_copy
 end
 
---[[ String to Table ]] -------------------------------------------------------------------------------
+--[[ String to Table ]]-------------------------------------------------------------------------------
 -- "Change.a.string" to a table: Change[a][string]
 local function string_to_table(string)
   -- This will allow you to return a table if you don't use global holders for assets.
@@ -185,7 +185,7 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        Configuration Functions
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 m.configure = {}
 
 function m.configure.audio_table(table_string) audio_table = table_string end
@@ -211,22 +211,28 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        Class Functions
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 local M = {}
 
 --[[----------------------------------------------------------------------------------------------------
        IS_FINISHED - Returns if the textbox has finished printing all the text or is waiting for input.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:is_finished() return self.current_character == #self.table_string or self.waitforinput end
 
 --[[----------------------------------------------------------------------------------------------------
+       At end of message - Returns if the textbox has finished printing all the text.
+----------------------------------------------------------------------------------------------------]]--
+function M:is_at_end_of_message() return self.current_character == #self.table_string end
+
+
+--[[----------------------------------------------------------------------------------------------------
        CONTINUE - Continues printing if stopped by [waitforinput]
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:continue() self.waitforinput = false end
 
 --[[----------------------------------------------------------------------------------------------------
        SEND - Sends a string to be drawn by the current textbox.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:send(text, wrap_num, show_all)
 
   ------------------------------------------------------------------------------
@@ -532,7 +538,7 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        SETDEFAULTS - Resets to default values at the start of string rendering.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:setDefaults()
   -- Text
   self.current_color = self.default_color
@@ -545,7 +551,7 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        DRAW - Draw the text.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:draw(tx, ty)
   -- love.graphics.rectangle("fill", tx, ty, self.get.width, self.get.height)
   self.tx = tx
@@ -603,7 +609,7 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        UPDATE - Timers tick onwards, play sounds, characters print
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:update(dt)
   -----------------------------------------------------------------------------
   -- Animation Timer
@@ -686,15 +692,15 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        COMMAND TABLE - Special commands used when rending text.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 M.command_table = {
   -----------------------------------------------------------------------------
   --  Script Commands
   -----------------------------------------------------------------------------
-  --[[ Runs at end of string ]] ------------------------------------------------
+  --[[ Runs at end of string ]]------------------------------------------------
   ["end"] = function(self) self:setDefaults() end,
 
-  --[[ Do this function ]] ---------------------------------------------------------
+  --[[ Do this function ]]---------------------------------------------------------
   ["function"] = function(self)
     one_time_command(self, self.command_modifer[1])
     if not function_command then return end
@@ -707,13 +713,13 @@ M.command_table = {
     f()
   end,
 
-  --[[ Runs at end of string ]] ------------------------------------------------
+  --[[ Runs at end of string ]]------------------------------------------------
   ["waitforinput"] = function(self)
     one_time_command(self, self.command_modifer[1])
     self.waitforinput = true
   end,
 
-  --[[ Runs at end of string ]] ------------------------------------------------
+  --[[ Runs at end of string ]]------------------------------------------------
   ["scroll"] = function(self)
     one_time_command(self, self.command_modifer[1])
     local _mod1 = tonumber(self.command_modifer[2])
@@ -724,50 +730,50 @@ M.command_table = {
   -----------------------------------------------------------------------------
   --  Position Commands
   -----------------------------------------------------------------------------
-  --[[ Move to next line ]] ----------------------------------------------------
+  --[[ Move to next line ]]----------------------------------------------------
   ["newline"] = function(self)
     self.cursor.x = 0 -- Reset to start of line
     self.cursor.y = self.cursor.y + get_character_height("W") -- Get the height of the font
     self.cursor.y = self.cursor.y + self.adjust_line_height -- adjust if set.
   end,
 
-  --[[ Save Cursor Position ]] -------------------------------------------------
+  --[[ Save Cursor Position ]]-------------------------------------------------
   ["cursorsave"] = function(self)
     self.cursor_storage.x = self.cursor.x
     self.cursor_storage.y = self.cursor.y
   end,
 
-  --[[ Load Cursor Position ]] -------------------------------------------------
+  --[[ Load Cursor Position ]]-------------------------------------------------
   ["cursorload"] = function(self)
     self.cursor.x = self.cursor_storage.x
     self.cursor.y = self.cursor_storage.y
   end,
 
-  --[[ Set X Cursor Position ]] ------------------------------------------------
+  --[[ Set X Cursor Position ]]------------------------------------------------
   ["cursorx"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.cursor.x = _mod1
   end,
 
-  --[[ Set Y Cursor Position ]] ------------------------------------------------
+  --[[ Set Y Cursor Position ]]------------------------------------------------
   ["cursory"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.cursor.y = _mod1
   end,
 
-  --[[ Tab Indent Text ]] ------------------------------------------------------
+  --[[ Tab Indent Text ]]------------------------------------------------------
   ["tab"] = -- Moves over 4 spaces.
   function(self) self.cursor.x = self.cursor.x + love.graphics.getFont():getWidth(" ") * 4 end,
 
-  --[[ Pad out the text this many pixels ]] -------------------------------------
+  --[[ Pad out the text this many pixels ]]-------------------------------------
   ["pad"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.cursor.x = self.cursor.x + _mod1
   end,
-  --[[ Adjust Line Height ]] -------------------------------------
+  --[[ Adjust Line Height ]]-------------------------------------
   ["lineheight"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
@@ -776,10 +782,10 @@ M.command_table = {
   -----------------------------------------------------------------------------
   --  Character Timing
   -----------------------------------------------------------------------------
-  --[[ Skip to the end of the string ]] ----------------------------------------
+  --[[ Skip to the end of the string ]]----------------------------------------
   ["skip"] = function(self) self.current_character = #self.table_string end,
 
-  --[[ Pause for a set period ]] -----------------------------------------------
+  --[[ Pause for a set period ]]-----------------------------------------------
   ["pause"] = function(self)
     one_time_command(self, self.command_modifer[1])
     local _mod1 = tonumber(self.command_modifer[2])
@@ -789,7 +795,7 @@ M.command_table = {
     self.timer_pause = _mod1
   end,
 
-  --[[ Delete a set number of characters, destructive ]] -----------------------
+  --[[ Delete a set number of characters, destructive ]]-----------------------
   ["backspace"] = function(self, i)
     one_time_command(self, self.command_modifer[1])
     local _mod1 = tonumber(self.command_modifer[2])
@@ -801,20 +807,20 @@ M.command_table = {
     end
   end,
 
-  --[[ Change the speed for printing the characters ]] -------------------------
+  --[[ Change the speed for printing the characters ]]-------------------------
   ["textspeed"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.current_print_speed = _mod1
   end,
 
-  --[[ Reset the speed for printing the characters ]] --------------------------
+  --[[ Reset the speed for printing the characters ]]--------------------------
   ["/textspeed"] = function(self) self.current_print_speed = self.default_print_speed end,
 
   -----------------------------------------------------------------------------
   --  Text Formatting
   -----------------------------------------------------------------------------
-  --[[ Set the text color ]] ---------------------------------------------------
+  --[[ Set the text color ]]---------------------------------------------------
   ["color"] = -- Sets the current color to a color on your palette table.
   function(self)
     local _mod1 = tonumber(self.command_modifer[2])
@@ -852,11 +858,11 @@ M.command_table = {
     self.current_color = palette_table[_mod1]
   end,
 
-  --[[ Reset the text color ]] -------------------------------------------------
+  --[[ Reset the text color ]]-------------------------------------------------
   ["/color"] = -- Resets color to the default color.
   function(self, i) self.current_color = self.default_color end,
 
-  --[[ Set the text shadow color ]] ---------------------------------------------------
+  --[[ Set the text shadow color ]]---------------------------------------------------
   ["shadowcolor"] = function(self)
 
     local _mod1 = tonumber(self.command_modifer[2])
@@ -894,10 +900,10 @@ M.command_table = {
     self.current_shadow_color = palette_table[_mod1]
   end,
 
-  --[[ Reset the text shadow color ]] -------------------------------------------------
+  --[[ Reset the text shadow color ]]-------------------------------------------------
   ["/shadowcolor"] = function(self, i) self.current_shadow_color = self.default_shadow_color end,
 
-  --[[ Set the font ]] --------------------------------------------------------
+  --[[ Set the font ]]--------------------------------------------------------
   ["font"] = function(self)
     if not font_table then return end
     local font_table = string_to_table(font_table)
@@ -909,14 +915,14 @@ M.command_table = {
     end
   end,
 
-  --[[ Reset the font ]] ------------------------------------------------------
+  --[[ Reset the font ]]------------------------------------------------------
   ["/font"] = -- Resets the font to default.
   function(self)
     if not font_table then return end
     love.graphics.setFont(self.default_font)
   end,
 
-  --[[ Set the shader ]] ------------------------------------------------------
+  --[[ Set the shader ]]------------------------------------------------------
   ["shader"] = function(self)
     if not shader_table then return end
     local shader_table = string_to_table(shader_table)
@@ -928,50 +934,50 @@ M.command_table = {
     end
   end,
 
-  --[[ Reset the shader ]] ----------------------------------------------------
+  --[[ Reset the shader ]]----------------------------------------------------
   ["/shader"] = -- Resets the font to default.
   function(self) self.effect_flags.shader = nil end,
 
-  --[[ Set drop shadow, Keypad Number is the Position of the shadow  ]] ---------
+  --[[ Set drop shadow, Keypad Number is the Position of the shadow  ]]---------
   ["dropshadow"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.effect_flags.dropshadow = _mod1
   end,
 
-  --[[ Turn off Drop shadow ]] --------------------------------------------------
+  --[[ Turn off Drop shadow ]]--------------------------------------------------
   ["/dropshadow"] = -- Turn off dropshadow
   function(self) self.effect_flags.dropshadow = false end,
 
-  --[[ Scale Text times this value  ]] -----------------------------------------
+  --[[ Scale Text times this value  ]]-----------------------------------------
   ["scale"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.effect_flags.scale = _mod1
   end,
 
-  --[[ Turn off scale ]] -------------------------------------------------------
+  --[[ Turn off scale ]]-------------------------------------------------------
   ["/scale"] = -- Turn off scale
   function(self) self.effect_flags.scale = false end,
 
-  --[[ Rotate Text by this value  ]] -------------------------------------------
+  --[[ Rotate Text by this value  ]]-------------------------------------------
   ["rotate"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then return end
     self.effect_flags.rotate = _mod1
   end,
 
-  --[[ Turn off rotate ]] ------------------------------------------------------
+  --[[ Turn off rotate ]]------------------------------------------------------
   ["/rotate"] = function(self) self.effect_flags.rotate = false end,
 
-  --[[ Fake Italics - Large Fonts Only ]] --------------------------------------
+  --[[ Fake Italics - Large Fonts Only ]]--------------------------------------
   ["i"] = function(self) self.effect_flags.italics = true end,
 
-  --[[ Turn off Fake Italics ]] ------------------------------------------------
+  --[[ Turn off Fake Italics ]]------------------------------------------------
   ["/i"] = -- Turns off italics.
   function(self) self.effect_flags.italics = false end,
 
-  --[[ Fake Underline ]] --------------------------------------
+  --[[ Fake Underline ]]--------------------------------------
   ["u"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -982,14 +988,14 @@ M.command_table = {
     self.effect_flags.underline = true
   end,
 
-  --[[ Turn off Fake Underline ]] ------------------------------------------------
+  --[[ Turn off Fake Underline ]]------------------------------------------------
   ["/u"] = -- Turns off italics.
   function(self)
     self.effect_flags.underline = false
     self.current_underline_position = self.default_underline_position
   end,
 
-  --[[ Fake Strikethrough ]] --------------------------------------
+  --[[ Fake Strikethrough ]]--------------------------------------
   ["s"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1000,30 +1006,30 @@ M.command_table = {
     self.effect_flags.strikethrough = true
   end,
 
-  --[[ Turn off Fake Strikethrough ]] ------------------------------------------------
+  --[[ Turn off Fake Strikethrough ]]------------------------------------------------
   ["/s"] = -- Turns off italics.
   function(self)
     self.effect_flags.strikethrough = false
     self.current_strikethrough_position = self.default_strikethrough_position
   end,
 
-  --[[ Fake Bold ]] ------------------------------------------------------------
+  --[[ Fake Bold ]]------------------------------------------------------------
   ["b"] = function(self) self.effect_flags.fakebold = true end,
 
-  --[[ Turn off Fake Bold ]] ---------------------------------------------------
+  --[[ Turn off Fake Bold ]]---------------------------------------------------
   ["/b"] = -- Turns off italics.
   function(self) self.effect_flags.fakebold = false end,
 
-  --[[ Print Text Backwards ]] -------------------------------------------------
+  --[[ Print Text Backwards ]]-------------------------------------------------
   ["mirror"] = function(self) self.effect_flags.mirror = true end,
 
-  --[[ Turn Off Print Text Backwards ]] ----------------------------------------
+  --[[ Turn Off Print Text Backwards ]]----------------------------------------
   ["/mirror"] = function(self) self.effect_flags.mirror = false end,
 
   -----------------------------------------------------------------------------
   --  Movement Commands
   -----------------------------------------------------------------------------
-  --[[ Shaking Text, delayed circle pattern ]] ---------------------------------
+  --[[ Shaking Text, delayed circle pattern ]]---------------------------------
   ["shake"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1034,13 +1040,13 @@ M.command_table = {
     self.effect_flags.shake = true
   end,
 
-  --[[ Shaking Text, Off ]] ----------------------------------------------------
+  --[[ Shaking Text, Off ]]----------------------------------------------------
   ["/shake"] = function(self)
     self.effect_flags.shake = false
     self.effect_speed.shake_speed = self.effect_speed.shake_speed_default
   end,
 
-  --[[ Text spins from it's center ]] ------------------------------------------
+  --[[ Text spins from it's center ]]------------------------------------------
   ["spin"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1051,13 +1057,13 @@ M.command_table = {
     self.effect_flags.spin = true
   end,
 
-  --[[ Spinning Text, Off ]] ----------------------------------------------------
+  --[[ Spinning Text, Off ]]----------------------------------------------------
   ["/spin"] = function(self)
     self.effect_flags.spin = false
     self.effect_speed.spin_speed = self.effect_speed.spin_speed_default
   end,
 
-  --[[ Text swings from it's center ]] -----------------------------------------
+  --[[ Text swings from it's center ]]-----------------------------------------
   ["swing"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1068,13 +1074,13 @@ M.command_table = {
     self.effect_flags.swing = true
   end,
 
-  --[[ swinging Text, Off ]] ---------------------------------------------------
+  --[[ swinging Text, Off ]]---------------------------------------------------
   ["/swing"] = function(self)
     self.effect_flags.swing = false
     self.effect_speed.swing_speed = self.effect_speed.swing_speed_default
   end,
 
-  --[[ Text falls like rain ]] -------------------------------------------------
+  --[[ Text falls like rain ]]-------------------------------------------------
   ["raindrop"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1085,13 +1091,13 @@ M.command_table = {
     self.effect_flags.raindrop = true
   end,
 
-  --[[ Raining Text, Off ]] ----------------------------------------------------
+  --[[ Raining Text, Off ]]----------------------------------------------------
   ["/raindrop"] = function(self)
     self.effect_flags.raindrop = false
     self.effect_speed.raindrop_speed = self.effect_speed.raindrop_speed_default
   end,
 
-  --[[ Text bounce up and down ]] ----------------------------------------------
+  --[[ Text bounce up and down ]]----------------------------------------------
   ["bounce"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1102,13 +1108,13 @@ M.command_table = {
     self.effect_flags.bounce = true
   end,
 
-  --[[ Bouncing Text, Off ]] ---------------------------------------------------
+  --[[ Bouncing Text, Off ]]---------------------------------------------------
   ["/bounce"] = function(self)
     self.effect_flags.bounce = false
     self.effect_speed.bounce_speed = self.effect_speed.bounce_speed_default
   end,
 
-  --[[ Text blink ]] -----------------------------------------------------------
+  --[[ Text blink ]]-----------------------------------------------------------
   ["blink"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then
@@ -1119,13 +1125,13 @@ M.command_table = {
     self.effect_flags.blink = true
   end,
 
-  --[[ Blinking Text, Off ]] ---------------------------------------------------
+  --[[ Blinking Text, Off ]]---------------------------------------------------
   ["/blink"] = function(self)
     self.effect_flags.blink = false
     self.effect_speed.blink_speed = self.effect_speed.blink_speed_default
   end,
 
-  --[[ RAINBOW COLORS ]] --------------------------------------------------------
+  --[[ RAINBOW COLORS ]]--------------------------------------------------------
   ["rainbow"] = function(self)
     local _mod1 = tonumber(self.command_modifer[2])
     local _mod2 = tonumber(self.command_modifer[3])
@@ -1142,7 +1148,7 @@ M.command_table = {
     self.effect_flags.rainbow = true
   end,
 
-  --[[ Rainbow Text, Off ]] -----------------------------------------------------
+  --[[ Rainbow Text, Off ]]-----------------------------------------------------
   ["/rainbow"] = function(self)
     self.effect_flags.rainbow = false
     self.current_color = self.default_color
@@ -1154,7 +1160,7 @@ M.command_table = {
   -----------------------------------------------------------------------------
   --  Image Commands
   -----------------------------------------------------------------------------
-  --[[ Draw an icon ]] ---------------------------------------------------------
+  --[[ Draw an icon ]]---------------------------------------------------------
   ["icon"] = function(self)
     if not icon_table then return end
     local icon_table = string_to_table(icon_table)
@@ -1166,7 +1172,7 @@ M.command_table = {
     self.cursor.x = self.cursor.x + 16
   end,
 
-  --[[ Draw a picture ]] -------------------------------------------------------
+  --[[ Draw a picture ]]-------------------------------------------------------
   ["image"] = function(self)
     if not image_table then return end
     local image_table = string_to_table(image_table)
@@ -1186,7 +1192,7 @@ M.command_table = {
   -----------------------------------------------------------------------------
   --  Sound Commands
   -----------------------------------------------------------------------------
-  --[[ Change typing voice, 0 is off ]] -----------------------------------------------
+  --[[ Change typing voice, 0 is off ]]-----------------------------------------------
   ["voice"] = function(self)
     one_time_command(self, self.command_modifer[1])
     local _mod1 = tonumber(self.command_modifer[2])
@@ -1196,37 +1202,37 @@ M.command_table = {
     self.character_sound = true
     self.sound_number = _mod1
   end,
-  --[[ Reset to the default voice ]] -----------------------------------------------
+  --[[ Reset to the default voice ]]-----------------------------------------------
   ["/voice"] = function(self)
     one_time_command(self, self.command_modifer[1])
     self.sound_number = self.default_sound_number
     self.character_sound = self.default_character_sound
   end,
-  --[[ Make the voice vary in pitch ]] -----------------------------------------------
+  --[[ Make the voice vary in pitch ]]-----------------------------------------------
   ["warble"] = function(self)
     one_time_command(self, self.command_modifer[1])
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then self.warble = 0 end
     self.warble = _mod1
   end,
-  --[[ Reset to no warble ]] -----------------------------------------------
+  --[[ Reset to no warble ]]-----------------------------------------------
   ["/warble"] = function(self)
     one_time_command(self, self.command_modifer[1])
     self.warble = 0
   end,
-  --[[ The sound plays every x characters ]] -----------------------------------------------
+  --[[ The sound plays every x characters ]]-----------------------------------------------
   ["soundevery"] = function(self)
     one_time_command(self, self.command_modifer[1])
     local _mod1 = tonumber(self.command_modifer[2])
     if type(_mod1) ~= "number" then self.sound_every = self.default_sound_every end
     self.sound_every = _mod1
   end,
-  --[[ Reset to default ]] -----------------------------------------------
+  --[[ Reset to default ]]-----------------------------------------------
   ["/soundevery"] = function(self)
     one_time_command(self, self.command_modifer[1])
     self.sound_every = self.default_sound_every
   end,
-  --[[ Play a sound ]] ----------------------------------------------------
+  --[[ Play a sound ]]----------------------------------------------------
   ["audio"] = function(self)
     one_time_command(self, self.command_modifer[1])
     if not audio_table then return end
@@ -1239,7 +1245,7 @@ M.command_table = {
       audio_table[_mod1]:play()
     end
   end,
-  --[[ Stop a sound ]] ----------------------------------------------------
+  --[[ Stop a sound ]]----------------------------------------------------
   ["/audio"] = function(self)
     if not audio_table then return end
     one_time_command(self, self.command_modifer[1])
@@ -1257,7 +1263,7 @@ M.command_table = {
 
 --[[----------------------------------------------------------------------------------------------------
        DOCOMMAND - Do the command if it's found in the command table.
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:doCommand(command)
   local splitcommands = {} -- Table to hold commands if they are split.
   command = command:sub(2, #command - 1) -- Trim special_characters from the entry
@@ -1279,7 +1285,7 @@ end
 
 --[[----------------------------------------------------------------------------------------------------
        CHANGE DRAW - Change the draw parameters depending on flags
-----------------------------------------------------------------------------------------------------]] --
+----------------------------------------------------------------------------------------------------]]--
 function M:changeDraw(str, tx, ty, i)
   local strchg = {
     x = math.floor(((tx + get_character_height("I") / 2)) + 0.5),
@@ -1462,7 +1468,7 @@ function M:addDraw(str, tx, ty, i)
   love.graphics.setColor(1, 1, 1, 1)
 end
 
---[[ Generate Class ]] -----------------------------------------------------------
+--[[ Generate Class ]]-----------------------------------------------------------
 function m.new(rendering, table_settings) -- Todo, configuration at runtime.
   rendering = rendering or "left" -- Left, Center, Right, Full
 
@@ -1568,5 +1574,5 @@ function m.new(rendering, table_settings) -- Todo, configuration at runtime.
   return self
 end
 
---[[ Return The Class ]] ----------------------------------------------------------
+--[[ Return The Class ]]----------------------------------------------------------
 return m

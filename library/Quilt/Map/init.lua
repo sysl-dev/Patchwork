@@ -184,8 +184,8 @@ local function update_render_distance(current_map)
   if lastmap == m.current.map then return end 
   local tile_width = current_map.tilewidth
   local tile_height = current_map.tileheight
-  local game_width = m.current.game_width or BASE_WIDTH
-  local game_height = m.current.game_height or BASE_HEIGHT
+  local game_width = m.current.game_width or __BASE_WIDTH__
+  local game_height = m.current.game_height or __BASE_HEIGHT__
   m.current.x_render_distance = math.floor(game_width/tile_width/2) + 2
   m.current.y_render_distance = math.floor(game_height/tile_height/2) + 3
   lastmap = m.current.map

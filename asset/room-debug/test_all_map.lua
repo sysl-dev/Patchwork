@@ -52,7 +52,7 @@ end
 
 function scene.unscale_debug()
   if not love.keyboard.isDown("`") then
-    Utilities.debug_tools.on_screen_debug_info()
+    Help.debug_tools.screen_info()
     love.graphics.print(Pixelscreen.mouse.get_x() .. " " .. Pixelscreen.mouse.get_y() .. " " .. Map.tileindex_from_pixels(Pixelscreen.mouse.get_x(),Pixelscreen.mouse.get_y()), 200, 200)
   end
   if love.keyboard.isDown("0") then

@@ -45,7 +45,7 @@ function scene:draw(dt)
   end
   love.graphics.rectangle("fill", 2, 8 + current * 16, 8, 8)
   if love.keyboard.isDown("`") then
-    Utilities.debug_tools.on_screen_debug_info()
+    Help.debug_tools.on_screen_debug_info()
   end
 end
 

@@ -46,30 +46,19 @@ end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
-  * Load Utilites - Heart of the Patchwork Library, a framework that extends LOVE with more features.
+  * Load Help - Heart of the Patchwork Library, a framework that extends LOVE with more features.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities = require("library.Quilt.Utilities")
-Utilities.setup("library.Quilt.Utilities", {
-  -- load_only = {},
-  -- remove = {},
-  color = {},
-  content_loader = {},
-  debug_tools = {},
-  global_defaults = {},
-  love_patch = {},
-  number = {},
-  mouse = {},
-  slice9 = {}
-})
+Help = require("library.Quilt.Help")
+Help.slice9 = require("library.Quilt.Help.Slice9")
 
-Pixelscreen = require("library.Quilt.Kit.Pixelscreen")
+Pixelscreen = require("library.Quilt.Pixel-Perfect")
 Pixelscreen.setup({
   vsync = GAME_CONFIG.video.vsync,
   scale = GAME_CONFIG.video.scale,
 })
 
-Camera = require("library.Quilt.Kit.Camera")
+Camera = require("library.Quilt.Camera")
 Camera.setup()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -90,19 +79,20 @@ Font = {
   cardboard_crown = love.graphics.newFont("asset/font/cardboard_crown/CardboardCrown.ttf", 32, "mono"),
   menu_card = love.graphics.newFont("asset/font/menu_card/MenuCard.ttf", 8, "mono"),
   nudge_orb = love.graphics.newFont("asset/font/nudge_orb/Nudge Orb.ttf", 8, "mono"),
+  mini_card = love.graphics.newFont("asset/font/mini_card/MiniCard.ttf", 8, "mono"),
 }
 
 -- Fix Line Heights
 Font.cardboard_crown:setLineHeight(0.6)
 Font.menu_card:setLineHeight(1.2)
 
-Font.default = Font.menu_card
+Font.default = Font.mini_card
 love.graphics.setFont(Font.default)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities.content_loader.texture("Texture", "asset/texture")
-Utilities.slice9.import_graphics_table({
+Help.load.texture("Texture", "asset/texture")
+Help.slice9.import_graphics_table({
   import_texture_container = "Texture.system.slice9"
 })
 
@@ -110,7 +100,7 @@ Utilities.slice9.import_graphics_table({
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Pixel Shaders - Pre-load all pixel shaders 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities.content_loader.flat_shader("Shader", "asset/shader")
+Help.load.flat_shader("Shader", "asset/shader")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Libraries
@@ -137,7 +127,7 @@ Animation = require("library.anim8")
   * Baton - Game Keyboard/Gamepad Controller - 	Andrew Minnich 	MIT License
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Baton = require("library.baton")
-Controller = require("library.Quilt.Kit.Controller")
+Controller = require("library.Quilt.Controller")
 Controller.get_all_joysticks()
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Quilt - Game focused libraries - SysL (C. Hall)  - License MIT
@@ -155,10 +145,10 @@ local map_settings = {
   actor_collision_image_size = 8,
 }
 
-Map = require("library.Quilt.Kit.Map")
-Map.setup("library.Quilt.Kit.Map", map_settings)
+Map = require("library.Quilt.Map")
+Map.setup("library.Quilt.Map", map_settings)
 
-Gui = require("library.Quilt.Kit.PJs.init")
+Gui = require("library.Quilt.PJs.init")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Love Callbacks
@@ -191,13 +181,13 @@ end
   * Debug
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Utilities.content_loader.flat_lua("Debug_screen", "asset/screen-debug")
--- Utilities.content_loader.flat_lua("screen", "asset/screen")
-Utilities.debug_tools.print_globals()
+Help.load.flat_lua("Debug_screen", "asset/room-debug")
+-- Utilities.load.flat_lua("screen", "asset/screen")
+Help.debug_tools.print_globals()
 
 
 
-print(Utilities.number.format_ostime())
+print(Help.number.format_current_time())
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * PATCHWORK ENGINE - Version 0.1 - January 28, 2022

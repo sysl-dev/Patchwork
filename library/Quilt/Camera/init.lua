@@ -55,8 +55,8 @@ end
 m.current = {
   x = 0,
   y = 0,
-  w = BASE_WIDTH or love.graphics.getWidth(),
-  h = BASE_HEIGHT or love.graphics.getHeight(),
+  w = __BASE_WIDTH__ or love.graphics.getWidth(),
+  h = __BASE_HEIGHT__ or love.graphics.getHeight(),
   smoothstep = false,
   smoothstepx = 0,
   smoothstepy = 0,

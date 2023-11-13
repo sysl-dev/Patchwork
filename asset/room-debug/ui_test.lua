@@ -6,7 +6,7 @@ local timer = 0
 function scene:update(dt)
   timer = timer + dt
 
-  Gui.start("Wow!", 8, 0, 0, BASE_WIDTH, BASE_HEIGHT)
+  Gui.start("Wow!", 8, 0, 0, __BASE_WIDTH__, __BASE_HEIGHT__)
   Gui.solid("100%w", "100%h", "9f9f9f")
   Gui.set_cursor(0,0)
   Gui.solid("10#", "1#", nil, "cw", "1#")
@@ -41,7 +41,9 @@ end
 
 
 function scene:keypressed(key, scan, isrepeat)
-
+  if key =="x" then 
+  Gamestate.switch(Debug_screen.menu)
+  end
 end
 
 return scene

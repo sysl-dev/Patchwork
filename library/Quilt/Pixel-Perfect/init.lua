@@ -1,5 +1,5 @@
 local m = {
-  __NAME        = "Quilt-Pixel-Scale",
+  __NAME        = "Quilt-Pixel-Perfect",
   __VERSION     = "4.0",
   __AUTHOR      = "C. Hall (Sysl)",
   __DESCRIPTION = "A Pixel Perfect Screen Scaling Library for Love2D.",
@@ -47,16 +47,16 @@ local function print(...)
 end print(m.__DESCRIPTION)
 
 -- Lazy hack if these globals are defined.
-local BASE_WIDTH = BASE_WIDTH or nil
-local BASE_HEIGHT = BASE_HEIGHT or nil
+local __BASE_WIDTH__ = __BASE_WIDTH__ or nil
+local __BASE_HEIGHT__ = __BASE_HEIGHT__ or nil
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Defaults
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
--- You can set a BASE_HEIGHT/BASE_WIDTH in conf.lua for accurate scale in full screen systems
+-- You can set a __BASE_HEIGHT__/__BASE_WIDTH__ in conf.lua for accurate scale in full screen systems
 m.config = {
-  base_width = BASE_WIDTH or love.graphics.getWidth(),
-  base_height = BASE_HEIGHT or love.graphics.getHeight(),
+  base_width = __BASE_WIDTH__ or love.graphics.getWidth(),
+  base_height = __BASE_HEIGHT__ or love.graphics.getHeight(),
   window_width = love.graphics.getWidth(),
   window_height = love.graphics.getHeight(),
   offsetx = 0,

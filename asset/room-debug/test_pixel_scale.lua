@@ -1,3 +1,5 @@
+local timer = 0
+
 local crt = love.graphics.newShader[[
   extern float distort;
   extern float x_distort;
@@ -60,9 +62,12 @@ local screens = {
   "Shader",
   "VSYNC",
   "Capture",
-  "Image/Particles"
+  "Image/Particles",
+  "SmoothCamera",
+  "Fades",
+  "Moves"
 }
-local current = 1
+local current = 8
 
 local function scale_up()
   current = current + 1
@@ -101,8 +106,8 @@ local psmog = love.graphics.newParticleSystem(_img, 500)
 
 
 
-local BASE_WIDTH = BASE_WIDTH or love.graphics.getWidth()
-local BASE_HEIGHT = BASE_HEIGHT or love.graphics.getHeight()
+local __BASE_WIDTH__ = __BASE_WIDTH__ or love.graphics.getWidth()
+local __BASE_HEIGHT__ = __BASE_HEIGHT__ or love.graphics.getHeight()
 
 function scene:update(dt)
   if dt > 1/30 then return end
@@ -116,58 +121,77 @@ function scene:update(dt)
     end
   end
 
+  timer=timer+dt
 
 end
 
-function scene:draw(dt)
+function scene:draw()
+  local offsettest = 0
   Pixelscreen.start()
     love.graphics.setColor(0.2,0.2,0.2,1)
-    love.graphics.rectangle("fill",0,0,BASE_WIDTH,20)
-    love.graphics.rectangle("fill",0,BASE_HEIGHT - 20,BASE_WIDTH,20)
+    love.graphics.rectangle("fill",0,0,__BASE_WIDTH__+1,20)
+    love.graphics.rectangle("fill",0,__BASE_HEIGHT__ - 20,__BASE_WIDTH__+1,20)
     love.graphics.setColor(0.4,0.4,0.4,1)
-    love.graphics.rectangle("fill",0,20,BASE_WIDTH,BASE_HEIGHT-40)
+    love.graphics.rectangle("fill",0,20,__BASE_WIDTH__+1,__BASE_HEIGHT__-40)
     love.graphics.setColor(1,1,1,1)
-    love.graphics.printf("Utilities - Pixel Scale - Test " .. screens[current],0, 0, BASE_WIDTH, "center")
-    love.graphics.printf("Z - Previous Screen   X - Menu   C - Next Screen",0, BASE_HEIGHT - 20, BASE_WIDTH, "center")
+    love.graphics.printf("Utilities - Pixel Scale - Test " .. screens[current],0, 0, __BASE_WIDTH__, "center")
+    love.graphics.printf("Z - Previous Screen   X - Menu   C - Next Screen",0, __BASE_HEIGHT__ - 20, __BASE_WIDTH__, "center")
     --
     if current == 1 then 
-      love.graphics.printf("1-9: Test Scale / 0: Full Screen / -: (When Full Screen) Toggle Scale Type",0, 20, BASE_WIDTH, "center")
+      love.graphics.printf("1-9: Test Scale / 0: Full Screen / -: (When Full Screen) Toggle Scale Type",0, 20, __BASE_WIDTH__, "center")
       local scales = ""
       for i=1, #Pixelscreen.config.size_details do
         scales = scales .. Pixelscreen.config.size_details[i] .. " "
       end
-      love.graphics.printf(scales,0, 60, BASE_WIDTH, "center")
+      love.graphics.printf(scales,0, 60, __BASE_WIDTH__, "center")
     end
     if current == 2 then 
-      love.graphics.printf("1:Pixel Breaking Shader / 2:Normal Shader / 3: Higher Priorty Shader / 456: Remove Shaders / 7: Clear all shaders / 8: Test removing shader by name from Higher Priorty Shader",0, 20, BASE_WIDTH, "center")
+      love.graphics.printf("1:Pixel Breaking Shader / 2:Normal Shader / 3: Higher Priorty Shader / 456: Remove Shaders / 7: Clear all shaders / 8: Test removing shader by name from Higher Priorty Shader",0, 20, __BASE_WIDTH__, "center")
 
       love.graphics.printf("Current Shaders: " .. (
         Pixelscreen.shader_count(Pixelscreen.scale_breaking_shader) + 
         Pixelscreen.shader_count(Pixelscreen.always_on_shaders) + 
         Pixelscreen.shader_count()
-      ),0, 100, BASE_WIDTH, "center")
+      ),0, 100, __BASE_WIDTH__, "center")
     end
     if current == 3 then 
-      love.graphics.printf("1: VSYNC ON / 0: VSYNC OFF / 2: ADAPTIVE VSYNC",0, 20, BASE_WIDTH, "center")
+      love.graphics.printf("1: VSYNC ON / 0: VSYNC OFF / 2: ADAPTIVE VSYNC",0, 20, __BASE_WIDTH__, "center")
 
-      love.graphics.printf("Current VSYNC: " .. vtable[Pixelscreen.config.vsync],0, 40, BASE_WIDTH, "center")
+      love.graphics.printf("Current VSYNC: " .. vtable[Pixelscreen.config.vsync],0, 40, __BASE_WIDTH__, "center")
     end
 
     if current == 4 then 
-      love.graphics.printf("1: Capture / 2: Clear / 3 View Capture \n Random Number\n" .. tostring(math.floor(math.random() * 100)),0, 20, BASE_WIDTH, "center")
+      love.graphics.printf("1: Capture / 2: Clear / 3 View Capture \n Random Number\n" .. tostring(math.floor(math.random() * 100)),0, 20, __BASE_WIDTH__, "center")
       if love.keyboard.isDown("3") then 
         Pixelscreen.capture_draw()
       end
     end
     if current == 5 then 
       love.graphics.draw(_img, 40, 40, math.sin(t), 2 * math.sin(t), 2* math.sin(t))
-      love.graphics.draw(psmog, 80, BASE_HEIGHT/2)
-      
+      love.graphics.draw(psmog, 80, __BASE_HEIGHT__/2)
     end
-  Pixelscreen.stop({})
+    if current == 6 then 
+      for x=0, 20 do 
+        for y=0, 10 do 
+          love.graphics.draw(_img, x*16, y*16)
+        end
+      end
+      offsettest = (timer - math.floor(timer)) * Pixelscreen.config.current_scale
+    end
+    if current == 7 then 
+      love.graphics.printf("1 Fade in / 2 fade out / 3 random fade in / 4 random fade out / 5 random color / 6 random color and alpha",0, 20, __BASE_WIDTH__, "center")
+      love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, __BASE_WIDTH__, "center")
+    end
+    if current == 8 then 
+      love.graphics.printf("1 Move in / 2 Move out / 3 random Move in / 4 random Move out ",0, 20, __BASE_WIDTH__, "center")
+      love.graphics.printf(Pixelscreen.config.fade_timer ,0, 50, __BASE_WIDTH__, "center")
+    end
+    
+  Pixelscreen.stop(offsettest, offsettest)
   if love.keyboard.isDown("`") then
-    Utilities.debug_tools.on_screen_debug_info()
+    Help.debug_tools.on_screen_debug_info()
   end
+  love.graphics.print(love.timer.getFPS())
 end
 
 
@@ -227,6 +251,85 @@ function scene:keypressed(key, scan, isrepeat)
     end
     if key == "2" then 
       Pixelscreen.capture_remove()
+    end
+  end
+
+  if current == 7 then 
+    if key == "1" then 
+      Pixelscreen.fade_out()
+    end
+    if key == "2" then 
+      Pixelscreen.fade_in()
+    end
+    if key == "5" then 
+      Pixelscreen.fade_color({math.random(),math.random(),math.random(),1})
+    end
+    if key == "6" then 
+      Pixelscreen.fade_color({math.random(),math.random(),math.random(),math.random()})
+    end
+    if key == "3" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_out()
+    end
+    if key == "4" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_in()
+    end
+    if key == "9" then 
+
+      Pixelscreen.fade_image(Texture.system.fade.lod)
+      Pixelscreen.fade_out()
+    end
+    if key == "0" then 
+      Pixelscreen.fade_value(0.5)
+    end
+  end
+
+  if current == 8 then 
+    if key == "1" then 
+      Pixelscreen.fade_image(Texture.system.fade.lod, "move")
+      Pixelscreen.fade_out(0.2, "move")
+    end
+    if key == "2" then 
+      Pixelscreen.fade_image(Texture.system.fade.lod, "move")
+      Pixelscreen.fade_in(0.8, "move")
+    end
+    
+    if key == "3" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_out()
+    end
+    if key == "4" then 
+      local derptable = {}
+      for k,v in pairs(Texture.system.fade) do 
+        derptable[# derptable+1] = k
+      end
+      local derpvalue = math.random(1, #derptable)
+      Pixelscreen.fade_image(Texture.system.fade[derptable[derpvalue]])
+      Pixelscreen.fade_in()
+    end
+    if key == "9" then 
+
+      Pixelscreen.fade_image(Texture.system.fade.lod)
+      Pixelscreen.fade_out()
+    end
+    if key == "0" then 
+      Pixelscreen.fade_value(0.5)
     end
   end
 
