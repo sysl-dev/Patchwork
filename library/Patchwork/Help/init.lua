@@ -143,10 +143,8 @@ function m.color.create_palette_table(path_to_image, square_size, named_colors)
   local image = love.image.newImageData(path_to_image)
   local r, g, b, a = 0, 0, 0, 0
   local i = 1
-  local palette_table = {}
+  local palette_table = { get = {} }
 
-  -- Set up named color table (So you can go myPaletteTable.get_color.red)
-  palette_table.get_color = {}
 
   -- Process Image
   for y = 0, image:getHeight() - 1, square_size do
@@ -158,7 +156,7 @@ function m.color.create_palette_table(path_to_image, square_size, named_colors)
   end
 
   -- Assign Named Colors
-  for k, v in pairs(named_colors) do palette_table.name[k] = palette_table[v] end
+  for k, v in pairs(named_colors) do palette_table.get[k] = palette_table[v] end
 
   -- Return the final table
   return palette_table
@@ -167,7 +165,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * RGB -> HSL # Some code from https://github.com/Wavalab/rgb-hsl-rgb/issues/1 | Note: Code free to use.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.color.rgb2hsl(r, g, b, a)
+function m.color.convert_rgb_hsl(r, g, b, a)
   -- We can take a table or values
   if type(r) == "table" then
     a = r[4];
@@ -213,7 +211,7 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * HSL -> RGB # Some code from https://github.com/Wavalab/rgb-hsl-rgb/issues/1 | Note: Code free to use.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.color.hsl2rgb(h, s, l, a)
+function m.color.convert_hsl_rgb(h, s, l, a)
   local r, g, b
   -- We can take a table or values
   if type(h) == "table" then
@@ -575,8 +573,7 @@ end
 function m.number.format_timer(time_seconds, settings)
   -- Checking User Input
   assert(type(time_seconds) == "number", "Time sent to clock format must be a number.")
-  settings = settings or {}
-  assert(type(settings) == "table", "Settings must be a table if set.")
+  settings = settings or "all"
 
   -- Lazy hack for negitive numbers
   local unit = ""
@@ -588,9 +585,9 @@ function m.number.format_timer(time_seconds, settings)
   local second = string.format("%02.f", math.floor(time_seconds - hour * 3600 - minute * 60))
 
   local final_result = unit .. hour .. ":" .. minute .. ":" .. second
-  if settings.hour_minute then final_result = unit .. hour .. ":" .. minute end
-  if settings.minute_second then final_result = unit .. minute .. ":" .. second end
-  if settings.second then final_result = unit .. second end
+  if settings == "hour_minute" then final_result = unit .. hour .. ":" .. minute end
+  if settings == "minute_second" then final_result = unit .. minute .. ":" .. second end
+  if settings == "second" then final_result = unit .. second end
   return final_result
 end
 
@@ -599,6 +596,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.number.format_cash(money_value, cents)
   -- Checking User Input
+  money_value = tonumber(money_value)
   assert(type(money_value) == "number", "Time sent to cash format must be a number.")
 
   -- Round to two places
@@ -610,7 +608,7 @@ function m.number.format_cash(money_value, cents)
   -- Return the string to normal and return it
   final_result = final_result:reverse()
   -- If we are removing cents, remove the end.
-  if cents then final_result = final_result:sub(1, -4) end
+  if not cents then final_result = final_result:sub(1, -4) end
   return final_result
 end
 
@@ -696,6 +694,7 @@ function m.text.print_outline(settings, ...)
   local text, x, y, r, sx, sy, ox, oy, kx, ky = ...
   x = x or 0
   y = y or 0
+  x = x + 1 -- Outline Correction 
   love.graphics.setColor(outline_color)
   if settings.thick then
     love.graphics.print(text, x + 1, y + 1, r, sx, sy, ox, oy, kx, ky)
@@ -731,7 +730,6 @@ function m.text.printf_outline(settings, ...)
   x = x or 0
   y = y or 0
 
-  x = x + 1 -- Adjust for Shadow
   limit = limit - 2 -- 1 px shadow, both sides
   love.graphics.setColor(outline_color)
   if settings.thick then
@@ -784,7 +782,7 @@ function m.table.dump(atable)
      local s = '{ '
      for k,v in pairs(atable) do
         if type(k) ~= 'number' then k = '"'..k..'"' end
-        s = s .. '['..k..'] = ' .. m.dump_table(v) .. ','
+        s = s .. '['..k..'] = ' .. m.table.dump(v) .. ','
      end
      return s .. '} '
   else
@@ -800,7 +798,7 @@ function m.table.dump_clean(atable)
      local s = '\n { '
      for k,v in pairs(atable) do
         if type(k) ~= 'number' then k = '\t'..k..'' end
-        s = s .. k ..' = ' .. m.dump_table(v) .. ',\n'
+        s = s .. k ..' = ' .. m.table.dump(v) .. ',\n'
      end
      return s .. '} '
   else
@@ -852,11 +850,12 @@ end
   * Repeating Background - Create  || Modes: mirroredrepeat, repeat, clamp, clampzero, clampone (Only the first two are useful for this, lol)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.art.repeating_background.new(name, texture, mode_x, mode_y)
-  local texture_width = texture:get_width()
-  local texture_height = texture:get_height()
+  local texture_width = texture:getWidth()
+  local texture_height = texture:getHeight()
   mode_x = mode_x or "repeat"
   mode_y = mode_y or mode_x
-  m.art.storage.rb[name] = love.graphics.newQuad(0, 0, base.width * 2, base.height * 2, texture_width, texture_height or texture_width)
+  texture:setWrap(mode_x, mode_y)
+  m.art.storage.rb[name] = {texture, love.graphics.newQuad(0, 0, base.width * 2, base.height * 2, texture_width, texture_height or texture_width)}
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -869,8 +868,8 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Repeating Background - Draw  
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.repeating_background.draw(img, name, x, y, r, sx, sy, ox, oy, kx, ky)
-  love.graphics.draw(img, m.art.storage.rb[name], x, y, r, sx, sy, ox, oy, kx, ky)
+function m.art.repeating_background.draw(name, x, y, r, sx, sy, ox, oy, kx, ky)
+  love.graphics.draw(m.art.storage.rb[name][1], m.art.storage.rb[name][2], x, y, r, sx, sy, ox, oy, kx, ky)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -905,9 +904,13 @@ m.art.storage.gs.shaders = { -- Note to self, these shaders all have been valida
   horizontal_shade = love.graphics.newShader([[
       extern vec4 color1;
       extern vec4 color2;
+      extern float limit_colors;
       vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
       {
         vec4 fcolor = mix(color1,color2,uv.x);
+        fcolor.r = floor((limit_colors - 1.0) * fcolor.r + 0.5) / (limit_colors - 1.0);
+        fcolor.g = floor((limit_colors - 1.0) * fcolor.g + 0.5) / (limit_colors - 1.0);
+        fcolor.b = floor((limit_colors - 1.0) * fcolor.b + 0.5) / (limit_colors - 1.0);
         return Texel(texture, uv) * fcolor;
       }  
   ]]),
@@ -915,9 +918,13 @@ m.art.storage.gs.shaders = { -- Note to self, these shaders all have been valida
   vertical_shade = love.graphics.newShader([[
       extern vec4 color1;
       extern vec4 color2;
+      extern float limit_colors;
       vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
       {
         vec4 fcolor = mix(color1,color2,uv.y);
+        fcolor.r = floor((limit_colors - 1.0) * fcolor.r + 0.5) / (limit_colors - 1.0);
+        fcolor.g = floor((limit_colors - 1.0) * fcolor.g + 0.5) / (limit_colors - 1.0);
+        fcolor.b = floor((limit_colors - 1.0) * fcolor.b + 0.5) / (limit_colors - 1.0);
         return Texel(texture, uv) * fcolor;
       }  
   ]]),
@@ -925,9 +932,13 @@ m.art.storage.gs.shaders = { -- Note to self, these shaders all have been valida
   both_shade = love.graphics.newShader([[
       extern vec4 color1;
       extern vec4 color2;
+      extern float limit_colors;
       vec4 effect(vec4 color, Image texture, vec2 uv, vec2 screen_coords)
       {
         vec4 fcolor = mix(color1,color2,(uv.y * uv.x));
+        fcolor.r = floor((limit_colors - 1.0) * fcolor.r + 0.5) / (limit_colors - 1.0);
+        fcolor.g = floor((limit_colors - 1.0) * fcolor.g + 0.5) / (limit_colors - 1.0);
+        fcolor.b = floor((limit_colors - 1.0) * fcolor.b + 0.5) / (limit_colors - 1.0);
         return Texel(texture, uv) * fcolor;
       }  
   ]]),
@@ -955,11 +966,14 @@ m.art.storage.gs.shaders = { -- Note to self, these shaders all have been valida
 local shader_mode = m.art.storage.gs.shaders
 
 -- Apply color limits 
-m.art.storage.gs.shaders.center_shade:send("limit_colors", 24)
+m.art.storage.gs.shaders.horizontal_shade:send("limit_colors", 255)
+m.art.storage.gs.shaders.vertical_shade:send("limit_colors", 255)
+m.art.storage.gs.shaders.both_shade:send("limit_colors", 255)
+m.art.storage.gs.shaders.center_shade:send("limit_colors", 255)
 
 
-function m.art.draw_rectangle_gradient(x, y, w, h, color1, color2, mode, colors)
-  colors = colors or 24
+function m.art.draw_rectangle_gradient(x, y, w, h, color1, color2, mode, color_limit)
+  color_limit = color_limit or 255
   -- Capture the current color 
   local r, g, b, a = love.graphics.getColor()
   local tempcolor = {
@@ -980,27 +994,31 @@ function m.art.draw_rectangle_gradient(x, y, w, h, color1, color2, mode, colors)
     mode = shader_mode.horizontal_shade
     shader_mode.horizontal_shade:send("color1", color1)
     shader_mode.horizontal_shade:send("color2", color2)
+    shader_mode.horizontal_shade:send("limit_colors", color_limit)
   end
 
   if mode == "y" then
     mode = shader_mode.vertical_shade
     shader_mode.vertical_shade:send("color1", color1)
     shader_mode.vertical_shade:send("color2", color2)
+    shader_mode.vertical_shade:send("limit_colors", color_limit)
   end
 
   if mode == "xy" then
     mode = shader_mode.both_shade
     shader_mode.both_shade:send("color1", color1)
     shader_mode.both_shade:send("color2", color2)
+    shader_mode.both_shade:send("limit_colors", color_limit)
   end
 
   if mode == "c" then
     mode = shader_mode.center_shade
     shader_mode.center_shade:send("color1", color1)
     shader_mode.center_shade:send("color2", color2)
+    shader_mode.center_shade:send("limit_colors", color_limit)
   end
 
-  shader_mode.center_shade:send("limit_colors", colors)
+ 
   love.graphics.setShader(mode)
 
   -- Make a 1x1 image into a huge box
@@ -1036,12 +1054,12 @@ end
 --[[-------------------------------------------------------------------------
   *                                                                         -                                                                      
   * Slice9                                                  -
-  *                                                                         -                                                                         
+  * Image Import Format: NAME_GridSize or NAME_GRIDX1_X2_X3_Y1_Y2_Y3                                                                        -                                                                         
 --------------------------------------------------------------------------]]--
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Import after Graphics are Loaded
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.slice9.import_graphics_table(path_to_slice9_format_images)
+function m.art.slice9.import_graphics_table_create_cache(path_to_slice9_format_images)
   -- Set reasonable defaults if none are supplied.
   local import_texture_container = path_to_slice9_format_images
   assert(import_texture_container,
@@ -1158,7 +1176,7 @@ function m.art.slice9.draw_tiled(name, x, y, w, h, config)
   config = config or {}
 
   -- Overflow tiles by one
-  config.overflow = config.overflow or 2
+  config.overflow = config.overflow or 1
 
   -- Center 
   if config.tile_center then
@@ -1173,7 +1191,8 @@ function m.art.slice9.draw_tiled(name, x, y, w, h, config)
       height_center)
   end
 
-  love.graphics.setScissor(x, y, w, h - padding.bottom)
+
+  love.graphics.setScissor(x, y, math.max(1, w), math.max(1, h - padding.bottom))
   -- Middle - Left/Righ
   for tile_y = 1, math.floor(height_center + 0.5) + config.overflow do
     love.graphics.draw(frame_selected, frame_data["middle_left"], x,
@@ -1182,7 +1201,7 @@ function m.art.slice9.draw_tiled(name, x, y, w, h, config)
       y + padding.top + frame_data.sizes[5] * (tile_y - 1))
   end
 
-  love.graphics.setScissor(x, y, w - padding.right, h)
+  love.graphics.setScissor(x, y, math.max(1, w - padding.right), math.max(1, h))
   -- Middle - Top/Bottom
   for tile_x = 1, math.floor(width_center + 0.5) + config.overflow do
     love.graphics.draw(frame_selected, frame_data["top_middle"], x + padding.left + frame_data.sizes[2] * (tile_x - 1),

@@ -318,37 +318,7 @@ function m.resize_window(scale, force)
     )
 end
 
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Resize the image when love2d resizes (use with callback)
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.resize_love2d_window(w, h, resize)
-  local set_scale = 1
-  local c = m.config
-  for i=1, m.config.max_window_scale do
-    if m.config.base_width * i <= w and m.config.base_height * i <= h then 
-      set_scale = i
-    end
-  end
-  c.current_scale = math.max(1, math.min(m.config.max_window_scale, set_scale))
-  if resize then 
-    c.current_scale = math.max(1, math.min(m.config.max_window_scale, set_scale + 1))
-    love.window.setMode(
-      c.base_width * c.current_scale,
-      c.base_height * c.current_scale,
-      {
-        fullscreen = false, 
-        resizable = m.config.allow_window_resize, 
-        highdpi = false,
-        usedpiscale = false,
-        minwidth = m.config.base_width,
-        minheight = m.config.base_height,
-        centered = true,
-        vsync = m.config.vsync,
-        display = m.config.monitor,
-      }
-      )
-    end
-end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Go back and forward from fullscreen

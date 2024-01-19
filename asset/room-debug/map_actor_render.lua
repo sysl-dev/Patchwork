@@ -1,4 +1,4 @@
-local scene = {}
+local room = {__name = "map_actor_render", __desc = "Testing Map Viewer/Controller"}
 local test_control = 1
 
 local function update_map_render_queue() 
@@ -11,31 +11,30 @@ local function update_map_render_queue()
   end
 end
 
-function scene:update(dt)
+function room:update(dt)
   if dt > 1/12 then return end
   Controller.player1:update(dt)
   Controller.character("PLAYER", dt)
   Map.update(dt)
   Map.actor.update(dt)
-  update_map_render_queue() 
-  
+  update_map_render_queue()
 end
 
-function scene:draw()
+function room:draw()
   Pixelscreen.start()
   Camera.record(Map.actor[test_control].x+6, Map.actor[test_control].y-4)
   love.graphics.setColor(1,1,1,1)
   love.graphics.setBlendMode( "alpha", "alphamultiply" )
   Draw_order.execute()
-  scene.scale_debug()
+  room.scale_debug()
   Camera.stop_record()
   Pixelscreen.stop()
-  scene.unscale_debug()
+  room.unscale_debug()
 end
 
 
-function scene:keypressed(key, scan, isrepeat)
-  scene.keypress_debug(key)
+function room:keypressed(key, scan, isrepeat)
+  room.keypress_debug(key)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -43,14 +42,14 @@ end
   * DEBUG STUFF 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function scene.scale_debug()
+function room.scale_debug()
   if love.keyboard.isDown("0") then
     Map.collision.draw()
     Map.actor.draw_debug_collision()
   end
 end
 
-function scene.unscale_debug()
+function room.unscale_debug()
   if not love.keyboard.isDown("`") then
     Help.debug_tools.screen_info()
     love.graphics.print(Pixelscreen.mouse.get_x() .. " " .. Pixelscreen.mouse.get_y() .. " " .. Map.tileindex_from_pixels(Pixelscreen.mouse.get_x(),Pixelscreen.mouse.get_y()), 200, 200)
@@ -61,7 +60,7 @@ function scene.unscale_debug()
   end
 end
 
-function scene.keypress_debug(key)
+function room.keypress_debug(key)
   if key == "1" then
     Map.load("AAAA_debug0000")
     collectgarbage("collect")
@@ -72,8 +71,8 @@ function scene.keypress_debug(key)
   if key == "3" then
     Map.actor.teleport(Map.actor.get_by_name("PLAYER"), 15, 9, true, false)
   end
-  if key == "4" then
-    Gamestate.switch(Debug_screen.menu)
+  if key == "escape" then
+    Gamestate.pop()
   end
   if key == "5" then
     Map.set_tile(1, 46, "OnTop")
@@ -85,4 +84,4 @@ function scene.keypress_debug(key)
   end
 end
 
-return scene
+return room

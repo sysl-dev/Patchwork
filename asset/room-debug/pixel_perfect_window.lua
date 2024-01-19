@@ -1,3 +1,4 @@
+local room = {__name = "pixel_perfect_window", __desc = "Testing Pixel Perfect"}
 local timer = 0
 
 local crt = love.graphics.newShader[[
@@ -56,7 +57,7 @@ crtline:send("x_distort", 1)
 crtline:send("y_distort", 1)
 crtline:send("line_darkness", 0.25)
 
-local scene = {}
+
 local screens = {
   "Scale",
   "Shader",
@@ -109,7 +110,7 @@ local psmog = love.graphics.newParticleSystem(_img, 500)
 local __BASE_WIDTH__ = __BASE_WIDTH__ or love.graphics.getWidth()
 local __BASE_HEIGHT__ = __BASE_HEIGHT__ or love.graphics.getHeight()
 
-function scene:update(dt)
+function room:update(dt)
   if dt > 1/30 then return end
   t = t + dt
   psmog:update(dt)
@@ -125,7 +126,7 @@ function scene:update(dt)
 
 end
 
-function scene:draw()
+function room:draw()
   local offsettest = 0
   Pixelscreen.start()
     love.graphics.setColor(0.2,0.2,0.2,1)
@@ -195,7 +196,7 @@ function scene:draw()
 end
 
 
-function scene:keypressed(key, scan, isrepeat)
+function room:keypressed(key, scan, isrepeat)
   if current == 1 then 
     if key == "0" then 
       Pixelscreen.resize_fullscreen()
@@ -333,8 +334,8 @@ function scene:keypressed(key, scan, isrepeat)
     end
   end
 
-  if key == "x" then 
-    Gamestate.switch(Debug_screen.menu)
+  if key == "escape" then 
+    Gamestate.pop()
   end
   if key == "c" then 
     scale_up()
@@ -346,4 +347,4 @@ function scene:keypressed(key, scan, isrepeat)
   if current <= 0 then current = #screens end
 end
 
-return scene
+return room

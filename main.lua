@@ -41,7 +41,7 @@ require('data')
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.load()
   Gamestate.registerEvents()
-  Gamestate.switch(Debug_screen.ui_test)
+  Gamestate.switch(Room_debug.ui_library)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,15 +49,15 @@ end
   * Load Help - Heart of the Patchwork Library, a framework that extends LOVE with more features.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Help = require("library.Quilt.Help")
+Help = require("library.Patchwork.Help")
 
-Pixelscreen = require("library.Quilt.Pixel-Perfect")
+Pixelscreen = require("library.Patchwork.Pixel-Perfect")
 Pixelscreen.setup({
   vsync = GAME_CONFIG.video.vsync,
   scale = GAME_CONFIG.video.scale,
 })
 
-Camera = require("library.Quilt.Camera")
+Camera = require("library.Patchwork.Camera")
 Camera.setup()
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -84,14 +84,15 @@ Font = {
 -- Fix Line Heights
 Font.cardboard_crown:setLineHeight(0.6)
 Font.menu_card:setLineHeight(1.2)
+Font.mini_card:setLineHeight(1.2)
 
-Font.default = Font.mini_card
+Font.default = Font.menu_card
 love.graphics.setFont(Font.default)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Help.load.texture("Texture", "asset/texture")
-Help.art.slice9.import_graphics_table("Texture.system.slice9")
+Help.art.slice9.import_graphics_table_create_cache("Texture.system.slice9")
 
 
 
@@ -125,10 +126,10 @@ Animation = require("library.anim8")
   * Baton - Game Keyboard/Gamepad Controller - 	Andrew Minnich 	MIT License
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Baton = require("library.baton")
-Controller = require("library.Quilt.Controller")
+Controller = require("library.Patchwork.Controller")
 Controller.get_all_joysticks()
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Quilt - Game focused libraries - SysL (C. Hall)  - License MIT
+  * Patchwork - Game focused libraries - SysL (C. Hall)  - License MIT
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local map_settings = {
   tileset_table = Texture.tileset,
@@ -143,10 +144,10 @@ local map_settings = {
   actor_collision_image_size = 8,
 }
 
-Map = require("library.Quilt.Map")
-Map.setup("library.Quilt.Map", map_settings)
+Map = require("library.Patchwork.Map")
+Map.setup("library.Patchwork.Map", map_settings)
 
-Gui = require("library.Quilt.PJs.init")
+PatchUI = require("library.Patchwork.UI")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Love Callbacks
@@ -171,7 +172,7 @@ end
   * Resize - 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.resize(w, h)
-  Pixelscreen.resize_love2d_window(w, h, true)
+ -- Pixelscreen.resize_love2d_window(w, h, true)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -179,7 +180,8 @@ end
   * Debug
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-Help.load.flat_lua("Debug_screen", "asset/room-debug")
+Help.load.flat_lua("Room_debug", "asset/room-debug")
+Help.load.flat_lua("Room", "asset/room")
 -- Utilities.load.flat_lua("screen", "asset/screen")
 Help.debug_tools.print_globals()
 

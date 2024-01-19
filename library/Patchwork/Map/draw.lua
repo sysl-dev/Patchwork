@@ -34,7 +34,7 @@ local m = {
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Library Debug Mode
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-m.debug = false
+m.debug = true
 
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -108,11 +108,14 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function layer_image(current_map, layer, x, y)
   local image = layer.image
+  local image_check = image
   -- This is terrible, but it works! 
   image = image:gsub("../texture/", "Texture/")
   image = image:gsub(".png", "")
   image = image:gsub("/", ".")
   image = get_lua_table_from_string(image)
+
+  assert(image, image_check .. " not found.")
 
   -- If this is not a repeating background then:
   if not layer.repeatx and not layer.repeaty then
