@@ -12,7 +12,7 @@ local function update_map_render_queue()
 end
 
 function room:update(dt)
-  if dt > 1/12 then return end
+  if Help.update.stop_runaway_dt(dt) then return end 
   Controller.player1:update(dt)
   Controller.character("PLAYER", dt)
   Map.update(dt)

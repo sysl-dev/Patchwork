@@ -189,6 +189,7 @@ pages[#pages].draw = function()
 end 
 
 function room:update(dt)
+  if Help.update.stop_runaway_dt(dt) then return end 
   timer = timer + dt
   if pages[current_page].update then
     pages[current_page].update()

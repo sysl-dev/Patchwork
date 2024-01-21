@@ -111,7 +111,7 @@ local __BASE_WIDTH__ = __BASE_WIDTH__ or love.graphics.getWidth()
 local __BASE_HEIGHT__ = __BASE_HEIGHT__ or love.graphics.getHeight()
 
 function room:update(dt)
-  if dt > 1/30 then return end
+  if Help.update.stop_runaway_dt(dt) then return end 
   t = t + dt
   psmog:update(dt)
   if current == 1 then 

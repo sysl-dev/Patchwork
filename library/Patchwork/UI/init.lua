@@ -31,23 +31,38 @@ local m = {
   __LICENSE_TITLE = "MIT LICENSE"
 }
 --[[
-Cursor and Mouse Control For the VCURSOR, we can use te second table
-entry to confirm the direction and where we go. If direction = nil 
-do not move, and use strings for special reasons. Consider NEXT/LAST
---
-Merge my slice 9 in here 
-Make a basic tween animation library for the cursor.
---
-Buttons [Basic - Yes] [Image - ] 
-Themes [Basic - Yes ] [?]
-Sliders
-Arrow Selector [button][text][button]
-Levels of Active
-Linked Elements
-Grid Alignment
-Drodown List (iPhone Style?)
 
-Number Selector  000  _0_00 _1_00
+To DO
+  Start Basic Documentation 
+  cursor memory
+
+  Optional config to not draw ui even with draw command if UI is turned off
+
+  Button Node Mapping, Jump to button directly.
+
+  Table of Images Button
+  Table of Draw Functions Button
+
+  Gradient Drawing Library needs to come over.
+
+  Grab and Slide Button
+  Toggle Button 
+
+  Windowed Area of Items
+
+  Fake Windowed area that is just a stack of items
+
+  Basic Graph Functions 
+
+Marco Functions
+  Macro Functions chain other smaller functions together to draw a set of buttons
+  to do something, like [<]   00    [>]
+  Number Selector
+  Box to type text in.
+  Color Picker
+  Number Picker
+
+  
 
 ]]--
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -66,6 +81,25 @@ m.debug = true
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 m.basewidth = __BASE_WIDTH__ or love.graphics.getWidth()
 m.baseheight = __BASE_HEIGHT__ or love.graphics.getHeight()
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Simple B/W Image Creator 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local function generate_pixels_on_imagemap(imap, atable, length, width)
+  local i = 1
+  for y=1, length/width do
+    for x=1, width do 
+      local color = atable[i]
+      local px = x - 1
+      local py = y - 1
+      if color ~= 2 then 
+        imap:setPixel(px, py, color, color, color, 1)
+      end
+      i = i + 1
+    end
+  end
+end
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Create 1x1 White Pixel Image
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -74,6 +108,25 @@ m.texture_1xpixel:setPixel(0, 0, 1, 1, 1, 1)
 m.texture_1xpixel = love.graphics.newImage(m.texture_1xpixel)
 m.texture_1xpixel:setFilter("nearest", "nearest")
 m.texture_1xpixel:setWrap("repeat", "repeat")
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Create Basic Arrow
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.texture_arrow = love.image.newImageData(7,9)
+local rawcur = {
+  0,0,0,2,2,2,
+  0,1,1,0,2,2,
+  0,1,1,1,0,2,
+  0,1,1,1,1,0,
+  0,1,1,1,1,0,
+  0,1,1,1,0,2, 
+  0,1,1,0,2,2,
+  0,0,0,2,2,2, 
+}
+generate_pixels_on_imagemap(m.texture_arrow, rawcur, #rawcur, 6)
+m.texture_arrow = love.graphics.newImage(m.texture_arrow)
+m.texture_arrow:setFilter("nearest", "nearest")
+m.texture_arrow:setWrap("clampzero", "clampzero")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Empty Table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -136,28 +189,36 @@ m.storage = {
   -- Theme 
   __theme = "boring",
   -- Active UI 
-  __ui_active = nil,
+  __ui_active = {},
 }
 
 m.vcursor = {
-  active = false,
-  x = 0,
-  y = 0,
-  w = 1,
-  h = 1,
-  element = nil,
-  element_name = "",
-  visible = true,
-  is_moving = false,
-  timer = 0,
-  timer_ani = 0,
-  type = "cursor",
-  animation = "bounce"
+  ui_active_check = ""
 }
+
+local function vcursor_reset()
+  m.vcursor.active = false
+  m.vcursor.x = 0
+  m.vcursor.y = 0
+  m.vcursor.goal_x = 0
+  m.vcursor.goal_y = 0
+  m.vcursor.w = 1
+  m.vcursor.h = 1
+  m.vcursor.speed = 1600
+  m.vcursor.element = nil
+  m.vcursor.element_name = ""
+  m.vcursor.visible = true
+  m.vcursor.is_moving = false
+  m.vcursor.timer = 0
+  m.vcursor.timer_ani = 0
+  m.vcursor.type = "cursor"
+  m.vcursor.animation = "bounce-y"
+end vcursor_reset()
 
 m.theme = {
   -- Boring Grey Buttons
   boring = {
+    color = "0f0f0f",
     button = {
       normal = {
         background = "c0c0c0",
@@ -255,11 +316,14 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Allow using hex colors for lazyness 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local color_convert_cache = {}
+
 local function color_read_hex(color_string)
   -- If a table of colors or number is sent, kick it back.
   if type(color_string) == "table" or type(color_string) == "number" then return color_string end
   -- Convert
   color_string = color_string:gsub("#", "")
+  if color_convert_cache[color_string] then return color_convert_cache[color_string] end
   if #color_string == 3 then 
     color_string = string.sub(color_string, 1,1) .. string.sub(color_string, 1,1) .. string.sub(color_string, 2,2) .. string.sub(color_string, 2,2) ..
     string.sub(color_string, 3,3) ..  string.sub(color_string, 3,3) 
@@ -275,7 +339,8 @@ local function color_read_hex(color_string)
   if r == nil or g == nil or b == nil then return end
   a = a or 255
   r, g, b, a = love.math.colorFromBytes(r, g, b, a)
-  return {r, g, b, a}
+  color_convert_cache[color_string] = {r, g, b, a}
+  return color_convert_cache[color_string]
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -289,17 +354,9 @@ end
   * Blend Colors 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function color_blend(color1, color2, scale)
-  if type(color1) == "string" then 
-    color1 = color_read_hex(color1)
-  end
-  if type(color2) == "string" then 
-    color2 = color_read_hex(color2)
-  end
-  assert(type(color1) == "table", "First color must be in the format {r, g, b, a}.")
-  assert(type(color2) == "table", "Second color must be in the format {r, g, b, a}.")
   scale = math.min(1, scale)
   scale = math.max(0, scale)
-  return {
+  return  {
             lerp(color1[1], color2[1], scale),
             lerp(color1[2], color2[2], scale), 
             lerp(color1[3], color2[3], scale),
@@ -310,7 +367,7 @@ end
   * Create a rectangle from an image to allow for lazy shaders.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function draw_1px_rectangle(color, x, y, w, h)
-  local lastcolor = {love.graphics.getColor()}
+  local lr, lg, lb, la = love.graphics.getColor()
   -- Set the color
   if color then 
     if type(color) == "string" then 
@@ -322,14 +379,14 @@ local function draw_1px_rectangle(color, x, y, w, h)
   -- Draw the rectangle
   love.graphics.draw(m.texture_1xpixel, x, y, 0, w, h)
   -- Reset the color 
-  love.graphics.setColor(lastcolor)
+  love.graphics.setColor(lr, lg, lb, la)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Create a rectangle from an image to allow for lazy shaders.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
-  local lastcolor = {love.graphics.getColor()}
+  local lr, lg, lb, la = love.graphics.getColor()
     -- Set the color
     if color then 
       if type(color) == "string" then 
@@ -341,7 +398,7 @@ local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
     -- Draw the rectangle
     love.graphics.printf(text, x, y, w,align)
     -- Reset the color 
-    love.graphics.setColor(lastcolor)
+    love.graphics.setColor(lr, lg, lb, la)
   end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -349,12 +406,18 @@ local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--  
   local function draw_frame_square(col_bg, col_top, col_right, col_left, col_bottom, frame_width, x, y, w, h)
     draw_1px_rectangle(col_bg, x, y, w, h)
+    col_bg = color_read_hex(col_bg)
+    col_left = color_read_hex(col_left)
+    col_top = color_read_hex(col_top)
+    col_right = color_read_hex(col_right)
+    col_bottom = color_read_hex(col_bottom)
     for border_calculator=1, frame_width do
       local adj_size = border_calculator - 1
-      draw_1px_rectangle(color_blend(col_right, col_bg, adj_size/frame_width),  x+w-1-adj_size,    y+adj_size,      1,    h-adj_size*2)
-      draw_1px_rectangle(color_blend(col_left, col_bg, adj_size/frame_width),   x+adj_size,        y+adj_size,      1,    h-adj_size*2)
-      draw_1px_rectangle(color_blend(col_top, col_bg, adj_size/frame_width),    x+adj_size,        y+adj_size,      w-adj_size*2,    1)
-      draw_1px_rectangle(color_blend(col_bottom, col_bg, adj_size/frame_width), x+adj_size,        y+h-1-adj_size,  w-adj_size*2,    1)
+      local adj_over_fw = adj_size/frame_width
+      draw_1px_rectangle(color_blend(col_right, col_bg, adj_over_fw),  x+w-1-adj_size,    y+adj_size,      1,    h-adj_size*2)
+      draw_1px_rectangle(color_blend(col_left, col_bg, adj_over_fw),   x+adj_size,        y+adj_size,      1,    h-adj_size*2)
+      draw_1px_rectangle(color_blend(col_top, col_bg, adj_over_fw),    x+adj_size,        y+adj_size,      w-adj_size*2,    1)
+      draw_1px_rectangle(color_blend(col_bottom, col_bg, adj_over_fw), x+adj_size,        y+h-1-adj_size,  w-adj_size*2,    1)
     end
   end
 
@@ -452,8 +515,8 @@ end
   * Create new UI 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 -- Reset the UI / Create new window
-function m.define(name, grid, active, x, y, w, h, mousex, mousey, mouse_buttons_accepted, theme)
-  -- Remove all items in our UI from the table.
+function m.define(name, grid, x, y, w, h, mousex, mousey, mouse_buttons_accepted, theme)
+  -- Define and update the table settings, we can't use the special string numbers here. 
   name = tostring(name)
   grid = grid or 8
   x = x or 0
@@ -483,6 +546,10 @@ function m.define(name, grid, active, x, y, w, h, mousex, mousey, mouse_buttons_
     m.storage.__uis[name].draw_queue[i] = nil
   end
 
+  -- Update the storage with the details.
+  -- Storage acts as our guide since we're only drawing
+  -- one UI at a time.
+  -- This could be per UI, but there's no real need. 
   m.storage.__current = name
   m.storage.__pen.x = x
   m.storage.__pen.y = y
@@ -495,12 +562,65 @@ function m.define(name, grid, active, x, y, w, h, mousex, mousey, mouse_buttons_
   m.storage.__grid = 8
   m.storage.mousex = mousex
   m.storage.mousey = mousey
+end
 
-  if active then 
-    m.storage.__ui_active = name
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * UI Get Active 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.active_ui_name_get()
+  -- Get the name of the current active UI
+  return m.storage.__ui_active[1]
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * UI Set Active 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.active_ui_clear()
+-- If we're setting active, clear any stored states for popping 
+  for i=#m.storage.__ui_active, 1, -1 do 
+    m.storage.__ui_active[i] = nil
+  end
+  print(m.storage.__ui_active, m.storage.__ui_active[1])
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * UI Set Active 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.active_ui_set(name)
+  -- Just in case 
+  name = tostring(name)
+  
+  -- If we're setting active, clear any stored states for popping 
+  m.active_ui_clear()
+
+  -- Set the current and only ui
+  m.storage.__ui_active[1] = name
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * UI Push UI 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.active_ui_push(name)
+  -- Just in case 
+  name = tostring(name)
+  
+  -- Push the new UI to the stack (unless it's already set)
+  -- I know I should let you push the same UI more than once
+  -- instead of correcting this magically
+  -- but this library is going to be used in gamejams
+  -- so it stays.
+  if (m.storage.__ui_active[#m.storage.__ui_active] ~= name) then 
+    table.insert(m.storage.__ui_active, 1, name)
   end
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * UI pop UI 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.active_ui_pop()
+  -- Set the current and only ui
+  table.remove(m.storage.__ui_active, 1)
+end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw the items 
@@ -607,14 +727,14 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Text  
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.text_format(text,w,align,color,x,y,r)
+function m.text_format(text,w,align,color,x,y)
   -- Update these values 
   w = string_to_number(w)
 
   align = align or "left"
+  color = color or m.get_current_theme().color
   x = x or 0
   y = y or 0
-  r = r or 0
   x = string_to_number(x, w)
   y = string_to_number(y)
   x = x + m.storage.__pen.x
@@ -638,9 +758,12 @@ function m.text_format(text,w,align,color,x,y,r)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Basic Button  [Need to rework it so that the border/padding is removed when a set width is set]
+  * """Basic""" Button 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.button_basic(text, id, button_active, w, h, theme, x, y)
+  -- We give the button id a prefix of the current ui
+  id = tostring(m.storage.__current) .. id
+
   -- We cache the button state if it's down, that way clicks can happen only once.
   local button_cache = m.get_current_button_cache()
   if type(button_cache[id]) == "nil" then button_cache[id] = false end 
@@ -940,7 +1063,13 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.get_element_from_node_map(key_dir, details)
   -- Grab the Node Map of the active ui
-  local local_nm = m.get_node_map(m.storage.__ui_active)
+  local local_nm = m.get_node_map(m.active_ui_name_get())
+
+  -- Nothing active? Just return.
+  if not local_nm then return end
+
+  -- Empty?
+  if #local_nm == 0 then return end
 
   -- Cache the cursor 
   local vcur = m.vcursor
@@ -1012,51 +1141,21 @@ function m.cursor_draw()
     --aniy = math.floor(math.cos(m.vcursor.timer_ani*5)*1)
   end
 
-  if m.storage.__ui_active and m.vcursor.visible then 
-      local color = "000000"
+
+  if m.active_ui_name_get() and m.vcursor.visible then 
+
       local x = m.vcursor.x
       local y = m.vcursor.y
-      local lastcolor = {love.graphics.getColor()}
-      -- Set the color
-      if color then 
-        if type(color) == "string" then 
-          love.graphics.setColor(color_read_hex(color))
-        else 
-          love.graphics.setColor(color)
-        end
-      end
-      -- Draw the rectangle
-      x = x - 8
-      y = y + m.vcursor.h/2
-      y = y + aniy
-      x = x + anix
-      love.graphics.draw(m.texture_1xpixel, x, y+3, 0, 2, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y+2, 0, 3, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y+1, 0, 4, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y+0, 0, 5, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y-1, 0, 4, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y-2, 0, 3, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y-3, 0, 2, 1)
-      color = "FFFFFF"
-      if color then 
-        if type(color) == "string" then 
-          love.graphics.setColor(color_read_hex(color))
-        else 
-          love.graphics.setColor(color)
-        end
-      end
-      x = x + 1
-      love.graphics.draw(m.texture_1xpixel, x, y+2, 0, 1, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y+1, 0, 2, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y+0, 0, 3, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y-1, 0, 2, 1)
-      love.graphics.draw(m.texture_1xpixel, x, y-2, 0, 1, 1)
-      -- Reset the color 
-      love.graphics.setColor(lastcolor)
-
+      local img = m.texture_arrow
+      
+      x = math.floor(x - 8)
+      y = y + math.floor(m.vcursor.h/2 - img:getHeight()/2)
+      love.graphics.draw(img, x + anix, y + aniy)
+    
 
     love.graphics.print(m.vcursor.element_name, 1, 1)
   end
+
 end
 
 
@@ -1065,39 +1164,99 @@ end
   * Update the cursor sprite 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.cursor_update(dt)
-    -- Cache the cursor 
-    local vcur = m.vcursor
+  -- Cache the cursor 
+  local vcur = m.vcursor
 
   -- Timer
   vcur.timer = vcur.timer + dt
   vcur.timer_ani = vcur.timer_ani + dt
 
+  -- Is the cursor currently clicking something 
   m.vcursor.active = false
 
   -- If there is no UI active, reset the cursor and stop processing
-  if not m.storage.__ui_active then
-    vcur.element = nil
+  if (not m.active_ui_name_get()) then
+    vcursor_reset()
     return 
   end
 
   -- Grab the Node Map of the active ui
-  local local_nm = m.get_node_map(m.storage.__ui_active)
+  local local_nm = m.get_node_map(m.active_ui_name_get())
 
-  -- If no element is set, set to first 
-  if not vcur.element then
+  -- If there is no node map then exit
+    if not local_nm then return end
+
+  -- If we've changed UIs, reset index.
+  if m.active_ui_name_get() ~= vcur.ui_active_check then 
+    vcur.ui_active_check = m.active_ui_name_get()
+    vcursor_reset()
+  end
+
+  -- If the node map is empty, leave.
+  if #local_nm == 0 then return end 
+
+  -- If no element is set, or the active UI changed set to first 
+  if (not vcur.element) then
     for i=1, #local_nm do
       if not vcur.element then 
         vcur.element = i
+        vcur.goal_x = local_nm[vcur.element][3]
+        vcur.goal_y = local_nm[vcur.element][4]
+        vcur.x = local_nm[vcur.element][3]
+        vcur.y = local_nm[vcur.element][4]
       end
     end
   end
 
-  -- Update the cursor position based on element.
-  vcur.x = local_nm[vcur.element][3]
-  vcur.y = local_nm[vcur.element][4]
+  -- If the element is out of bounds somehow, reset it.
+  if vcur.element > #local_nm or vcur.element < 1 then 
+    vcur.element = 1
+  end
+
+
+  -- We're going to animate the cursor by giving it a goal and asking the sprite to follow it
+  -- that way the animation is not blocking and someone can fast menu.
+
+    -- Update the cursor goal position based on element.
+    vcur.goal_x = local_nm[vcur.element][3]
+    vcur.goal_y = local_nm[vcur.element][4]
+
+  -- Only bother animating if the goal is different
+  if ((vcur.goal_x ~= vcur.x) or (vcur.goal_y ~= vcur.y)) then
+    -- Get direction we should move in 
+    local vecx, vecy = 0, 0
+
+    -- Get the vector, with - being if matching.
+    if vcur.goal_x > vcur.x then vecx = 1 end
+    if vcur.goal_x < vcur.x then vecx = -1 end
+    if vcur.goal_y > vcur.y then vecy = 1 end
+    if vcur.goal_y < vcur.y then vecy = -1 end
+
+
+    local speed = vcur.speed
+
+    -- Move towards the goal 
+    vcur.x = vcur.x + (vecx * (dt * speed))
+    vcur.y = vcur.y + (vecy * (dt * speed))
+
+    -- Set moving unless we're in the goal range.
+    vcur.is_moving = true 
+
+    if isover(vcur.x, vcur.y, 1, 1, vcur.goal_x, vcur.goal_y, 3, 3) then 
+      vcur.x = vcur.goal_x
+      vcur.y = vcur.goal_y
+      vcur.is_moving = false
+    end
+  end
+
+  -- Width and Height for Rectangle Selection.
   vcur.w = local_nm[vcur.element][5]
   vcur.h = local_nm[vcur.element][6]
+
+  -- Set the name of the current element 
   vcur.element_name = local_nm[vcur.element][1]
+
+  
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
