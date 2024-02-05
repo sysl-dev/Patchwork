@@ -51,7 +51,6 @@ end
 
 function room.unscale_debug()
   if not love.keyboard.isDown("`") then
-    Help.debug_tools.screen_info()
     love.graphics.print(Pixelscreen.mouse.get_x() .. " " .. Pixelscreen.mouse.get_y() .. " " .. Map.tileindex_from_pixels(Pixelscreen.mouse.get_x(),Pixelscreen.mouse.get_y()), 200, 200)
   end
   if love.keyboard.isDown("0") then

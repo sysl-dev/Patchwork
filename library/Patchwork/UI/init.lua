@@ -32,37 +32,49 @@ local m = {
 }
 --[[
 
-To DO
-  Start Basic Documentation 
-  cursor memory
+To Do
+  VEGETABLES:
+    Start Basic Documentation [Started]
 
-  Optional config to not draw ui even with draw command if UI is turned off
+  CURSOR:
+    cursor memory [Figure out how to do this best]
+    change cursor per button/set of buttons 
+    MOUSE - Can't click inactive UI
 
-  Button Node Mapping, Jump to button directly.
+  NODE MAPPING
+    Jump to NAMED NODE when a direction is pressed.
 
-  Table of Images Button
-  Table of Draw Functions Button
+  UI SETTINGS:
+    UI Flag - Do not draw unless active
 
-  Gradient Drawing Library needs to come over.
+  BUTTONS:
+    image_button - In style of basic button but with less color pain 
+    function_button - Where there is a draw function provided for each state
+    toggle_button (Basic, Image, Function)
+      Check Box
+      Choice Circle 
+    grab_move_button (Basic, Image, Function)
 
-  Grab and Slide Button
-  Toggle Button 
+  MORE FEATURES
+    Line Graph
+    Bar Graph
+    Comparison Graphs
+    Spider Graph 
+    Standard Torus
+    Text Box (Simple, no advanced editing)
+    Number Picker
+    Color Picker
+    Whatever this style of UI is called: [<]   00    [>]
 
-  Windowed Area of Items
-
-  Fake Windowed area that is just a stack of items
-
-  Basic Graph Functions 
-
-Marco Functions
-  Macro Functions chain other smaller functions together to draw a set of buttons
-  to do something, like [<]   00    [>]
-  Number Selector
-  Box to type text in.
-  Color Picker
-  Number Picker
-
-  
+  GRADIENT
+    Gradient Limit Colors 
+      Gradient Rectangle
+      Gradient Circle
+      Gradient Torus 
+      
+  PAINFUL ITEMS
+    Fake Scrolling Window, Shows X Items, changes what items are in slots when move
+    Real Scrolling Window, Items out of view do not render
 
 ]]--
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -127,6 +139,7 @@ generate_pixels_on_imagemap(m.texture_arrow, rawcur, #rawcur, 6)
 m.texture_arrow = love.graphics.newImage(m.texture_arrow)
 m.texture_arrow:setFilter("nearest", "nearest")
 m.texture_arrow:setWrap("clampzero", "clampzero")
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Empty Table
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -187,13 +200,21 @@ m.storage = {
   __last_width = 0,
   __last_height = 0,
   -- Theme 
-  __theme = "boring",
+  __theme = "default",
   -- Active UI 
   __ui_active = {},
+  -- MODE mouse, cursor, both
+  __mode = "both"
 }
 
 m.vcursor = {
-  ui_active_check = ""
+  ui_active_check = "",
+  -- default-arrow, outline, custom function, custom image
+  default_type = "outline",
+  type = "outline",
+  -- bounce, bounce-x, bounce-y, ???
+  animation = "bounce-x",
+  outline_spacing = 2,
 }
 
 local function vcursor_reset()
@@ -204,21 +225,29 @@ local function vcursor_reset()
   m.vcursor.goal_y = 0
   m.vcursor.w = 1
   m.vcursor.h = 1
-  m.vcursor.speed = 1600
+  m.vcursor.speed = 800
   m.vcursor.element = nil
-  m.vcursor.element_name = ""
+  m.vcursor.element_name = nil
   m.vcursor.visible = true
   m.vcursor.is_moving = false
   m.vcursor.timer = 0
   m.vcursor.timer_ani = 0
-  m.vcursor.type = "cursor"
-  m.vcursor.animation = "bounce-y"
 end vcursor_reset()
 
 m.theme = {
   -- Boring Grey Buttons
-  boring = {
+  default = {
     color = "0f0f0f",
+    background = "f0f0f0",
+   
+    -- TOOLTIP STYLE --
+    tooltip = {
+      color = "0f0f0f",
+      background = "ffffcc",
+      border = "663300"
+    },
+
+    -- BUTTON STYLE --
     button = {
       normal = {
         background = "c0c0c0",
@@ -226,50 +255,23 @@ m.theme = {
         align = "center",
         border_thickness = 2,
         border_color = {top = "efefef", right = "3f3f3f", bottom = "3f3f3f", left = "efefef",},
-        padding = {top = 3, right = 4, bottom = 2, left = 3},
-      };
+        padding = {top = 3, right = 3, bottom = 2, left = 3},
+      },
       hover = {
         background = "d0d0d0",
-      };
+      },
       active = {
         border_color = {top = "3f3f3f", right = "efefef", bottom = "efefef", left = "3f3f3f",},
-      };
+      },
       enabled = {
         background = "a0c0a0",
         border_color = {top = "3f3f3f", right = "efefef", bottom = "efefef", left = "3f3f3f",},
-      };
+      },
       disabled = {
         background = "b0b0b0",
         color = "3f3f3f9f",
         border_color = {top = "3f3f3fBf", right = "3f3f3fBf", bottom = "3f3f3fBf", left = "3f3f3fBf",},
-      };
-    },
-  },
-  -- Horrible Recolor Test 
-  hotdog = {
-    button = {
-      normal = {
-        background = "ffff01",
-        color = "0f0f0f",
-        align = "center",
-        border_color = {top = "fe0002", right = "7f1328", bottom = "7f1328", left = "fe0002",},
-        padding = {top = 3, right = 2, bottom = 2, left = 2},
-        border_thickness = 3,
-      };
-      hover = {
-        border_color = {top = "f9135c", right = "f9135c", bottom = "f9135c", left = "f9135c",},
-      };
-      active = {
-        border_color = {top = "7f1328", right = "fe0002", bottom = "fe0002", left = "7f1328",},
-      };
-      enabled = {
-        background = "ddff00",
-        border_color = {top = "7f1328", right = "fe0002", bottom = "fe0002", left = "7f1328",},
-      };
-      disabled = {
-        color = "0f0f0f9f",
-        border_color = {top = "fe00029f", right = "fe00029f", bottom = "fe00029f", left = "fe00029f",},
-      };
+      },
     },
   },
 }
@@ -283,6 +285,9 @@ m.theme = {
   * Convert special string values for size into context values.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function string_to_number(value, value2)
+  -- Got a nil? Don't bother. 
+  if type(value) == "nil" then return end
+  -- Strings are work.
   if type(value) == "string" then 
     -- Calc, crap.
     if string.sub(value, 1,5) == "calc(" then 
@@ -296,9 +301,6 @@ local function string_to_number(value, value2)
     -- Grid Pos
     elseif string.sub(value, -1, -1) == "#" then 
       return math.floor(tonumber(string.sub(value, 1, -2)) * m.storage.__grid)
-    -- % Position (Shortcut X)
-    elseif string.sub(value, -1, -1) == "%" then 
-      return math.floor(tonumber(string.sub(value, 1, -3))/100 * m.storage.__width)
     -- Center Positioning X
     elseif string.sub(value, -2, -1) == "cw" then 
       return math.floor(m.storage.__width/2 - value2/2)
@@ -306,9 +308,9 @@ local function string_to_number(value, value2)
     elseif string.sub(value, -2, -1) == "ch" then 
       return math.floor(m.storage.__height/2 - value2/2)
     end
-    -- Try and make it a number.
-    return tonumber(value)
+    error("Command Not Understood: " .. tostring(value) .. " " .. tostring(value2))
   else
+    -- Any other types? Just return them. 
     return value 
   end
 end
@@ -356,25 +358,20 @@ end
 local function color_blend(color1, color2, scale)
   scale = math.min(1, scale)
   scale = math.max(0, scale)
-  return  {
-            lerp(color1[1], color2[1], scale),
+  return    lerp(color1[1], color2[1], scale),
             lerp(color1[2], color2[2], scale), 
             lerp(color1[3], color2[3], scale),
             lerp(color1[4], color2[4], scale)
-        }
+        
 end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Create a rectangle from an image to allow for lazy shaders.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function draw_1px_rectangle(color, x, y, w, h)
   local lr, lg, lb, la = love.graphics.getColor()
-  -- Set the color
+  -- Set the color 
   if color then 
-    if type(color) == "string" then 
       love.graphics.setColor(color_read_hex(color))
-    else 
-      love.graphics.setColor(color)
-    end
   end
   -- Draw the rectangle
   love.graphics.draw(m.texture_1xpixel, x, y, 0, w, h)
@@ -389,11 +386,7 @@ local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
   local lr, lg, lb, la = love.graphics.getColor()
     -- Set the color
     if color then 
-      if type(color) == "string" then 
-        love.graphics.setColor(color_read_hex(color))
-      else 
-        love.graphics.setColor(color)
-      end
+      love.graphics.setColor(color_read_hex(color))
     end
     -- Draw the rectangle
     love.graphics.printf(text, x, y, w,align)
@@ -404,7 +397,8 @@ local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw a square with a border around it. The border will blend with the background color.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--  
-  local function draw_frame_square(col_bg, col_top, col_right, col_left, col_bottom, frame_width, x, y, w, h)
+local frame_square_cache = {1,1,1,1} 
+local function draw_frame_square(col_bg, col_top, col_right, col_left, col_bottom, frame_width, x, y, w, h)
     draw_1px_rectangle(col_bg, x, y, w, h)
     col_bg = color_read_hex(col_bg)
     col_left = color_read_hex(col_left)
@@ -414,10 +408,14 @@ local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
     for border_calculator=1, frame_width do
       local adj_size = border_calculator - 1
       local adj_over_fw = adj_size/frame_width
-      draw_1px_rectangle(color_blend(col_right, col_bg, adj_over_fw),  x+w-1-adj_size,    y+adj_size,      1,    h-adj_size*2)
-      draw_1px_rectangle(color_blend(col_left, col_bg, adj_over_fw),   x+adj_size,        y+adj_size,      1,    h-adj_size*2)
-      draw_1px_rectangle(color_blend(col_top, col_bg, adj_over_fw),    x+adj_size,        y+adj_size,      w-adj_size*2,    1)
-      draw_1px_rectangle(color_blend(col_bottom, col_bg, adj_over_fw), x+adj_size,        y+h-1-adj_size,  w-adj_size*2,    1)
+      frame_square_cache[1], frame_square_cache[2], frame_square_cache[3], frame_square_cache[4] = color_blend(col_right, col_bg, adj_over_fw)
+      draw_1px_rectangle(frame_square_cache,  x+w-1-adj_size,    y+adj_size,      1,    h-adj_size*2)
+      frame_square_cache[1], frame_square_cache[2], frame_square_cache[3], frame_square_cache[4] = color_blend(col_left, col_bg, adj_over_fw)
+      draw_1px_rectangle(frame_square_cache,   x+adj_size,        y+adj_size,      1,    h-adj_size*2)
+      frame_square_cache[1], frame_square_cache[2], frame_square_cache[3], frame_square_cache[4] = color_blend(col_top, col_bg, adj_over_fw)
+      draw_1px_rectangle(frame_square_cache,    x+adj_size,        y+adj_size,      w-adj_size*2,    1)
+      frame_square_cache[1], frame_square_cache[2], frame_square_cache[3], frame_square_cache[4] = color_blend(col_bottom, col_bg, adj_over_fw)
+      draw_1px_rectangle(frame_square_cache, x+adj_size,        y+h-1-adj_size,  w-adj_size*2,    1)
     end
   end
 
@@ -502,6 +500,20 @@ function m.add_theme(theme_name, theme_table)
   m.theme[theme_name] = theme_table
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Insert a new theme into the theme library
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.get_number_from_id_draw_queue(id)
+  local draw_queue = m.get_active_ui_draw_queue()
+  local escape_search = nil 
+  for i=#draw_queue, 1, -1 do 
+    if draw_queue[i][3] == id then 
+      escape_search = i
+    end
+  end
+  return escape_search
+end
+
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Grab the cache 
@@ -580,7 +592,6 @@ function m.active_ui_clear()
   for i=#m.storage.__ui_active, 1, -1 do 
     m.storage.__ui_active[i] = nil
   end
-  print(m.storage.__ui_active, m.storage.__ui_active[1])
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -673,7 +684,7 @@ function m.create_node_map(name, map_table)
     if drawq[i][2] then 
       -- If our maptable has defined special remaps, then we use it.
       local map_used = map_table[drawq[i][3]] or map_table[0] or node_map_storage.default_map
-      --                        id,             pos,           x,         y,          w,          h,             map
+      --                        id,         cursor type,           x,         y,          w,          h,             map
       nodemap[#nodemap + 1] = {drawq[i][3], drawq[i][4], drawq[i][5], drawq[i][6], drawq[i][7], drawq[i][8], map_used}
     end
   end
@@ -707,6 +718,7 @@ function m.solid(w,h,color,x,y)
   y = string_to_number(y, h)
   x = x + m.storage.__pen.x
   y = y + m.storage.__pen.y
+  color = color or m.get_current_theme().background
 
   -- Grab the current UI we're working on
   local draw_queue = m.get_active_ui_draw_queue()
@@ -757,19 +769,19 @@ function m.text_format(text,w,align,color,x,y)
   m.storage.__last_height = h
 end
 
+
+
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * """Basic""" Button 
+  * """Basic""" Button States: nomral, hover, active, enabled, disabled
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.button_basic(text, id, button_active, w, h, theme, x, y)
-  -- We give the button id a prefix of the current ui
-  id = tostring(m.storage.__current) .. id
+function m.button_basic(text, id, button_active, w, h, theme, cursor_type, x, y)
 
   -- We cache the button state if it's down, that way clicks can happen only once.
   local button_cache = m.get_current_button_cache()
-  if type(button_cache[id]) == "nil" then button_cache[id] = false end 
+  local cacheid = id 
+  if type(button_cache[cacheid]) == "nil" then button_cache[cacheid] = false end 
 
-  local width_set_by_user = true
-  local height_set_by_user = true
+  local width_set_by_user, height_set_by_user = true, true
 
   -- Being careful in case this changes in the future. 
   if type(w) == "nil" then 
@@ -784,11 +796,10 @@ function m.button_basic(text, id, button_active, w, h, theme, x, y)
   -- Update these values 
   w = string_to_number(w)
   h = string_to_number(h)
+
   -- Button Width and Height can be calculated from the text.
-  
   w = w or (get_character_width(text))
-  -- We can accept multiline text for the button, or update the height if the width is too small.
-  
+
   -- X/Y Position Offsets 
   x = x or 0
   y = y or 0
@@ -799,14 +810,13 @@ function m.button_basic(text, id, button_active, w, h, theme, x, y)
   x = x + m.storage.__pen.x
   y = y + m.storage.__pen.y
 
-  -- Adjust width and height.
-  local text_w = w 
-  local text_x = x
-  local text_y = y
+  -- Set aside Text w/x/y for adjustment later 
+  local text_w, text_x, text_y = w, x, y
 
   -- State Management 
   local state = "normal"
   local theme = m.get_current_theme(theme)
+  local cursor_type = cursor_type or m.vcursor.default_type
   local state_normal = theme.button["normal"]
 
   -- Required after grabbing the state  [We don't recalc the hitbox, use at own risk]
@@ -814,7 +824,7 @@ function m.button_basic(text, id, button_active, w, h, theme, x, y)
   local sn_borderthickness = theme.button[state].border_thickness or state_normal.border_thickness
   local butt_bor_thickness = sn_borderthickness
   
-  -- Recalc text.
+   -- We can accept multiline text for the button, or update the height if the width is too small.
   if width_set_by_user then 
     text_w = text_w - sn_borderthickness * 2 - sn_padding.left - sn_padding.right
   else 
@@ -835,31 +845,39 @@ function m.button_basic(text, id, button_active, w, h, theme, x, y)
 
   -- Is the mouse over?
   local is_mouse_over = isover(x,y,w,h,m.storage.mousex, m.storage.mousey)
-  local is_vcursor_over = (m.vcursor.element_name == id)
+  local is_vcursor_over = (m.vcursor.element_name == id) and (m.active_ui_name_get() == m.vcursor.ui_active_check)
+  local is_mouse_down = love.mouse.isDown(m.get_active_ui_settings().mouse_buttons_accepted)
+  local is_cursor_button_active = (is_vcursor_over and m.vcursor.active)
 
   -- Are we over the button? Then we hover!
   if is_mouse_over or is_vcursor_over then 
     state = "hover"
   end 
 
+  -- Buttons are active unless they are not.
+  if type(button_active) == "boolean" then 
+    if button_active then 
+      state = "enabled"
+    end
+  end
+
+
   -- Are we over the button and the mouse buttons accepted are down? We set to active!
-  if (is_mouse_over and love.mouse.isDown(m.get_active_ui_settings().mouse_buttons_accepted) or ( is_vcursor_over and m.vcursor.active)) then
+  if (is_mouse_over and is_mouse_down or is_cursor_button_active) then
     state = "active"
   else 
-    button_cache[id] = false
+    button_cache[cacheid] = false
   end
 
   -- If the button is disabled throw away hover/active 
 
   -- Buttons are active unless they are not.
   if type(button_active) == "boolean" then 
-    if button_active then 
-      state = "enabled"
-    else 
+    if not button_active then 
       state = "disabled"
     end
   end
-
+  
   -- If we're still active, adjust the text.
   if state == "active" or state == "enabled" then 
     text_y = text_y + 1
@@ -885,13 +903,13 @@ function m.button_basic(text, id, button_active, w, h, theme, x, y)
       draw_frame_square(butt_bg_color, butt_bor_top, butt_bor_right, butt_bor_left,butt_bor_bottom, butt_bor_thickness, x, y, w, h)
       draw_text_capture_color_and_restore(text,text_x,text_y,text_w,butt_align,butt_color)
     end,
-    -- Can the cursor land on this?
+    -- Can the cursor land on this? [2]
     true,
-    -- Node ID
+    -- Node ID [3]
     id,
-    -- Cursor Position 
-    "left-middle",
-    -- Size of element hitbox 
+    -- Cursor Type [4] 
+    cursor_type,
+    -- Size of element hitbox [5,6,7,8] 
     x,
     y,
     w,
@@ -901,15 +919,145 @@ function m.button_basic(text, id, button_active, w, h, theme, x, y)
   -- Store the sizes 
   m.storage.__last_width = w
   m.storage.__last_height = h
-  if (state == "active") and (not button_cache[id]) then 
-    button_cache[id] = true
+  if (state == "active") and (not button_cache[cacheid]) then 
+    button_cache[cacheid] = true
     return true 
-  else 
+  else
     return false
   end
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Bar Graph
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.bar_graph(table, w, h, color_table, x, y)
+-- Table should be 
+-- { x-name = y-plot (int) }
+-- Sort by x name, get higest and lowest value, display 
 
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Line Graph
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.line_graph(table, w, h, color_table, x, y)
+-- Table should be 
+-- { x-name = y-plot (int) }
+-- Sort by x name, get higest and lowest value, display 
+
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Spider Graph
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.spider_graph(table, w, h, color_table, x, y)
+-- Table should be 
+-- { x-name = y-plot (0.0 - 100) }
+-- Sort by x name, get higest and lowest value, display 
+-- Draw Polygon 
+
+end
+
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Tooltip 
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Basic Tooltip 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.add_tooltip_basic(text, id_attach_tooltip, tooltip_width, tooltip_pos, theme)
+  tooltip_width = string_to_number(tooltip_width)
+  local queue_pos = m.get_number_from_id_draw_queue(id_attach_tooltip)
+  local draw_queue = m.get_active_ui_draw_queue()
+  assert(draw_queue[queue_pos], "Unable to find ID in Queue! ID: " .. id_attach_tooltip)
+  local x = draw_queue[queue_pos][5]
+  local y = draw_queue[queue_pos][6]
+  local w = draw_queue[queue_pos][7]
+  local h = draw_queue[queue_pos][8]
+  local box_h = 0 -- We need to define this live so we can update the font.
+  local theme = m.get_current_theme(theme)
+  local position = tooltip_pos or "top"
+  local is_vcursor_over = (m.vcursor.element_name == id_attach_tooltip)
+  draw_queue[#draw_queue + 1] = {
+    -- Do a function.
+    function()
+      box_h = get_character_height_include_linebreaks(text, tooltip_width-8)
+      if isover(x,y,w,h,m.storage.mousex, m.storage.mousey) or is_vcursor_over then 
+        if position == "right" then 
+          x = x + w + 4
+        elseif position == "left" then 
+          x = x - tooltip_width - 4
+        elseif position == "top" then 
+          y = y - box_h - 8
+        elseif position == "bottom" then 
+          y = y + h + 4
+        end
+        draw_1px_rectangle(theme.tooltip.border, x, y, tooltip_width, box_h+6)
+        draw_1px_rectangle(theme.tooltip.background, x+1, y+1, tooltip_width-2, box_h+4)
+        draw_text_capture_color_and_restore(text, x+4, y+4, tooltip_width-8, "left", theme.tooltip.color)
+      end
+    end,
+    -- Can the cursor land on this?
+    false
+  }
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Advanced Tooltip 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.add_tooltip_function(text, id_attach_tooltip, myfun, tooltip_width, tooltip_pos, theme)
+  tooltip_width = string_to_number(tooltip_width)
+  local queue_pos = m.get_number_from_id_draw_queue(id_attach_tooltip)
+  local draw_queue = m.get_active_ui_draw_queue()
+  assert(draw_queue[queue_pos], "Unable to find ID in Queue! ID: " .. id_attach_tooltip)
+  local x = draw_queue[queue_pos][5]
+  local y = draw_queue[queue_pos][6]
+  local w = draw_queue[queue_pos][7]
+  local h = draw_queue[queue_pos][8]
+  local box_h = 0 -- We need to define this live so we can update the font.
+  local theme = m.get_current_theme(theme)
+  local position = tooltip_pos or "top"
+  local is_vcursor_over = (m.vcursor.element_name == id_attach_tooltip)
+  draw_queue[#draw_queue + 1] = {
+    -- Do a function.
+    function()
+      box_h = get_character_height_include_linebreaks(text, tooltip_width-8)
+      if isover(x,y,w,h,m.storage.mousex, m.storage.mousey) or is_vcursor_over then 
+        if position == "right" then 
+          x = x + w + 4
+        elseif position == "left" then 
+          x = x - tooltip_width - 4
+        elseif position == "top" then 
+          y = y - box_h - 8
+        elseif position == "bottom" then 
+          y = y + h + 4
+        end
+        myfun(text,x,y,w,h,box_h,tooltip_width,theme,tooltip_pos,id_attach_tooltip)
+      end
+    end,
+    -- Can the cursor land on this?
+    false
+  }
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Other
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.change_font(font)
+  local draw_queue = m.get_active_ui_draw_queue()
+  draw_queue[#draw_queue + 1] = {
+    -- Do a function.
+    function()
+      love.graphics.setFont(font)
+    end,
+    -- Can the cursor land on this?
+    false
+  }
+end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1064,6 +1212,7 @@ end
 function m.get_element_from_node_map(key_dir, details)
   -- Grab the Node Map of the active ui
   local local_nm = m.get_node_map(m.active_ui_name_get())
+  if m.vcursor.active then return end
 
   -- Nothing active? Just return.
   if not local_nm then return end
@@ -1075,7 +1224,6 @@ function m.get_element_from_node_map(key_dir, details)
   local vcur = m.vcursor
 
   -- Get the Move Type 
-  print(local_nm[vcur.element][7][key_dir])
   key_dir = local_nm[vcur.element][7][key_dir]
 
   -- Number Move Types just move us up and down on the graph
@@ -1130,30 +1278,76 @@ function m.cursor_hide()
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Cursor Drawing Functions - Arrow 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.cursor_draw_basic_arrow(anix, aniy)
+  local x = m.vcursor.x
+  local y = m.vcursor.y
+  local img = m.texture_arrow
+  
+  x = math.floor(x - 8)
+  y = y + math.floor(m.vcursor.h/2 - img:getHeight()/2)
+  love.graphics.draw(img, x + anix, y + aniy)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Cursor Drawing Functions - Outline 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.cursor_draw_basic_outline(anix, aniy)
+  local vcur = m.vcursor
+  local pad = vcur.outline_spacing
+  local x = vcur.x - pad
+  local y = vcur.y - pad
+  local w = vcur.w + pad*2
+  local h = vcur.h + pad*2
+  local white = {1,1,1,0.2}
+  local black = {0,0,0,10.75}
+
+  draw_1px_rectangle(white, x+anix, y+aniy, w, h)
+  draw_1px_rectangle(black, x+anix, y+aniy, w, 1)
+  draw_1px_rectangle(black, x+anix, y+aniy, 1, h)
+  draw_1px_rectangle(black, x+anix, y+aniy+h-1, w, 1)
+  draw_1px_rectangle(black, x+anix+w-1, y+aniy, 1, h)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw the cursor depending on animation and style 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.cursor_draw()
+function m.cursor_draw(debug_mode)
+
   local aniy = 0
   local anix = 0
+  local vcur = m.vcursor
 
-  if m.vcursor.animation == "bounce" then 
+  -- If the cursor is not on a named value, don't bother drawing it. 
+  if not vcur.element_name then return end
+
+  if vcur.animation == "bounce-x" then 
     anix = math.floor(((math.sin(m.vcursor.timer_ani*15)+1)/2)*3)
-    --aniy = math.floor(math.cos(m.vcursor.timer_ani*5)*1)
   end
 
+  if m.active_ui_name_get() and vcur.visible then
+    if vcur.type == "basic_arrow" then 
+      m.cursor_draw_basic_arrow(anix, aniy)
+    end
 
-  if m.active_ui_name_get() and m.vcursor.visible then 
+    if vcur.type == "outline" then 
+      m.cursor_draw_basic_outline(anix, aniy)
+    end
 
-      local x = m.vcursor.x
-      local y = m.vcursor.y
-      local img = m.texture_arrow
-      
-      x = math.floor(x - 8)
-      y = y + math.floor(m.vcursor.h/2 - img:getHeight()/2)
-      love.graphics.draw(img, x + anix, y + aniy)
-    
+    if debug_mode then 
+      local lr, lg, lb, la = love.graphics.getColor()
 
-    love.graphics.print(m.vcursor.element_name, 1, 1)
+      love.graphics.setColor(0,0,0,1)
+      love.graphics.print(tostring(vcur.element_name), 1-1, 1)
+      love.graphics.print(tostring(vcur.element_name), 1, 1-1)
+      love.graphics.print(tostring(vcur.element_name), 1+1, 1)
+      love.graphics.print(tostring(vcur.element_name), 1, 1+1)
+      love.graphics.setColor(1,1,1,0.9)
+      love.graphics.print(tostring(vcur.element_name), 1, 1)
+
+      love.graphics.setColor(lr,lg,lb,la)
+    end
   end
 
 end
@@ -1185,6 +1379,9 @@ function m.cursor_update(dt)
 
   -- If there is no node map then exit
     if not local_nm then return end
+
+  -- Empty?
+  if #local_nm == 0 then return end
 
   -- If we've changed UIs, reset index.
   if m.active_ui_name_get() ~= vcur.ui_active_check then 
@@ -1242,6 +1439,15 @@ function m.cursor_update(dt)
     -- Set moving unless we're in the goal range.
     vcur.is_moving = true 
 
+    -- No Shaking when moving, snap where possible.
+    if math.abs(math.abs(vcur.y) - math.abs(vcur.goal_y)) < 2 then 
+      vcur.y = vcur.goal_y 
+    end
+
+    if math.abs(math.abs(vcur.x) - math.abs(vcur.goal_x)) < 2 then 
+      vcur.x = vcur.goal_x 
+    end
+
     if isover(vcur.x, vcur.y, 1, 1, vcur.goal_x, vcur.goal_y, 3, 3) then 
       vcur.x = vcur.goal_x
       vcur.y = vcur.goal_y
@@ -1256,15 +1462,7 @@ function m.cursor_update(dt)
   -- Set the name of the current element 
   vcur.element_name = local_nm[vcur.element][1]
 
-  
 end
-
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-
-  * Tooltip 
-
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-
 
 
 

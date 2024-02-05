@@ -36,9 +36,9 @@ function room:draw(dt)
   Pixelscreen.stop()
   love.graphics.setColor(1,1,1,1)
   for i=1, #testing_room_name do 
-    love.graphics.print(testing_room_name[i] .. ": " .. testing_room_desc[i], 32, (i-1) * 32)
+    love.graphics.print(testing_room_name[i] .. ": " .. testing_room_desc[i], 32, (i +1) * 32)
   end
-  love.graphics.print("➡", 6 + math.sin(timer * 8) * 3, 2 + (currently_selected_room - 1) * 32)
+  love.graphics.print("➡", 6 + math.sin(timer * 8) * 3, 2 + (currently_selected_room + 1 ) * 32)
   if love.keyboard.isDown("`") then
     Help.debug_tools.on_screen_debug_info()
   end

@@ -22,7 +22,6 @@ A list of OI objects then can see if the user presses up/down or left/right what
 Then the UI could also respond to mouse clicks if they are existing.
 ]]--
 
-
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Logic to Load Save Values
@@ -84,7 +83,7 @@ Font = {
 -- Fix Line Heights
 Font.cardboard_crown:setLineHeight(0.6)
 Font.menu_card:setLineHeight(1.2)
-Font.mini_card:setLineHeight(1.2)
+Font.mini_card:setLineHeight(1.3)
 
 Font.default = Font.menu_card
 love.graphics.setFont(Font.default)
@@ -164,7 +163,7 @@ end
   * Update - 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.update(dt)
-  if dt > 1 / 12 then return end
+  if Help.update.stop_runaway_dt(dt) then return end 
   Pixelscreen.update(dt)
   Timer.update(dt)
 end
@@ -172,7 +171,7 @@ end
   * Resize - 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function love.resize(w, h)
- -- Pixelscreen.resize_love2d_window(w, h, true)
+
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -186,7 +185,6 @@ Help.load.flat_lua("Room", "asset/room")
 Help.debug_tools.print_globals()
 
 
-
 print(Help.number.format_current_time())
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -194,3 +192,16 @@ print(Help.number.format_current_time())
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 
+
+-- REMOVE DEBUG LATER --
+
+local debuginfotoggle = true 
+---@diagnostic disable-next-line: duplicate-set-field
+Pixelscreen.draw_after_everything = function()
+  if debuginfotoggle then
+    Help.debug_tools.screen_info()
+  end
+  if love.keyboard.isDown("f2") then 
+    debuginfotoggle = not debuginfotoggle
+  end
+end

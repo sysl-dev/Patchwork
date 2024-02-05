@@ -547,7 +547,6 @@ end
   * Main Update
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.update(dt)
-  if dt > 1/12 then return end
   for i = #Map.actor, 1, -1  do 
     -- Reset any vectors in play
     local vector_x, vector_y = 0,0 

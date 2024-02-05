@@ -192,7 +192,6 @@ function room:draw()
   if love.keyboard.isDown("`") then
     Help.debug_tools.on_screen_debug_info()
   end
-  love.graphics.print(love.timer.getFPS())
 end
 
 
