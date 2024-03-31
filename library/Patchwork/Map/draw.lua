@@ -53,17 +53,57 @@ local function print(...)
   end
 end print(m.__DESCRIPTION)
 
-
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Get Lua Table
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function get_lua_table_from_string(f)
   local v = _G    -- start with the global table
   for w in string.gmatch(f, "[%w_-]+") do
+    if type(v) == "nil" then return end
     --print(w)
     v = v[w]
   end
   return v
 end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Simple B/W Image Creator 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local function generate_pixels_on_imagemap(imap, atable, length, width)
+  local i = 1
+  for y=1, length/width do
+    for x=1, width do 
+      local color = atable[i]
+      local px = x - 1
+      local py = y - 1
+      if color ~= 2 then 
+        print(px, py)
+        imap:setPixel(px, py, color, color, color, 1)
+      end
+      i = i + 1
+    end
+  end
+end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Generate Error if texture is not found.
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.texture_error = love.image.newImageData(9,9)
+local rawcur = {
+  0,0,2,2,2,2,2,0,0,
+  0,1,0,2,2,2,0,1,0,
+  2,0,1,0,2,0,1,0,2,
+  2,2,0,1,0,1,0,2,2,
+  2,2,2,0,1,0,2,2,2,
+  2,2,0,1,0,1,0,2,2,
+  2,0,1,0,2,0,1,0,2,
+  0,1,0,2,2,2,0,1,0,
+  0,0,2,2,2,2,2,0,0,
+}
+generate_pixels_on_imagemap(m.texture_error, rawcur, #rawcur, 9)
+m.texture_error = love.graphics.newImage(m.texture_error)
+m.texture_error:setFilter("nearest", "nearest")
+m.texture_error:setWrap("clampzero", "clampzero")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Setup 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -105,17 +145,24 @@ end
   * Images are behind everything or in front of everything.
   * Images can y_sort as well
   * Repeating images are not supported.
+  -- TODO: Cache 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local layer_image_cache = {}
 local function layer_image(current_map, layer, x, y)
   local image = layer.image
-  local image_check = image
-  -- This is terrible, but it works! 
-  image = image:gsub("../texture/", "Texture/")
-  image = image:gsub(".png", "")
-  image = image:gsub("/", ".")
-  image = get_lua_table_from_string(image)
+  if not layer_image_cache[layer.image] then
+    local image_check = image
+    -- This is terrible, but it works! 
+    image = image:gsub("../texture/", "Texture/")
+    image = image:gsub(".png", "")
+    image = image:gsub("/", ".")
+    image = get_lua_table_from_string(image)
 
-  assert(image, image_check .. " not found.")
+    if not image then print(image, image_check .. " not found.") end
+    image = image or m.texture_error
+    layer_image_cache[layer.image] = image
+  end
+  image = layer_image_cache[layer.image]
 
   -- If this is not a repeating background then:
   if not layer.repeatx and not layer.repeaty then

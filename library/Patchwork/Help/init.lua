@@ -92,16 +92,30 @@ m.color = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Turn a hex string into a Love2D Color 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local color_convert_cache = {}
 function m.color.read_hex(color_string)
-  color_string = color_string:gsub("#", "")
-  local r = tonumber(color_string:sub(1, 2), 16)
-  local g = tonumber(color_string:sub(3, 4), 16)
-  local b = tonumber(color_string:sub(5, 6), 16)
-  local a = tonumber(color_string:sub(7, 8), 16)
-  if r == nil or g == nil or b == nil then return end
-  a = a or 255
-  r, g, b, a = love.math.colorFromBytes(r, g, b, a)
-  return {r, g, b, a}
+   -- If a table of colors or number is sent, kick it back.
+   if type(color_string) == "table" or type(color_string) == "number" then return color_string end
+   -- Convert
+   color_string = color_string:gsub("#", "")
+   if color_convert_cache[color_string] then return color_convert_cache[color_string] end
+   if #color_string == 3 then 
+     color_string = string.sub(color_string, 1,1) .. string.sub(color_string, 1,1) .. string.sub(color_string, 2,2) .. string.sub(color_string, 2,2) ..
+     string.sub(color_string, 3,3) ..  string.sub(color_string, 3,3) 
+   end
+   if #color_string == 4 then 
+     color_string = string.sub(color_string, 1,1) .. string.sub(color_string, 1,1) .. string.sub(color_string, 2,2) .. string.sub(color_string, 2,2) ..
+     string.sub(color_string, 3,3) .. string.sub(color_string, 3,3)  .. string.sub(color_string, 4,4)  .. string.sub(color_string, 4,4) 
+   end
+   local r = tonumber(color_string:sub(1, 2), 16)
+   local g = tonumber(color_string:sub(3, 4), 16)
+   local b = tonumber(color_string:sub(5, 6), 16)
+   local a = tonumber(color_string:sub(7, 8), 16)
+   if r == nil or g == nil or b == nil then return end
+   a = a or 255
+   r, g, b, a = love.math.colorFromBytes(r, g, b, a)
+   color_convert_cache[color_string] = {r, g, b, a}
+   return color_convert_cache[color_string]
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -270,6 +284,25 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.color.blend_reset() 
   love.graphics.setBlendMode("alpha", "alphamultiply") 
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Capture Color 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+m.color.previous = {}
+function m.color.capture() 
+  local r,g,b,a = love.graphics.getColor()
+  m.color.previous[1] = r
+  m.color.previous[2] = g
+  m.color.previous[3] = b
+  m.color.previous[4] = a
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Restore Color
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+function m.color.restore() 
+  love.graphics.setColor(m.color.previous)
 end
 
 
@@ -510,8 +543,8 @@ function m.debug_tools.screen_info(settings)
   settings = settings or {}
   local x = settings.x or 5
   local y = settings.y or 5
-  local mx = tostring(settings.mouse_x or love.mouse.getX())
-  local my = tostring(settings.mouse_y or love.mouse.getY())
+  local mx = settings.mouse_x or love.mouse.getX
+  local my = settings.mouse_y or love.mouse.getY
   local fps = tostring(love.timer.getFPS())
   local draw_calls = tostring(love.graphics.getStats().drawcalls)
   local batch_calls = tostring(love.graphics.getStats().drawcallsbatched)
@@ -519,7 +552,7 @@ function m.debug_tools.screen_info(settings)
   local texture_memory = tostring(love.graphics.getStats().texturememory / 1024 / 1024)
   local infostring = "FPS: " .. fps .. " Draw Calls: " .. draw_calls .. " Batched Calls: " .. batch_calls
   local moreinfo = " texturememory: " .. texture_memory .. "MB canvasswitches: " .. canvas_switches
-  local extraline = tostring("Mouse X: " .. mx .. " Mouse Y: " .. my)
+  local extraline = tostring("Mouse X: " .. mx() .. " Mouse Y: " .. my())
   local string_length = (love.graphics.getWidth()) - 10
   love.graphics.setColor(0, 0, 0, 1)
   love.graphics.printf(infostring .. moreinfo .. "\n" .. extraline, x, y - 1, string_length)
@@ -816,15 +849,12 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 m.art = {}
 m.art.storage = {} -- Advanced Art Drawing requires some memory set aside.
-m.art.storage.rb = {} -- Repeating Backgrounds
 m.art.storage.gs = {} -- Gradient Shapes
-m.art.storage.s9 = {}
 -- Image for shapes to apply shaders and colors to for new shapes.
 m.art.storage.gs.pixel_imagdata_x1 = love.image.newImageData(1, 1); m.art.storage.gs.pixel_imagdata_x1:setPixel(0, 0, 1, 1, 1, 1)
 m.art.storage.gs.pixel_image_x1 = love.graphics.newImage(m.art.storage.gs.pixel_imagdata_x1)
 local pixel_image_x1 = m.art.storage.gs.pixel_image_x1 -- let's just cache this.
 m.art.repeating_background = {}
-m.art.slice9 = {}
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Hooking and Fallback - If using this in patchwork, grab the background directly, if not do a best guess.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
@@ -841,36 +871,6 @@ function m.art.fill_background(padding)
   love.graphics.rectangle("fill", 0 - padding, 0 - padding, base.width + padding * 2, base.height + padding * 2)
 end
 
---[[-------------------------------------------------------------------------
-  *                                                                         -                                                                      
-  * Repeating Backgrounds                                                   -
-  *                                                                         -                                                                         
---------------------------------------------------------------------------]]--
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Repeating Background - Create  || Modes: mirroredrepeat, repeat, clamp, clampzero, clampone (Only the first two are useful for this, lol)
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.repeating_background.new(name, texture, mode_x, mode_y)
-  local texture_width = texture:getWidth()
-  local texture_height = texture:getHeight()
-  mode_x = mode_x or "repeat"
-  mode_y = mode_y or mode_x
-  texture:setWrap(mode_x, mode_y)
-  m.art.storage.rb[name] = {texture, love.graphics.newQuad(0, 0, base.width * 2, base.height * 2, texture_width, texture_height or texture_width)}
-end
-
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Repeating Background - Remove  
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.repeating_background.delete(name)
-  m.art.storage.rb[name] = nil
-end
-
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Repeating Background - Draw  
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.repeating_background.draw(name, x, y, r, sx, sy, ox, oy, kx, ky)
-  love.graphics.draw(m.art.storage.rb[name][1], m.art.storage.rb[name][2], x, y, r, sx, sy, ox, oy, kx, ky)
-end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draw a Disk
@@ -881,7 +881,7 @@ function m.art.draw_disk(x, y, r, total, rotate, dwidth)
   local function xc()
     love.graphics.arc("fill", x + r, y + r, r, 0 + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
     love.graphics.arc("fill", x + r, y + r, r, 0 + math.rad(rotate), math.rad(total * 360) + math.rad(rotate), 128)
-    love.graphics.circle("fill", x + r, y + r, r - dwidth)
+    love.graphics.circle("fill", x + r, y + r, r -  dwidth)
   end
 
   love.graphics.stencil(xc, "increment", 1)
@@ -1051,174 +1051,6 @@ function m.art.draw_disk_gradient(x, y, r, total, rotate, color1, color2, dwidth
   love.graphics.setStencilTest()
 end
 
---[[-------------------------------------------------------------------------
-  *                                                                         -                                                                      
-  * Slice9                                                  -
-  * Image Import Format: NAME_GridSize or NAME_GRIDX1_X2_X3_Y1_Y2_Y3                                                                        -                                                                         
---------------------------------------------------------------------------]]--
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Import after Graphics are Loaded
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.slice9.import_graphics_table_create_cache(path_to_slice9_format_images)
-  -- Set reasonable defaults if none are supplied.
-  local import_texture_container = path_to_slice9_format_images
-  assert(import_texture_container,
-    "The table where the frames are stored is required. If you do not require slice9, do not load it.")
-  local table_parts = m.text.split_by(import_texture_container, ".")
-  m.image_table = _G
-  for i = 1, #table_parts do m.image_table = m.image_table[table_parts[i]] end
-  -- m.image_table = {}
-  for i, v in pairs(m.image_table) do
-    local temptable = {}
-    temptable = m.text.split_by(i, "_")
-    if #temptable == 2 then
-      temptable[2] = tonumber(temptable[2])
-      m.art.slice9.create(temptable[1], i, temptable[2], temptable[2], temptable[2], temptable[2], temptable[2], temptable[2])
-    elseif #temptable == 7 then
-      m.art.slice9.create(temptable[1], i, tonumber(temptable[2]), tonumber(temptable[3]), tonumber(temptable[4]),
-        tonumber(temptable[5]), tonumber(temptable[6]), tonumber(temptable[7]))
-    else
-      assert(false, "Error: Frame name does not match format. Name_Size, or Name_Size1_Size2_...Size_6")
-    end
-  end
-end
-
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Slice Frame
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.slice9.create(name, imagename, size, size2, size3, size4, size5, size6)
-  local image_width = size + size2 + size3
-  local image_height = size4 + size5 + size6
-  m.art.storage.s9[name] = {
-    ["image"] = imagename,
-    ["sizes"] = {
-      size,
-      size2,
-      size3,
-      size4,
-      size5,
-      size6,
-    }, -- X Width 1, 2, 3 Row, Y same Col
-    ["top_left"] = love.graphics.newQuad(0, 0, size, size4, image_width, image_height),
-    ["top_middle"] = love.graphics.newQuad(0 + size, 0, size2, size4, image_width, image_height),
-    ["top_right"] = love.graphics.newQuad(0 + size + size2, 0, size3, size4, image_width, image_height),
-    ["middle_left"] = love.graphics.newQuad(0, 0 + size4, size, size5, image_width, image_height),
-    ["middle_middle"] = love.graphics.newQuad(0 + size, 0 + size4, size2, size5, image_width, image_height),
-    ["middle_right"] = love.graphics.newQuad(0 + size + size2, 0 + size4, size3, size5, image_width, image_height),
-    ["bottom_left"] = love.graphics.newQuad(0, 0 + size4 + size5, size, size6, image_width, image_height),
-    ["bottom_middle"] = love.graphics.newQuad(0 + size, 0 + size4 + size5, size2, size6, image_width, image_height),
-    ["bottom_right"] = love.graphics.newQuad(0 + size + size2, 0 + size4 + size5, size3, size6, image_width,
-      image_height),
-  }
-end
-
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Draw a frame with the middle stretched out.
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.slice9.draw(name, x, y, w, h)
-  x = math.floor(x)
-  y = math.floor(y)
-  w = math.floor(w)
-  h = math.floor(h)
-  local frame_library = m.image_table
-  local frame_data = m.art.storage.s9[name]
-  assert(frame_data, "Frame chosen must exist in the folder!")
-  local frame_selected = frame_library[frame_data.image]
-  local width_center = (w - frame_data.sizes[1] - frame_data.sizes[3]) / frame_data.sizes[2]
-  local height_center = (h - frame_data.sizes[4] - frame_data.sizes[6]) / frame_data.sizes[5]
-  local padding = {
-    top = frame_data.sizes[4],
-    right = frame_data.sizes[3],
-    bottom = frame_data.sizes[6],
-    left = frame_data.sizes[1],
-  }
-
-  -- Middle - Top
-  love.graphics.draw(frame_selected, frame_data["top_middle"], x + padding.left, y, 0, width_center, 1)
-  -- Middle - Right
-  love.graphics.draw(frame_selected, frame_data["middle_right"], x + w - padding.right, y + padding.top, 0, 1,
-    height_center)
-  -- Middle - Bottom
-  love.graphics.draw(frame_selected, frame_data["bottom_middle"], x + padding.left, y + h - padding.bottom, 0,
-    width_center, 1)
-  -- Middle - Left
-  love.graphics.draw(frame_selected, frame_data["middle_left"], x, y + padding.top, 0, 1, height_center)
-  -- Corners
-  love.graphics.draw(frame_selected, frame_data["top_left"], x, y)
-  love.graphics.draw(frame_selected, frame_data["top_right"], x + w - padding.right, y)
-  love.graphics.draw(frame_selected, frame_data["bottom_left"], x, y + h - frame_data.sizes[6])
-  love.graphics.draw(frame_selected, frame_data["bottom_right"], x + w - padding.right, y + h - padding.bottom)
-  -- Center 
-  love.graphics.draw(frame_selected, frame_data["middle_middle"], x + padding.left, y + padding.top, 0, width_center,
-    height_center)
-end
-
---[[--------------------------------------------------------------------------------------------------------------------------------------------------
-  * Draw a frame with tiled.
---------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.art.slice9.draw_tiled(name, x, y, w, h, config)
-  x = math.floor(x)
-  y = math.floor(y)
-  w = math.floor(w)
-  h = math.floor(h)
-  local frame_library = m.image_table
-  local frame_data = m.art.storage.s9[name]
-  assert(frame_data, "Frame chosen must exist in library !")
-  local frame_selected = frame_library[frame_data.image]
-  local width_center = (w - frame_data.sizes[1] - frame_data.sizes[3]) / frame_data.sizes[2]
-  local height_center = (h - frame_data.sizes[4] - frame_data.sizes[6]) / frame_data.sizes[5]
-  local padding = {
-    top = frame_data.sizes[4],
-    right = frame_data.sizes[3],
-    bottom = frame_data.sizes[6],
-    left = frame_data.sizes[1],
-  }
-  config = config or {}
-
-  -- Overflow tiles by one
-  config.overflow = config.overflow or 1
-
-  -- Center 
-  if config.tile_center then
-    for tile_x = 1, math.floor(width_center + 0.5) do
-      for tile_y = 1, math.floor(height_center + 0.5) do
-        love.graphics.draw(frame_selected, frame_data["middle_middle"],
-          x + padding.left + frame_data.sizes[2] * (tile_x - 1), y + padding.top + frame_data.sizes[5] * (tile_y - 1))
-      end
-    end
-  else
-    love.graphics.draw(frame_selected, frame_data["middle_middle"], x + padding.left, y + padding.top, 0, width_center,
-      height_center)
-  end
-
-
-  love.graphics.setScissor(x, y, math.max(1, w), math.max(1, h - padding.bottom))
-  -- Middle - Left/Righ
-  for tile_y = 1, math.floor(height_center + 0.5) + config.overflow do
-    love.graphics.draw(frame_selected, frame_data["middle_left"], x,
-      y + padding.top + frame_data.sizes[5] * (tile_y - 1))
-    love.graphics.draw(frame_selected, frame_data["middle_right"], x + w - padding.right,
-      y + padding.top + frame_data.sizes[5] * (tile_y - 1))
-  end
-
-  love.graphics.setScissor(x, y, math.max(1, w - padding.right), math.max(1, h))
-  -- Middle - Top/Bottom
-  for tile_x = 1, math.floor(width_center + 0.5) + config.overflow do
-    love.graphics.draw(frame_selected, frame_data["top_middle"], x + padding.left + frame_data.sizes[2] * (tile_x - 1),
-      y)
-    love.graphics.draw(frame_selected, frame_data["bottom_middle"],
-      x + padding.left + frame_data.sizes[2] * (tile_x - 1), y + h - padding.bottom)
-  end
-  love.graphics.setScissor()
-
-  -- Corners
-  love.graphics.draw(frame_selected, frame_data["top_left"], x, y)
-  love.graphics.draw(frame_selected, frame_data["top_right"], x + w - padding.right, y)
-  love.graphics.draw(frame_selected, frame_data["bottom_left"], x, y + h - frame_data.sizes[6])
-  love.graphics.draw(frame_selected, frame_data["bottom_right"], x + w - padding.right, y + h - padding.bottom)
-  -- End Drawing
-
-end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 

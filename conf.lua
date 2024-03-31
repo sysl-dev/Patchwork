@@ -1,4 +1,4 @@
-local program_title = "Patchwork Engine"
+local program_title = "ACE Engine"
 local save_folder = program_title:gsub(" ", "_") .. "_save"
 save_folder = save_folder:lower()
 

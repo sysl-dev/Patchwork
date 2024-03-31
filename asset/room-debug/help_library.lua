@@ -114,29 +114,6 @@ pages[#pages].draw = function()
   end
 end 
 
-Help.art.repeating_background.new("test", Texture.system.background.pattern_square)
-Help.art.repeating_background.delete("test")
-Help.art.repeating_background.new("___test", Texture.system.background.pattern_square)
-Help.art.repeating_background.new("___mirror", Texture.system.background.pattern_mirror, "mirroredrepeat")
-
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-   Help.art.repeating_background.draw("___test", 0, 0)
-   Help.text.print_outline({color2 = test_palette.get.red, color1 = test_palette[7], thick = true}, "Repeating Background.")
-end 
-
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-   Help.art.repeating_background.draw("___mirror", 0 - math.floor(timer*60) %(Texture.system.background.pattern_mirror:getWidth()*2), 0 - math.floor(timer*60) %(Texture.system.background.pattern_mirror:getHeight()*2))
-   Help.text.print_outline({color2 = test_palette.get.red, color1 = test_palette[7], thick = true}, "Repeating Background.")
-end 
-
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-   Help.art.repeating_background.draw("___test", 0 - math.abs(timer*20) %(Texture.system.background.pattern_mirror:getWidth()*2), 0 - math.abs(timer*20) %(Texture.system.background.pattern_mirror:getHeight()*2))
-   Help.text.print_outline({color2 = test_palette.get.red, color1 = test_palette[7], thick = true}, "Repeating Background.")
-end 
-
 local tp = {0,1,0,1}
 local tp2 = {1,0,1,1}
 pages[#pages+1] = {}
@@ -157,36 +134,7 @@ pages[#pages].draw = function()
   Help.art.draw_rectangle_gradient(10+25*3, 100, 24, 24 +  math.sin(timer) * 10, test_palette[4], test_palette[9], "c")
 end 
 
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-  Help.art.slice9.draw("pattern", 5, 5, 50, 50)
-  Help.art.slice9.draw_tiled("pattern", 5 + 51 * 1, 5, 50, 50)
-  Help.art.slice9.draw_tiled("pattern", 5 + 51 * 2, 5, 48, 48, {tile_center = true})
-end 
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-  Help.art.slice9.draw("pattern", 5, 5, 5 +  math.sin(timer) * 100, 50)
-  Help.art.slice9.draw_tiled("pattern", 5 + 75 * 1, 5, 50 +  math.sin(timer) * 10, 50)
-  local w = Help.number.fix_grid(50 +  math.sin(timer) * 100, 8)
-  local h = Help.number.fix_grid(50 +  math.sin(timer) * 0, 8)
-  Help.art.slice9.draw_tiled("pattern", 5 + 75 * 2, 5, w, h, {tile_center = true})
-end 
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-  Help.art.slice9.draw("pattern", 5, 5, 50, 50 +  math.sin(timer) * 100)
-  Help.art.slice9.draw_tiled("pattern", 5 + 75 * 1, 5, 50, 50 +  math.sin(timer) * 100)
-  local w = Help.number.fix_grid(50 +  math.sin(timer) * 0, 8)
-  local h = Help.number.fix_grid(50 +  math.sin(timer) * 100, 8)
-  Help.art.slice9.draw_tiled("pattern", 5 + 75 * 2, 5, w, h, {tile_center = true})
-end 
-pages[#pages+1] = {}
-pages[#pages].draw = function() 
-  Help.art.slice9.draw("pattern", 5, 5, 50 +  math.sin(timer) * 100, 50 +  math.sin(timer) * 100)
-  Help.art.slice9.draw_tiled("pattern", 5 + 75 * 1, 5, 50 + math.sin(timer) * 100, 50 +  math.sin(timer) * 100)
-  local w = Help.number.fix_grid(50 +  math.sin(timer) * 100, 8)
-  local h = Help.number.fix_grid(50 +  math.sin(timer) * 100, 8)
-  Help.art.slice9.draw_tiled("pattern", 5 + 75 * 2, 5, w, h, {tile_center = true})
-end 
+
 
 function room:update(dt)
   if Help.update.stop_runaway_dt(dt) then return end 

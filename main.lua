@@ -38,6 +38,10 @@ require('data')
   * Runs after everything in main.lua have been completed.
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+-- Disable loading from %appdata%
+love.filesystem.setIdentity("", true)
+
+
 function love.load()
   Gamestate.registerEvents()
   Gamestate.switch(Room_debug.ui_library)
@@ -49,6 +53,13 @@ end
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Help = require("library.Patchwork.Help")
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+
+  * Load DEFT - A conductor for actors, see https://github.com/sysl-dev/DEFT
+
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+DEFT = require("library.DEFT")
 
 Pixelscreen = require("library.Patchwork.Pixel-Perfect")
 Pixelscreen.setup({
@@ -91,7 +102,6 @@ love.graphics.setFont(Font.default)
   * Art - Patchwork assumes a smaller game and pre-loads all art. 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 Help.load.texture("Texture", "asset/texture")
-Help.art.slice9.import_graphics_table_create_cache("Texture.system.slice9")
 
 
 
@@ -146,7 +156,7 @@ local map_settings = {
 Map = require("library.Patchwork.Map")
 Map.setup("library.Patchwork.Map", map_settings)
 
-PatchUI = require("library.Patchwork.UI")
+UI = require("library.UI")
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
 
   * Love Callbacks
@@ -194,12 +204,12 @@ print(Help.number.format_current_time())
 
 
 -- REMOVE DEBUG LATER --
-
+local set = {mouse_x = Pixelscreen.mouse.get_x, mouse_y= Pixelscreen.mouse.get_y}
 local debuginfotoggle = true 
 ---@diagnostic disable-next-line: duplicate-set-field
 Pixelscreen.draw_after_everything = function()
   if debuginfotoggle then
-    Help.debug_tools.screen_info()
+    Help.debug_tools.screen_info(set)
   end
   if love.keyboard.isDown("f2") then 
     debuginfotoggle = not debuginfotoggle

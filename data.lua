@@ -25,5 +25,6 @@ GAME_CONFIG = {
   system = {
     save_history = false, -- TODO: Keep archive of saves in folder
     button_icons = "default", -- default to msXinput
+    mods = false,
   }
 }
