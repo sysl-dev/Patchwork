@@ -118,20 +118,9 @@ local tp = {0,1,0,1}
 local tp2 = {1,0,1,1}
 pages[#pages+1] = {}
 pages[#pages].draw = function() 
-  Help.art.draw_rectangle_gradient(10, 10, 24, 24, test_palette[2], test_palette[3], "x")
-  Help.art.draw_rectangle_gradient(10+25, 10, 24, 24, test_palette[1], test_palette[16], "y")
-  Help.art.draw_rectangle_gradient(10+25*2, 10, 24, 24, test_palette[5], test_palette[14], "xy")
-  Help.art.draw_rectangle_gradient(10+25*3, 10, 24, 24, tp, tp2, "c")
-  Help.art.draw_rectangle_gradient(10+25*4, 10, 24, 24, tp, tp2, "c", 16)
-  Help.art.draw_rectangle_gradient(10+25*5, 10, 24, 24, tp, tp2, "c", 32)
-  Help.art.draw_rectangle_gradient(10+25*6, 10, 24, 24, test_palette[1], test_palette[16], "y", 8)
-  Help.art.draw_rectangle_gradient(10+25*7, 10, 24, 24, test_palette[1], test_palette[16], "y", 32)
+
   Help.art.draw_disk(25, 10 + 25, 25, 95, 5)
-  Help.art.draw_disk_gradient(76, 10 + 25, 25, math.sin(timer), -90, {1,0,0,1}, {0,0,1,1}, 10, "c")
-  Help.art.draw_rectangle_gradient(10, 100, 24, 24 +  math.sin(timer) * 10, test_palette[2], test_palette[3], "x")
-  Help.art.draw_rectangle_gradient(10+25, 100, 24, 24 +  math.sin(timer) * 10, test_palette[1], test_palette[16], "y")
-  Help.art.draw_rectangle_gradient(10+25*2, 100, 24, 24 +  math.sin(timer) * 10, test_palette[5], test_palette[14], "xy")
-  Help.art.draw_rectangle_gradient(10+25*3, 100, 24, 24 +  math.sin(timer) * 10, test_palette[4], test_palette[9], "c")
+
 end 
 
 

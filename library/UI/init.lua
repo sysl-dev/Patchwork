@@ -38,7 +38,7 @@ local m = {
 
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function print_warning(...)
-  if m.__DEBUG >= 1 then 
+  if m.__DEBUG >= 1 then
     print(m.__NAME .. "-WARNING:")
     print(...)
     print("")
@@ -46,7 +46,7 @@ local function print_warning(...)
 end
 
 local function print_information(...)
-  if m.__DEBUG >= 2 then 
+  if m.__DEBUG >= 2 then
     print(m.__NAME .. "-INFORMATION:")
     print(...)
     print("")
@@ -54,7 +54,7 @@ local function print_information(...)
 end
 
 local function print_noise(...)
-  if m.__DEBUG >= 2 then 
+  if m.__DEBUG >= 2 then
     print(m.__NAME .. "-NOISE:")
     print(...)
     print("")
@@ -80,28 +80,16 @@ To Do
   GRAPHS
     Line Graph
     Bar Graph
-    Comparison Graphs
-    Spider Graph 
 
   MORE FEATURES
     Text Box (Simple, no advanced editing)
-    Number Picker
+    Number Picker0
     Color Picker
-    Whatever this style of UI is called: [<]   00    [>]
-
-  SHAPES
-      Standard Torus
-      Circle
-
-  GRADIENT
-    Gradient Limit Colors 
-      Gradient Rectangle
-      Gradient Circle
-      Gradient Torus 
       
   PAINFUL ITEMS
     Fake Scrolling Window, Shows X Items, changes what items are in slots when move (Window
     Real Scrolling Window, Items out of view do not render
+      plot along line / curved line 
 ]]--
 
 
@@ -203,7 +191,7 @@ m.theme = {
     color = "0f0f0f",
     background = "f0f0f0",
     highlight = "aa0000",
-   
+
     -- TOOLTIP STYLE --
     tooltip = {
       color = "0f0f0f",
@@ -249,11 +237,11 @@ m.theme = {
 local function generate_pixels_on_imagemap(imap, atable, length, width)
   local i = 1
   for y=1, length/width do
-    for x=1, width do 
+    for x=1, width do
       local color = atable[i]
       local px = x - 1
       local py = y - 1
-      if color ~= 2 then 
+      if color ~= 2 then
         imap:setPixel(px, py, color, color, color, 1)
       end
       i = i + 1
@@ -280,9 +268,9 @@ local rawcur = {
   0,1,1,1,0,2,
   0,1,1,1,1,0,
   0,1,1,1,1,0,
-  0,1,1,1,0,2, 
+  0,1,1,1,0,2,
   0,1,1,0,2,2,
-  0,0,0,2,2,2, 
+  0,0,0,2,2,2,
 }
 generate_pixels_on_imagemap(m.texture_arrow, rawcur, #rawcur, 6)
 m.texture_arrow = love.graphics.newImage(m.texture_arrow)
@@ -309,7 +297,7 @@ local node_map_storage = {
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.create_simple_grid_node_map(size)
   local name = "simple_grid" .. tostring(size)
-  if not node_map_storage[name] then 
+  if not node_map_storage[name] then
     node_map_storage[name] = { [0] = {
       up = -1*size,
       down = 1*size,
@@ -346,62 +334,62 @@ local function string_to_number(value)
   -- Got a nil? Don't bother. 
   if type(value) == "nil" then return end
   -- Strings are work.
-  if type(value) == "string" then 
+  if type(value) == "string" then
     value = value:lower()
     -- % Positioning X
-    if string.sub(value, -1, -1) == "%" then 
+    if string.sub(value, -1, -1) == "%" then
       return math.floor((tonumber(string.sub(value, 1, -2))/100 * m.storage.__width))
     -- % Positioning X
-    elseif string.sub(value, -2, -1) == "%w" then 
+    elseif string.sub(value, -2, -1) == "%w" then
       return math.floor((tonumber(string.sub(value, 1, -3))/100 * m.storage.__width))
     -- % Positioning Y
-    elseif string.sub(value, -2, -1) == "%h" then 
+    elseif string.sub(value, -2, -1) == "%h" then
       return math.floor(tonumber(string.sub(value, 1, -3))/100 * m.storage.__height)
     -- Pixels, used for calc 
-    elseif string.sub(value, -2, -1) == "px" then 
+    elseif string.sub(value, -2, -1) == "px" then
       return math.floor(tonumber(string.sub(value, 1, -3)))
     -- Fixed X 
-    elseif string.sub(value, -2, -1) == "fx" then 
+    elseif string.sub(value, -2, -1) == "fx" then
       return math.floor(tonumber(string.sub(value, 1, -3))) - m.storage.__pen.x
     -- Fixed Y 
-    elseif string.sub(value, -2, -1) == "fy" then 
+    elseif string.sub(value, -2, -1) == "fy" then
       return math.floor(tonumber(string.sub(value, 1, -3))) - m.storage.__pen.y
     -- Grid Pos
-    elseif string.find(value, "#") then 
+    elseif string.find(value, "#") then
       local gridparts = split_string_by(value, "#")
       return math.floor(gridparts[1] * gridparts[2])
     -- Last Width
-    elseif string.find(value, "last width") then 
+    elseif string.find(value, "last width") then
       return m.storage.__last_width
     -- Last Height
-    elseif string.find(value, "last height") then 
+    elseif string.find(value, "last height") then
       return m.storage.__last_height
     -- Center Positioning X
-    elseif string.find(value, "half width") then 
+    elseif string.find(value, "half width") then
       return math.floor(m.storage.__width/2)
     -- Center Positioning Y
-    elseif string.find(value, "half height") then 
+    elseif string.find(value, "half height") then
       return math.floor(m.storage.__height/2)
         -- % Positioning Y
-    elseif string.sub(value, 1,4) == "calc" then 
+    elseif string.sub(value, 1,4) == "calc" then
       local calcparts = split_string_by(value, " ")
       local result = 0
       local state = "replace"
-      for i = 2, #calcparts - 1 do     
+      for i = 2, #calcparts - 1 do
         if calcparts[i] == "+" then state = "add"
-        elseif calcparts[i] == "-" then state = "sub" 
-        elseif calcparts[i] == "*" then state = "mul" 
-        elseif calcparts[i] == "/" then state = "div" 
+        elseif calcparts[i] == "-" then state = "sub"
+        elseif calcparts[i] == "*" then state = "mul"
+        elseif calcparts[i] == "/" then state = "div"
         else
-          if state == "replace" then 
+          if state == "replace" then
             result = string_to_number(calcparts[i])
-          elseif state == "add" then 
+          elseif state == "add" then
             result = result + string_to_number(calcparts[i])
-          elseif state == "sub" then 
+          elseif state == "sub" then
             result = result - string_to_number(calcparts[i])
-          elseif state == "div" then 
+          elseif state == "div" then
             result = result / string_to_number(calcparts[i])
-          elseif state == "mul" then 
+          elseif state == "mul" then
             result = result * string_to_number(calcparts[i])
           end
         end
@@ -411,7 +399,7 @@ local function string_to_number(value)
     error("Command Not Understood: " .. tostring(value))
   else
     -- Any other types? Just return them. 
-    return value 
+    return value
   end
 end
 
@@ -426,13 +414,13 @@ local function color_read_hex(color_string)
   -- Convert
   color_string = color_string:gsub("#", "")
   if color_convert_cache[color_string] then return color_convert_cache[color_string] end
-  if #color_string == 3 then 
+  if #color_string == 3 then
     color_string = string.sub(color_string, 1,1) .. string.sub(color_string, 1,1) .. string.sub(color_string, 2,2) .. string.sub(color_string, 2,2) ..
-    string.sub(color_string, 3,3) ..  string.sub(color_string, 3,3) 
+    string.sub(color_string, 3,3) ..  string.sub(color_string, 3,3)
   end
-  if #color_string == 4 then 
+  if #color_string == 4 then
     color_string = string.sub(color_string, 1,1) .. string.sub(color_string, 1,1) .. string.sub(color_string, 2,2) .. string.sub(color_string, 2,2) ..
-    string.sub(color_string, 3,3) .. string.sub(color_string, 3,3)  .. string.sub(color_string, 4,4)  .. string.sub(color_string, 4,4) 
+    string.sub(color_string, 3,3) .. string.sub(color_string, 3,3)  .. string.sub(color_string, 4,4)  .. string.sub(color_string, 4,4)
   end
   local r = tonumber(color_string:sub(1, 2), 16)
   local g = tonumber(color_string:sub(3, 4), 16)
@@ -448,10 +436,10 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Create a rectangle from an image to allow for lazy shaders.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function draw_1px_rectangle(color, x, y, w, h)
+local function draw_rectangle_with_color(color, x, y, w, h)
   local lr, lg, lb, la = love.graphics.getColor()
   -- Set the color 
-  if color then 
+  if color then
       love.graphics.setColor(color_read_hex(color))
   end
   -- Draw the rectangle
@@ -461,12 +449,27 @@ local function draw_1px_rectangle(color, x, y, w, h)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Create a pixel line (replace w/ pixel line if I care enough later)
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local function draw_line_with_color(color, ...)
+  local lr, lg, lb, la = love.graphics.getColor()
+  -- Set the color 
+  if color then
+      love.graphics.setColor(color_read_hex(color))
+  end
+  -- Draw the rectangle
+  love.graphics.line(...)
+  -- Reset the color 
+  love.graphics.setColor(lr, lg, lb, la)
+end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Create a rectangle from an image to allow for lazy shaders.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
+local function draw_text_with_color(text, x, y, w, align, color)
   local lr, lg, lb, la = love.graphics.getColor()
     -- Set the color
-    if color then 
+    if color then
       love.graphics.setColor(color_read_hex(color))
     end
     -- Draw the rectangle
@@ -478,19 +481,60 @@ local function draw_text_capture_color_and_restore(text, x, y, w, align, color)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Draws a 1 width outline
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--  
-local white_color_for_draw_frame = {1,1,1,1} 
+local white_color_for_draw_frame = {1,1,1,1}
 local function draw_frame_square(color, x, y, w, h)
   local lr, lg, lb, la = love.graphics.getColor()
   color = color or white_color_for_draw_frame
-    if color then 
+    if color then
       color = love.graphics.setColor(color_read_hex(color))
     end
 
-    draw_1px_rectangle(color, x, y, w, 1)
-    draw_1px_rectangle(color, x, y+h-1, w, 1)
-    draw_1px_rectangle(color, x, y, 1, h)
-    draw_1px_rectangle(color, x+w-1, y, 1, h)
+    draw_rectangle_with_color(color, x, y, w, 1)
+    draw_rectangle_with_color(color, x, y+h-1, w, 1)
+    draw_rectangle_with_color(color, x, y, 1, h)
+    draw_rectangle_with_color(color, x+w-1, y, 1, h)
 
+    love.graphics.setColor(lr, lg, lb, la)
+  end
+
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  * Draw a complex polygon from a table 
+--------------------------------------------------------------------------------------------------------------------------------------------------]]--
+local draw_poly_cache = {}
+local function draw_poly_with_color_cache(name, color, vertices, style)
+  style = style or "fill"
+  local lr, lg, lb, la = love.graphics.getColor()
+    -- Set the color
+    if color then
+      love.graphics.setColor(color_read_hex(color))
+    end
+    -- Draw the polygon
+    if not draw_poly_cache[name] then
+      draw_poly_cache[name] = love.math.triangulate(vertices)
+    end
+    local triangles = draw_poly_cache[name]
+
+    for tri=1, #triangles do
+      love.graphics.polygon(style, triangles[tri])
+    end
+    -- Reset the color 
+    love.graphics.setColor(lr, lg, lb, la)
+  end
+
+local function draw_poly_with_color(name, color, vertices, style)
+  style = style or "fill"
+  local lr, lg, lb, la = love.graphics.getColor()
+    -- Set the color
+    if color then
+      love.graphics.setColor(color_read_hex(color))
+    end
+    -- Draw the polygon
+    local triangles = love.math.triangulate(vertices)
+
+    for tri=1, #triangles do
+      love.graphics.polygon(style, triangles[tri])
+    end
+    -- Reset the color 
     love.graphics.setColor(lr, lg, lb, la)
   end
 
@@ -500,8 +544,8 @@ local function draw_frame_square(color, x, y, w, h)
   local function isover(local_x, local_y, local_width, local_height, mouse_x, mouse_y, mouse_width, mouse_height)
     mouse_width = mouse_width or 1
     mouse_height = mouse_height or 1
-    return local_x < mouse_x + mouse_width and 
-            mouse_x < local_x + local_width and 
+    return local_x < mouse_x + mouse_width and
+            mouse_x < local_x + local_width and
             local_y < mouse_y + mouse_height and
             mouse_y < local_y + local_height
     end
@@ -509,20 +553,20 @@ local function draw_frame_square(color, x, y, w, h)
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Get the character width for the current font.
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function get_character_width(text) 
-  return love.graphics.getFont():getWidth(text) 
+local function get_character_width(text)
+  return love.graphics.getFont():getWidth(text)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Get the character height for the current font. (Will have to add linebreak count later.)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function get_character_height(text) 
-  return love.graphics.getFont():getHeight(text) 
+local function get_character_height(text)
+  return love.graphics.getFont():getHeight(text)
 end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Get the character height for the current font. (Will have to add linebreak count later.)
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-local function get_character_height_include_linebreaks(text,width) 
+local function get_character_height_include_linebreaks(text,width)
   local _, twrappedtext = love.graphics.getFont():getWrap(text, width)
   return math.floor(#twrappedtext * love.graphics.getFont():getHeight() * love.graphics.getFont():getLineHeight()), get_character_height(text)
 end
@@ -544,17 +588,17 @@ function m.update(dt)
   m.clock.background = m.clock.background + dt
   if m.clock.background > 100000 * math.pi then m.clock.background = m.clock.background - 100000 * math.pi end
 
-  if (not love.mouse.isDown(m.primary_mouse)) then 
+  if (not love.mouse.isDown(m.primary_mouse)) then
     m.mouse_button_lock = false
   end
-  if (not love.mouse.isDown(m.secondary_mouse)) then 
+  if (not love.mouse.isDown(m.secondary_mouse)) then
     m.mouse_button_lock = false
   end
-  if (not love.mouse.isDown(m.tertiary_mouse)) then 
+  if (not love.mouse.isDown(m.tertiary_mouse)) then
     m.mouse_button_lock = false
   end
 
-  if (not m.vcursor_key) then 
+  if (not m.vcursor_key) then
     m.vcursor_key_lock = false
   end
 
@@ -615,9 +659,9 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.get_number_from_id_draw_queue(id)
   local draw_queue = m.get_active_ui_draw_queue()
-  local escape_search = nil 
-  for i=#draw_queue, 1, -1 do 
-    if draw_queue[i][3] == id then 
+  local escape_search = nil
+  for i=#draw_queue, 1, -1 do
+    if draw_queue[i][3] == id then
       escape_search = i
     end
   end
@@ -648,20 +692,20 @@ function m.define(name, x, y, w, h, mousex, mousey, theme)
   mousey = mousey or love.mouse.getY()
 
   -- Cache our menu, so we can toggle active/inactive for cursor
-  if not m.storage.__uis[name] then 
-    m.storage.__uis[name] = { 
+  if not m.storage.__uis[name] then
+    m.storage.__uis[name] = {
       settings = {
       active = false,
       theme = theme
       },
       draw_queue = {
 
-      } 
+      }
     }
   end
 
   -- Clear any draw commands for a fresh round
-  for i=#m.storage.__uis[name].draw_queue, 1, -1 do 
+  for i=#m.storage.__uis[name].draw_queue, 1, -1 do
     m.storage.__uis[name].draw_queue[i] = nil
   end
 
@@ -695,7 +739,7 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.active_ui_clear()
 -- If we're setting active, clear any stored states for popping 
-  for i=#m.storage.__ui_active, 1, -1 do 
+  for i=#m.storage.__ui_active, 1, -1 do
     m.storage.__ui_active[i] = nil
   end
 end
@@ -706,7 +750,7 @@ end
 function m.active_ui_set(name)
   -- Just in case 
   name = tostring(name)
-  
+
   -- If we're setting active, clear any stored states for popping 
   m.active_ui_clear()
 
@@ -720,13 +764,13 @@ end
 function m.active_ui_push(name)
   -- Just in case 
   name = tostring(name)
-  
+
   -- Push the new UI to the stack (unless it's already set)
   -- I know I should let you push the same UI more than once
   -- instead of correcting this magically
   -- but this library is going to be used in gamejams
   -- so it stays.
-  if (m.storage.__ui_active[#m.storage.__ui_active] ~= name) then 
+  if (m.storage.__ui_active[#m.storage.__ui_active] ~= name) then
     table.insert(m.storage.__ui_active, 1, name)
   end
 end
@@ -744,12 +788,12 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.draw_defined(name)
   name = tostring(name)
-  
+
   -- Confirm that we've create the UI before drawing it.
   if not m.storage.__uis[name] then return end
 
   -- Run the draw function for each object
-  for i=1, #m.storage.__uis[name].draw_queue do 
+  for i=1, #m.storage.__uis[name].draw_queue do
     -- Stored as: 
     -- 1. Function 
     -- 2. Can the cursor land on this
@@ -767,22 +811,22 @@ function m.create_node_map(name, map_table)
   map_table = map_table or empty_table
   -- Make a local for the node map and draw queue 
   local nodemap
-  local drawq 
+  local drawq
 
   -- if it exists, make a local for our drawqueue
-  if m.storage.__uis[name].draw_queue then 
+  if m.storage.__uis[name].draw_queue then
      drawq = m.storage.__uis[name].draw_queue
   else
-    error("That NAME: " .. name .. "DID NOT EXIST!") 
+    error("That NAME: " .. name .. "DID NOT EXIST!")
   end
 
   -- Create the map if it does not exist, set to our cache local 
-  if not m.storage.__node_map[name] then 
+  if not m.storage.__node_map[name] then
     m.storage.__node_map[name] = {}
   end
 
   -- Empty the node map 
-  for i=#m.storage.__node_map[name], 1, -1 do 
+  for i=#m.storage.__node_map[name], 1, -1 do
     m.storage.__node_map[name][i] = nil
   end
 
@@ -790,15 +834,15 @@ function m.create_node_map(name, map_table)
   nodemap = m.storage.__node_map[name]
 
   -- Start building our map.
-  for i=1, #drawq do 
-    if drawq[i][2] then 
+  for i=1, #drawq do
+    if drawq[i][2] then
       -- If our maptable has defined special remaps, then we use it.
       local map_used = map_table[drawq[i][3]] or map_table[0] or node_map_storage.default_map
       --                        id,         cursor type,           x,         y,          w,          h,             map
       nodemap[#nodemap + 1] = {drawq[i][3], drawq[i][4], drawq[i][5], drawq[i][6], drawq[i][7], drawq[i][8], map_used}
     end
   end
-  
+
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -844,7 +888,7 @@ function m.solid_rectangle(color, w, h, x, y, shader)
     function()
       local pastshader = love.graphics.getShader()
       love.graphics.setShader(shader)
-      draw_1px_rectangle(color, x, y, w, h)
+      draw_rectangle_with_color(color, x, y, w, h)
       love.graphics.setShader(pastshader)
     end,
     -- Can the cursor land on this?
@@ -891,7 +935,7 @@ function m.solid_disk(color, disk_width, total_filled, disk_thickness, rotate_st
       love.graphics.setShader(shader)
       love.graphics.stencil(pixel_test_function, "increment", 1)
       love.graphics.setStencilTest("equal", 2)
-      draw_1px_rectangle(color, x, y, w, h)
+      draw_rectangle_with_color(color, x, y, w, h)
       love.graphics.setStencilTest()
       love.graphics.setShader(pastshader)
     end,
@@ -920,7 +964,7 @@ function m.image(image, r, scale, mode, w, h, x, y, shader)
   r = r or 0
   scale = scale or 1
   local ox, oy = 0,0
-  if mode ~= "top-left" then 
+  if mode ~= "top-left" then
     ox = math.floor(w/2)
     oy = math.floor(h/2)
     x = x + math.floor(w/2)
@@ -963,7 +1007,7 @@ function m.slice9(image, w, h, is_tile, x, y, shader)
   y = string_to_number(y)
   x = x + m.storage.__pen.x
   y = y + m.storage.__pen.y
-  if not slice9_cache[image] then 
+  if not slice9_cache[image] then
     image:setWrap("clampzero", "clampzero")
     slice9_cache[image] = {
       top_left = love.graphics.newQuad(0*chunk,0,chunk,chunk,image_w,image_h),
@@ -978,7 +1022,7 @@ function m.slice9(image, w, h, is_tile, x, y, shader)
     }
   end
 
-  if is_tile then 
+  if is_tile then
     local remainder = w % chunk
     w = w - remainder
     local remainder = h % chunk
@@ -996,7 +1040,7 @@ function m.slice9(image, w, h, is_tile, x, y, shader)
       love.graphics.setShader(shader)
       if is_tile then
         for ty = 1, math.floor(h/chunk) - 2 do
-          for tx = 1, math.floor(w/chunk) - 2 do 
+          for tx = 1, math.floor(w/chunk) - 2 do
             love.graphics.draw(image, slice9_cache[image]["center_center"], x + chunk + (tx -1) * chunk, y + chunk + (ty -1) * chunk)
           end
         end
@@ -1005,7 +1049,7 @@ function m.slice9(image, w, h, is_tile, x, y, shader)
           love.graphics.draw(image, slice9_cache[image]["center_left"], x, y + chunk + (ty -1) * chunk)
           love.graphics.draw(image, slice9_cache[image]["center_right"], x+w-chunk, y + chunk + (ty -1) * chunk)
         end
-        for tx = 1, math.floor(w/chunk) - 2 do 
+        for tx = 1, math.floor(w/chunk) - 2 do
           love.graphics.draw(image, slice9_cache[image]["top_center"], x + chunk + (tx -1) * chunk, y)
           love.graphics.draw(image, slice9_cache[image]["bottom_center"], x + chunk + (tx -1) * chunk, y+h-chunk)
         end
@@ -1061,7 +1105,7 @@ function m.repeating_background(image, id, speedx, speedy, dt, w, h, x, y, shade
   local quadw = math.max(imgw*3, w*3)
   local quadh = math.max(imgh*3, h*3)
 
-  if not repeating_image_cache[id] then 
+  if not repeating_image_cache[id] then
   image:setWrap("repeat", "repeat")
   repeating_image_cache[id] = {
       image,
@@ -1142,7 +1186,7 @@ function m.text_color(text,w,h,align,color,x,y,shader)
     function()
       local pastshader = love.graphics.getShader()
       love.graphics.setShader(shader)
-      draw_text_capture_color_and_restore(text, x, y + text_y_pos, w, align, color)
+      draw_text_with_color(text, x, y + text_y_pos, w, align, color)
       love.graphics.setShader(pastshader)
     end,
     -- Can the cursor land on this?
@@ -1182,7 +1226,7 @@ function m.scrollbar_basic(id,dt,w,h,maxw,maxh,start_posx, start_posy,x,y)
   local colorfront = m.get_current_theme().color
   local colorbg = m.get_current_theme().background
 
-  if not scrollbar_cache[id] then 
+  if not scrollbar_cache[id] then
     scrollbar_cache[id] = {start_posx, start_posy}
   end
 
@@ -1205,20 +1249,20 @@ function m.scrollbar_basic(id,dt,w,h,maxw,maxh,start_posx, start_posy,x,y)
     scrollbar_cache[id][2] = per_boy
   end
 
-  if is_cursor_button_active and is_vcursor_over then 
+  if is_cursor_button_active and is_vcursor_over then
     m.vcursor_key_lock = true
     vel = 0.5
     colorfront = m.get_current_theme().highlight
-    if m.vcursor_left then 
+    if m.vcursor_left then
       scrollbar_cache[id][1] = scrollbar_cache[id][1] - (vel) * dt
     end
-    if m.vcursor_right then 
+    if m.vcursor_right then
       scrollbar_cache[id][1] = scrollbar_cache[id][1] + (vel) * dt
     end
-    if m.vcursor_up then 
+    if m.vcursor_up then
       scrollbar_cache[id][2] = scrollbar_cache[id][2] - (vel) * dt
     end
-    if m.vcursor_down then 
+    if m.vcursor_down then
       scrollbar_cache[id][2] = scrollbar_cache[id][2] + (vel) * dt
     end
   else
@@ -1233,13 +1277,13 @@ function m.scrollbar_basic(id,dt,w,h,maxw,maxh,start_posx, start_posy,x,y)
   draw_queue[#draw_queue + 1] = {
     -- Do a function.
     function()
-      draw_1px_rectangle(colorfront, x, y, maxw, maxh)
-      draw_1px_rectangle(colorbg, x+1, y+1, maxw-2, maxh-2)
+      draw_rectangle_with_color(colorfront, x, y, maxw, maxh)
+      draw_rectangle_with_color(colorbg, x+1, y+1, maxw-2, maxh-2)
       local px = math.floor(scrollbar_cache[id][1] * maxw) - math.floor(w/2)
       px = clamp(px, 0, maxw-w)
       local py = math.floor(scrollbar_cache[id][2] * maxh) - math.floor(h/2)
       py = clamp(py, 0, maxh-h)
-      draw_1px_rectangle(colorfront, x + px, y + py, w, h)
+      draw_rectangle_with_color(colorfront, x + px, y + py, w, h)
     end,
     -- Can the cursor land on this?
     true, id,nil,x,y,maxw,maxh
@@ -1272,7 +1316,7 @@ function m.scrollbar_image(img_bg, img_bg_act, img_cur, id,dt,start_posx,start_p
   local cur = img_cur
 
 
-  if not scrollbar_cache[id] then 
+  if not scrollbar_cache[id] then
     scrollbar_cache[id] = {start_posx, start_posy}
   end
 
@@ -1295,20 +1339,20 @@ function m.scrollbar_image(img_bg, img_bg_act, img_cur, id,dt,start_posx,start_p
     scrollbar_cache[id][2] = per_boy
   end
 
-  if is_cursor_button_active and is_vcursor_over then 
+  if is_cursor_button_active and is_vcursor_over then
     m.vcursor_key_lock = true
     vel = 0.5
     bg = img_bg_act
-    if m.vcursor_left then 
+    if m.vcursor_left then
       scrollbar_cache[id][1] = scrollbar_cache[id][1] - (vel) * dt
     end
-    if m.vcursor_right then 
+    if m.vcursor_right then
       scrollbar_cache[id][1] = scrollbar_cache[id][1] + (vel) * dt
     end
-    if m.vcursor_up then 
+    if m.vcursor_up then
       scrollbar_cache[id][2] = scrollbar_cache[id][2] - (vel) * dt
     end
-    if m.vcursor_down then 
+    if m.vcursor_down then
       scrollbar_cache[id][2] = scrollbar_cache[id][2] + (vel) * dt
     end
   else
@@ -1355,7 +1399,7 @@ function m.button(text, id, button_active, w, h, theme, cursor_type, x, y, draw_
   local state = "normal"
   local active_button = "no"
   local button_cache = m.get_current_button_cache()
-  local cacheid = id 
+  local cacheid = id
   local extra = {...}
 
   -- Enter, set font for scaling reasons
@@ -1376,13 +1420,13 @@ function m.button(text, id, button_active, w, h, theme, cursor_type, x, y, draw_
   h = string_to_number(h)
   x,y = (x or 0),(y or 0)
   x = string_to_number(x) + m.storage.__pen.x
-  y = string_to_number(y) + m.storage.__pen.y 
+  y = string_to_number(y) + m.storage.__pen.y
 
   -- A bit of text formatting
   local text_x = x + theme_padding.left
   local text_y = y + (h/2) - get_character_height_include_linebreaks(text,w)/2
   local text_w = w-(theme_padding.left + theme_padding.right)
-  
+
   -- Is the mouse over?
   local is_mouse_over = isover(x,y,w,h,m.storage.mousex, m.storage.mousey)
   local is_vcursor_over = (m.vcursor.element_name == id) and (m.active_ui_name_get() == m.vcursor.ui_active_check)
@@ -1390,35 +1434,35 @@ function m.button(text, id, button_active, w, h, theme, cursor_type, x, y, draw_
   local is_mouse2_down = love.mouse.isDown(m.secondary_mouse)
   local is_mouse3_down = love.mouse.isDown(m.tertiary_mouse)
   local is_cursor_button_active = m.vcursor_key
-  
+
   -- If we're hovering, then change state 
-  if is_mouse_over or is_vcursor_over then state = "hover" end 
+  if is_mouse_over or is_vcursor_over then state = "hover" end
 
    -- Are we over the button and the mouse buttons accepted are down? We enable button function 
   if ((is_mouse_over and (is_mouse_down or is_mouse2_down or is_mouse3_down) and (not m.mouse_button_lock)) or (is_cursor_button_active and is_vcursor_over and (not m.vcursor_key_lock))) then
     active_button = "yes"
-  else 
+  else
     button_cache[cacheid] = false
   end
 
   -- Are we over the button and the mouse buttons accepted are down? We set draw state to active!
   if ((is_mouse_over and (is_mouse_down or is_mouse2_down or is_mouse3_down)) or (is_cursor_button_active and is_vcursor_over)) then
     state = "active"
-  else 
+  else
     button_cache[cacheid] = false
   end
 
   -- Buttons are active unless they are not.
-  if type(button_active) == "boolean" then 
-    if button_active then 
+  if type(button_active) == "boolean" then
+    if button_active then
       state = "enabled"
     else
       state = "disabled"
     end
   end
-    
+
     -- If we're still active, adjust the text.
-    if state == "active" or state == "enabled" then 
+    if state == "active" or state == "enabled" then
       text_y = text_y + 1
     end
 
@@ -1448,7 +1492,7 @@ function m.button(text, id, button_active, w, h, theme, cursor_type, x, y, draw_
   m.storage.__last_height = h
 
   -- Run Code 
-  if (active_button == "yes") and (not button_cache[cacheid]) then 
+  if (active_button == "yes") and (not button_cache[cacheid]) then
     button_cache[cacheid] = true
     m.mouse_button_lock = true
     m.vcursor_key_lock = true
@@ -1462,9 +1506,9 @@ end
   * Simple Button - 1px Outline
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 local function button_basic_draw(col_bg, col_border, x, y, w, h, text,text_x,text_y,text_w,theme_align,col_txt,state,extra)
-  draw_1px_rectangle(col_bg, x, y, w, h)
+  draw_rectangle_with_color(col_bg, x, y, w, h)
   draw_frame_square(col_border, x, y, w, h)
-  draw_text_capture_color_and_restore(text,text_x,text_y,text_w,theme_align,col_txt)
+  draw_text_with_color(text,text_x,text_y,text_w,theme_align,col_txt)
 end
 
 function m.button_basic(text, id, button_active, w, h, theme, cursor_type, x, y)
@@ -1481,14 +1525,14 @@ local function button_quad_draw(col_bg, col_border, x, y, w, h, text,text_x,text
   col_txt = extra[5] or "000000"
   local color2 = extra[6] or col_txt
   local color3 = extra[7] or col_txt
-  if text then 
+  if text then
     text_x = x
     text_y = y + math.floor(h/2 - get_character_height_include_linebreaks(text, w)/2 )
     text_w = w
     if state == "hover" then col_txt = color2 end
     if state == "active" then text_y = text_y + text_move; col_txt = color3 end
     theme_align = "center"
-    draw_text_capture_color_and_restore(text,text_x,text_y,text_w,theme_align,col_txt)
+    draw_text_with_color(text,text_x,text_y,text_w,theme_align,col_txt)
   end
 end
 
@@ -1506,9 +1550,9 @@ function m.button_quad(img, id, button_active, text, text_move, color1, color2, 
   color3 = color3 or color1
   local width_bigger = true
   -- It's going to be mostly square buttons, this should work 95% of the time 
-  if w > h then 
+  if w > h then
     w = w / 5
-  elseif h > w then 
+  elseif h > w then
     h = h / 5
     width_bigger = false
   end
@@ -1517,8 +1561,8 @@ function m.button_quad(img, id, button_active, text, text_move, color1, color2, 
   if string.find(id, "_w") then width_bigger = true  w = imgw / 5 end
 
   -- Cache those quads so we don't have to keep making them, cache is based on the image.
-  if not cache_button_quad[img] then 
-    if width_bigger then 
+  if not cache_button_quad[img] then
+    if width_bigger then
       cache_button_quad[img] = {
         normal = love.graphics.newQuad(0,0,w,h,imgw,imgh),
         hover = love.graphics.newQuad(0+w,0,w,h,imgw,imgh),
@@ -1547,9 +1591,9 @@ local function button_fun_draw(col_bg, col_border, x, y, w, h, text,text_x,text_
   local text = extra[6]
   if state == "normal" then
     extra[1](col_bg, col_border, x, y, w, h, text,text_x,text_y,text_w,theme_align,col_txt,state,extra)
-  elseif state == "hover" then 
+  elseif state == "hover" then
     extra[2](col_bg, col_border, x, y, w, h, text,text_x,text_y,text_w,theme_align,col_txt,state,extra)
-  elseif state =="active" then 
+  elseif state =="active" then
     extra[3](col_bg, col_border, x, y, w, h, text,text_x,text_y,text_w,theme_align,col_txt,state,extra)
   elseif state == "enabled" then
     extra[4](col_bg, col_border, x, y, w, h, text,text_x,text_y,text_w,theme_align,col_txt,state,extra)
@@ -1602,10 +1646,10 @@ function m.progress_x_basic(fill_color, fullness, w, h, x, y, bg_color, outline_
     -- Do a function.
     function()
       local pastshader = love.graphics.getShader()
-      draw_1px_rectangle(outline_color, x, y, w, h)
-      draw_1px_rectangle(bg_color, x+1, y+1, w-2, h-2)
+      draw_rectangle_with_color(outline_color, x, y, w, h)
+      draw_rectangle_with_color(bg_color, x+1, y+1, w-2, h-2)
       love.graphics.setShader(shader)
-      draw_1px_rectangle(fill_color, x+2, y+2, math.floor((w-4) * fullness), h-4)
+      draw_rectangle_with_color(fill_color, x+2, y+2, math.floor((w-4) * fullness), h-4)
       love.graphics.setShader(pastshader)
     end,
     -- Can the cursor land on this?
@@ -1642,12 +1686,12 @@ function m.progress_y_basic(fill_color, fullness, w, h, x, y, bg_color, outline_
     -- Do a function.
     function()
       local pastshader = love.graphics.getShader()
-      
-      draw_1px_rectangle(outline_color, x, y, w, h)
-      draw_1px_rectangle(bg_color, x+1, y+1, w-2, h-2)
+
+      draw_rectangle_with_color(outline_color, x, y, w, h)
+      draw_rectangle_with_color(bg_color, x+1, y+1, w-2, h-2)
       -- We want the bar to start from the bottom and go up
       love.graphics.setShader(shader)
-      draw_1px_rectangle(fill_color, x+2, y + 2 + (h-4) - math.floor((h-4)*fullness), w-4, math.floor((h-4) * fullness))
+      draw_rectangle_with_color(fill_color, x+2, y + 2 + (h-4) - math.floor((h-4)*fullness), w-4, math.floor((h-4) * fullness))
       love.graphics.setShader(pastshader)
     end,
     -- Can the cursor land on this?
@@ -1780,7 +1824,7 @@ function m.progress_x_image(img, fullness, max_fullness, x, y)
   draw_queue[#draw_queue + 1] = {
     -- Do a function.
     function()
-      for i=1, fullness do 
+      for i=1, fullness do
         love.graphics.draw(img, x + (i-1)*imgw, y)
       end
     end,
@@ -1816,7 +1860,7 @@ function m.progress_y_image(img, fullness, max_fullness, x, y)
   draw_queue[#draw_queue + 1] = {
     -- Do a function.
     function()
-      for i=1, fullness do 
+      for i=1, fullness do
         love.graphics.draw(img, x, y + (i-1)*imgw)
       end
     end,
@@ -1825,7 +1869,7 @@ function m.progress_y_image(img, fullness, max_fullness, x, y)
   }
 
   -- Store the sizes 
-  m.storage.__last_width = w 
+  m.storage.__last_width = w
   m.storage.__last_height = h * max_fullness
 end
 
@@ -1858,11 +1902,277 @@ end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
   * Spider Graph
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
-function m.spider_graph(table, w, h, x, y)
--- Table should be 
--- { x-name = y-plot (0.0 - 100) }
--- Sort by x name, get higest and lowest value, display 
--- Draw Polygon 
+local graph_spider_cache = {}
+function m.graph_spider(input_table, w, r, x, y)
+  -- Update these values 
+  w = string_to_number(w)
+  local h = w
+  r = r or w/2+0.5 -- Dirty line hack
+  x = x or 0
+  y = y or 0
+  x = string_to_number(x)
+  y = string_to_number(y)
+  x = x + m.storage.__pen.x
+  y = y + m.storage.__pen.y
+  if not graph_spider_cache[input_table] then
+    -- Log Data 
+    graph_spider_cache[input_table]  = {
+      centerx = math.floor(w/2),
+      centery = math.floor(h/2),
+      background_color = input_table.background_color,
+      line_color = input_table.line_color,
+      text_colors = input_table.text_colors,
+      end_colors = input_table.end_colors,
+      plot_colors = input_table.plot_colors,
+      plot_outline_colors = input_table.plot_outline_colors,
+      axis_count = #input_table.data.axis_name,
+      axis_name = input_table.data.axis_name,
+      axis_adjust = input_table.data.axis_adjust,
+      show_axis = input_table.data.axis_name.show,
+      plots = input_table.data.plots,
+      plot_max_value = input_table.max,
+      line_style = input_table.line_style,
+      line_width = input_table.line_width,
+      internal_line_width = input_table.internal_line_width,
+      name = input_table.name,
+      cache = input_table.cache,
+    }
+    graph_spider_cache[input_table].axis_deg = math.rad(360/graph_spider_cache[input_table].axis_count)
+  end
+
+
+
+  --------------------------------------------------------------
+  -- Make cache easy to access 
+  --------------------------------------------------------------
+  local data_sg = graph_spider_cache[input_table]
+
+  --------------------------------------------------------------
+  -- If we're not going to be moving, reccomend enable cache.
+  --------------------------------------------------------------
+  local draw_poly_with_color_cache = draw_poly_with_color_cache
+  if not data_sg.cache then 
+    draw_poly_with_color_cache = draw_poly_with_color
+  end
+
+  --------------------------------------------------------------
+  -- Generate the lines for the graph 
+  --------------------------------------------------------------
+  data_sg.line_start = {}
+  data_sg.line_end_100 = {}
+  data_sg.line_end_75 = {}
+  data_sg.line_end_50 = {}
+  data_sg.line_end_25 = {}
+  local cx = data_sg.centerx
+  local cy = data_sg.centery
+  local adjust_start_axis = math.rad(90)
+  for point_number = 1, data_sg.axis_count do
+    --------------------------------------------------------------
+    -- Graph Spokes - Center  
+    --------------------------------------------------------------
+    data_sg.line_start[#data_sg.line_start + 1] = cx + x
+    data_sg.line_start[#data_sg.line_start + 1] = cy + y
+
+    --------------------------------------------------------------
+    -- Graph Spokes - Outside   
+    --------------------------------------------------------------
+    data_sg.line_end_100[#data_sg.line_end_100 + 1] = r * math.cos(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cx + x
+    data_sg.line_end_100[#data_sg.line_end_100 + 1] = r * math.sin(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cy + y
+
+    --------------------------------------------------------------
+    -- Graph Spokes - 75   
+    --------------------------------------------------------------
+    data_sg.line_end_75[#data_sg.line_end_75 + 1] = r * 0.75 * math.cos(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cx + x
+    data_sg.line_end_75[#data_sg.line_end_75 + 1] = r * 0.75 * math.sin(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cy + y
+
+    --------------------------------------------------------------
+    -- Graph Spokes - 50  
+    --------------------------------------------------------------
+    data_sg.line_end_50[#data_sg.line_end_50 + 1] = r * 0.50 * math.cos(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cx + x
+    data_sg.line_end_50[#data_sg.line_end_50 + 1] = r * 0.50 * math.sin(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cy + y
+
+    --------------------------------------------------------------
+    -- Graph Spokes - 25 
+    --------------------------------------------------------------
+    data_sg.line_end_25[#data_sg.line_end_25 + 1] = r * 0.25 * math.cos(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cx + x
+    data_sg.line_end_25[#data_sg.line_end_25 + 1] = r * 0.25 * math.sin(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cy + y
+  end
+
+  --------------------------------------------------------------
+  -- Generate 1D array of Vec2 Points for Graphing
+  --------------------------------------------------------------
+  data_sg.plot_these = {}
+  for plot_num=1, #data_sg.plots do
+    data_sg.plot_these[#data_sg.plot_these + 1] = {}
+    local work_plot = data_sg.plot_these[#data_sg.plot_these]
+    --print("---")
+    for point_number=1, #data_sg.plots[plot_num] do
+      local plot_value = data_sg.plots[plot_num][point_number]
+      local plot_percent = plot_value/data_sg.plot_max_value
+      --print(plot_value, plot_percent)
+      -- Values
+      work_plot[#work_plot+1] = r * plot_percent * math.cos(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cx + x
+      work_plot[#work_plot+1] = r * plot_percent * math.sin(data_sg.axis_deg * (point_number-1) - adjust_start_axis) + cy + y
+    end
+
+  end
+
+
+  --------------------------------------------------------------
+  -- We're drawing a lot of stuff we've prepared  
+  --------------------------------------------------------------
+  local draw_queue = m.get_active_ui_draw_queue()
+  draw_queue[#draw_queue + 1] = {
+    -- Do a function.
+    function()
+      --------------------------------------------------------------
+      -- Capture previous drawing globals, replace it with our own.
+      -------------------------------------------------------------- 
+      local previous_line_style = love.graphics.getLineStyle()
+      local previous_line_width = love.graphics.getLineWidth()
+      
+      love.graphics.setLineStyle(data_sg.line_style)
+      love.graphics.setLineWidth(data_sg.line_width)
+
+      --------------------------------------------------------------
+      -- Draw the background of our graph if set
+      --------------------------------------------------------------
+      if data_sg.background_color then
+        draw_poly_with_color_cache(data_sg.name .. "background", data_sg.background_color, data_sg.line_end_100, "fill")
+      end
+
+      --------------------------------------------------------------
+      -- Create Spiderweb 
+      --------------------------------------------------------------
+      for i=1, #data_sg.line_start, 2 do
+        local adjust_i = i
+        adjust_i = i + 2
+        if adjust_i >  #data_sg.line_start then adjust_i = 1 end
+
+        if data_sg.line_width and data_sg.line_width > 0 then
+          draw_line_with_color(
+            data_sg.line_color,
+            math.floor(data_sg.line_start[i]),
+            math.floor(data_sg.line_start[i+1]),
+            math.floor(data_sg.line_end_100[i]),
+            math.floor(data_sg.line_end_100[i+1])
+          )
+          draw_line_with_color(
+            data_sg.line_color,
+            math.floor(data_sg.line_end_100[i]),
+            math.floor(data_sg.line_end_100[i+1]),
+            math.floor(data_sg.line_end_100[adjust_i]),
+            math.floor(data_sg.line_end_100[adjust_i+1])
+          )
+        end
+        -- If we've set intenral lines, then draw.
+        if data_sg.internal_line_width and data_sg.internal_line_width > 0 then
+          --------------------------------------------------------------
+          -- Create Inside Web 
+          --------------------------------------------------------------
+          local previous_line_width = love.graphics.getLineWidth()
+          love.graphics.setLineWidth(data_sg.internal_line_width)
+          draw_line_with_color(
+            data_sg.line_color,
+            math.floor(data_sg.line_end_75[i]),
+            math.floor(data_sg.line_end_75[i+1]),
+            math.floor(data_sg.line_end_75[adjust_i]),
+            math.floor(data_sg.line_end_75[adjust_i+1])
+          )
+          draw_line_with_color(
+            data_sg.line_color,
+            math.floor(data_sg.line_end_50[i]),
+            math.floor(data_sg.line_end_50[i+1]),
+            math.floor(data_sg.line_end_50[adjust_i]),
+            math.floor(data_sg.line_end_50[adjust_i+1])
+          )
+          draw_line_with_color(
+            data_sg.line_color,
+            math.floor(data_sg.line_end_25[i]),
+            math.floor(data_sg.line_end_25[i+1]),
+            math.floor(data_sg.line_end_25[adjust_i]),
+            math.floor(data_sg.line_end_25[adjust_i+1])
+          )
+          love.graphics.setLineWidth(previous_line_width)
+        end
+      end
+
+      --------------------------------------------------------------
+      -- Draw on top of our graph
+      --------------------------------------------------------------
+      local counter_graph_position_clockwise = 1
+      for graph_v2pos=1, #data_sg.line_start, 2 do
+        --------------------------------------------------------------
+        -- Plot Polygons
+        --------------------------------------------------------------
+        for plot_num=1, #data_sg.plot_these do
+          local name = data_sg.name .. plot_num
+          if data_sg.plot_outline_colors and #data_sg.plot_outline_colors > 0 then
+            local final_color = data_sg.plot_outline_colors[plot_num]
+            if not final_color then final_color = data_sg.plot_outline_colors[#data_sg.plot_outline_colors] end
+            love.graphics.push()
+            love.graphics.translate(0, 1)
+            draw_poly_with_color_cache(name, final_color, data_sg.plot_these[plot_num], "fill")
+            love.graphics.translate(0, -2)
+            draw_poly_with_color_cache(name, final_color, data_sg.plot_these[plot_num], "fill")
+            love.graphics.translate(1, 1)
+            draw_poly_with_color_cache(name, final_color, data_sg.plot_these[plot_num], "fill")
+            love.graphics.translate(-2, 0)
+            draw_poly_with_color_cache(name, final_color, data_sg.plot_these[plot_num], "fill")
+            love.graphics.pop()
+          end
+
+          local final_color = data_sg.plot_colors[plot_num]
+          if not final_color then final_color = data_sg.plot_colors[#data_sg.plot_colors] end
+          draw_poly_with_color_cache(name, final_color, data_sg.plot_these[plot_num], "fill")
+        end
+
+
+
+        --------------------------------------------------------------
+        -- Display Text 
+        -------------------------------------------------------------- 
+        if data_sg.show_axis then
+          -- Capture old font 
+          local oldfont = love.graphics.getFont()
+          love.graphics.setFont(input_table.font)
+          local final_color = data_sg.text_colors[counter_graph_position_clockwise]
+          if not final_color then final_color = data_sg.text_colors[#data_sg.text_colors] end
+          local twidth = love.graphics.getFont():getWidth(data_sg.axis_name[counter_graph_position_clockwise])
+          local adjax_x = data_sg.axis_adjust[graph_v2pos]
+          local adjax_y = data_sg.axis_adjust[graph_v2pos + 1]
+          adjax_x = adjax_x or 0
+          adjax_y = adjax_y or 0
+
+          draw_text_with_color(
+            data_sg.axis_name[counter_graph_position_clockwise],
+            data_sg.line_end_100[graph_v2pos] - twidth/2 + adjax_x,
+            data_sg.line_end_100[graph_v2pos+1] + adjax_y,
+            twidth,
+            "center",
+            final_color
+          )
+          love.graphics.setFont(oldfont)
+        end
+         --------------------------------------------------------------
+        -- Up counter
+        --------------------------------------------------------------        
+        counter_graph_position_clockwise = counter_graph_position_clockwise + 1
+      end
+      --------------------------------------------------------------
+      -- Restore drawing globals we updated
+      --------------------------------------------------------------  
+      
+      love.graphics.setLineStyle(previous_line_style)
+      love.graphics.setLineWidth(previous_line_width)
+    end,
+    -- Can the cursor land on this?
+    false
+  }
+
+  -- Store the sizes 
+  m.storage.__last_width = w
+  m.storage.__last_height = h
 
 end
 
@@ -1892,19 +2202,19 @@ function m.add_tooltip_basic(text, id_attach_tooltip, tooltip_width, tooltip_pos
     -- Do a function.
     function()
       box_h = get_character_height_include_linebreaks(text, tooltip_width-8)
-      if isover(x,y,w,h,m.storage.mousex, m.storage.mousey) or is_vcursor_over then 
-        if position == "right" then 
+      if isover(x,y,w,h,m.storage.mousex, m.storage.mousey) or is_vcursor_over then
+        if position == "right" then
           x = x + w + 4
-        elseif position == "left" then 
+        elseif position == "left" then
           x = x - tooltip_width - 4
-        elseif position == "top" then 
+        elseif position == "top" then
           y = y - box_h - 8
-        elseif position == "bottom" then 
+        elseif position == "bottom" then
           y = y + h + 4
         end
-        draw_1px_rectangle(theme.tooltip.border, x, y, tooltip_width, box_h+6)
-        draw_1px_rectangle(theme.tooltip.background, x+1, y+1, tooltip_width-2, box_h+4)
-        draw_text_capture_color_and_restore(text, x+4, y+4, tooltip_width-8, "left", theme.tooltip.color)
+        draw_rectangle_with_color(theme.tooltip.border, x, y, tooltip_width, box_h+6)
+        draw_rectangle_with_color(theme.tooltip.background, x+1, y+1, tooltip_width-2, box_h+4)
+        draw_text_with_color(text, x+4, y+4, tooltip_width-8, "left", theme.tooltip.color)
       end
     end,
     -- Can the cursor land on this?
@@ -1931,7 +2241,7 @@ function m.add_tooltip_function(text, id_attach_tooltip, myfun, tooltip_width, t
     -- Do a function.
     function()
       box_h = get_character_height_include_linebreaks(text, tooltip_width-8)
-      if isover(x,y,w,h,m.storage.mousex, m.storage.mousey) or is_vcursor_over then 
+      if isover(x,y,w,h,m.storage.mousex, m.storage.mousey) or is_vcursor_over then
         myfun(text,x,y,w,h,box_h,tooltip_width,theme,id_attach_tooltip)
       end
     end,
@@ -2124,18 +2434,18 @@ function m.get_element_from_node_map(key_dir, details)
   key_dir = local_nm[vcur.element][7][key_dir]
 
   -- Number Move Types just move us up and down on the graph
-  if type(key_dir) == "number" then 
+  if type(key_dir) == "number" then
     vcur.element = vcur.element + key_dir
-    if vcur.element > #local_nm then 
-      vcur.element = vcur.element - #local_nm 
+    if vcur.element > #local_nm then
+      vcur.element = vcur.element - #local_nm
     end
-    if vcur.element < 1 then 
-      vcur.element = vcur.element + #local_nm 
+    if vcur.element < 1 then
+      vcur.element = vcur.element + #local_nm
     end
   end
 
   -- String Move Type, Jump to that Node
-  if type(key_dir) == "string" then 
+  if type(key_dir) == "string" then
     -- Get Node Number By Name 
     -- Set vcur.element 
   end
@@ -2143,7 +2453,7 @@ function m.get_element_from_node_map(key_dir, details)
   -- If it's a function, we run the code.
   -- I have no idea how you could pass a function outside of the dev's control
   -- But disable this if you're doing something weird like using userdata for node maps.
-  if type(key_dir) == "function" then 
+  if type(key_dir) == "function" then
     key_dir()
   end
 
@@ -2153,9 +2463,9 @@ end
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.cursor_toggle_visibility(state)
   -- Change the state, if the state is nil swap the state.
-  if type(state) ~= "nil" then 
+  if type(state) ~= "nil" then
     m.vcursor.visible = state
-  else 
+  else
     m.vcursor.visible = not m.vcursor.visible
   end
 end
@@ -2181,7 +2491,7 @@ function m.cursor_draw_basic_arrow(anix, aniy)
   local x = m.vcursor.x
   local y = m.vcursor.y
   local img = m.texture_arrow
-  
+
   x = math.floor(x - 8)
   y = y + math.floor(m.vcursor.h/2 - img:getHeight()/2)
   love.graphics.draw(img, x + anix, y + aniy)
@@ -2204,12 +2514,12 @@ function m.cursor_draw_basic_outline(anix, aniy)
   local white = {1,1,1,0.2}
   local black = {0,0,0,10.75}
 
-  draw_1px_rectangle(white, x-anix, y-aniy, w+aw, h+ah)
+  draw_rectangle_with_color(white, x-anix, y-aniy, w+aw, h+ah)
 
-  draw_1px_rectangle(black, x-anix, y-aniy, w+aw, 1)
-  draw_1px_rectangle(black, x-anix, y-aniy, 1, h+ah)
-  draw_1px_rectangle(black, x-anix, y+aniy+h-1, w+aw, 1)
-  draw_1px_rectangle(black, x+anix+w-1, y-aniy, 1, h+ah)
+  draw_rectangle_with_color(black, x-anix, y-aniy, w+aw, 1)
+  draw_rectangle_with_color(black, x-anix, y-aniy, 1, h+ah)
+  draw_rectangle_with_color(black, x-anix, y+aniy+h-1, w+aw, 1)
+  draw_rectangle_with_color(black, x+anix+w-1, y-aniy, 1, h+ah)
 end
 
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2224,30 +2534,30 @@ function m.cursor_draw(debug_mode)
   -- If the cursor is not on a named value, don't bother drawing it. 
   if not vcur.element_name then return end
 
-  if vcur.animation == "bounce-x" then 
+  if vcur.animation == "bounce-x" then
     anix = math.floor(((math.sin(m.vcursor.timer_ani*15)+1)/2)*3)
   end
 
-  if vcur.animation == "bounce-xy" then 
+  if vcur.animation == "bounce-xy" then
     anix = math.floor(((math.sin(m.vcursor.timer_ani*15)+1)/2)*3)
     aniy = math.floor(((math.sin(m.vcursor.timer_ani*15)+1)/2)*3)
   end
 
-  if vcur.animation == "circle-xy" then 
+  if vcur.animation == "circle-xy" then
     anix = math.floor(((math.sin(m.vcursor.timer_ani*15)+1)/2)*3)
     aniy = math.floor(((math.cos(m.vcursor.timer_ani*15)+1)/2)*3)
   end
 
   if m.active_ui_name_get() and vcur.visible then
-    if vcur.type == "arrow" then 
+    if vcur.type == "arrow" then
       m.cursor_draw_basic_arrow(anix, aniy)
     end
 
-    if vcur.type == "outline" then 
+    if vcur.type == "outline" then
       m.cursor_draw_basic_outline(anix, aniy)
     end
 
-    if debug_mode then 
+    if debug_mode then
       local lr, lg, lb, la = love.graphics.getColor()
 
       love.graphics.setColor(0,0,0,1)
@@ -2276,7 +2586,7 @@ function m.cursor_update(dt)
   local vcur = m.vcursor
 
   -- Timer, how long has the cursor been moving for?
-  if vcur.is_moving then 
+  if vcur.is_moving then
     vcur.timer = vcur.timer + dt
   end
 
@@ -2287,11 +2597,11 @@ function m.cursor_update(dt)
   -- OPTO: Only reset once 
   if (not m.active_ui_name_get()) then
     vcursor_reset()
-    return 
+    return
   end
 
   -- If we've changed UIs, reset index.
-  if m.active_ui_name_get() ~= vcur.ui_active_check then 
+  if m.active_ui_name_get() ~= vcur.ui_active_check then
     vcur.ui_active_check = m.active_ui_name_get()
     vcursor_reset()
   end
@@ -2308,7 +2618,7 @@ function m.cursor_update(dt)
   -- If no element is set, or the active UI changed set to first 
   if (not vcur.element) then
     for i=1, #local_nm do
-      if not vcur.element then 
+      if not vcur.element then
         vcur.element = i
         vcur.goal_x = local_nm[vcur.element][3]
         vcur.goal_y = local_nm[vcur.element][4]
@@ -2319,7 +2629,7 @@ function m.cursor_update(dt)
   end
 
   -- If the element is out of bounds somehow, reset it.
-  if vcur.element > #local_nm or vcur.element < 1 then 
+  if vcur.element > #local_nm or vcur.element < 1 then
     vcur.element = 1
   end
 
@@ -2350,19 +2660,19 @@ function m.cursor_update(dt)
     vcur.y = vcur.y + (vecy * (dt * speed))
 
     -- Set moving unless we're in the goal range.
-    vcur.is_moving = true 
+    vcur.is_moving = true
 
     -- No Shaking when moving, snap where possible.
-    if math.abs(math.abs(vcur.y) - math.abs(vcur.goal_y)) < half_goal_bubble then 
-      vcur.y = vcur.goal_y 
+    if math.abs(math.abs(vcur.y) - math.abs(vcur.goal_y)) < half_goal_bubble then
+      vcur.y = vcur.goal_y
     end
 
-    if math.abs(math.abs(vcur.x) - math.abs(vcur.goal_x)) < half_goal_bubble then 
-      vcur.x = vcur.goal_x 
+    if math.abs(math.abs(vcur.x) - math.abs(vcur.goal_x)) < half_goal_bubble then
+      vcur.x = vcur.goal_x
     end
 
     -- Checking if we're in the goal-range for the cursor.     
-    if isover(vcur.x, vcur.y, 1, 1, vcur.goal_x-half_goal_bubble, vcur.goal_y-half_goal_bubble, goal_bubble, goal_bubble) or vcur.timer > 0.05 then 
+    if isover(vcur.x, vcur.y, 1, 1, vcur.goal_x-half_goal_bubble, vcur.goal_y-half_goal_bubble, goal_bubble, goal_bubble) or vcur.timer > 0.05 then
       vcur.x = vcur.goal_x
       vcur.y = vcur.goal_y
       vcur.is_moving = false
@@ -2383,19 +2693,19 @@ end
   * Cursor Press
 --------------------------------------------------------------------------------------------------------------------------------------------------]]--
 function m.vcursor_press_confirm(key)
-  m.vcursor_key = key 
+  m.vcursor_key = key
 end
 function m.vcursor_press_left(key)
-  m.vcursor_left = key 
+  m.vcursor_left = key
 end
 function m.vcursor_press_right(key)
-  m.vcursor_right = key 
+  m.vcursor_right = key
 end
 function m.vcursor_press_up(key)
-  m.vcursor_up = key 
+  m.vcursor_up = key
 end
 function m.vcursor_press_down(key)
-  m.vcursor_down = key 
+  m.vcursor_down = key
 end
 
 return m

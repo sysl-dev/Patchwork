@@ -1,10 +1,60 @@
 
 local room = { __name = "ui_library", __desc = "Test of ''''''simple'''''' UI Controller" }
-local show = 5
+local show = 7
 local timer = 0
 local moving = 0
 local show6xs = 0
 local show6ys = 0
+
+local test_spider_graph = {
+  name = "contest",
+  cache = true,
+  line_style = "smooth",
+  line_width = 3,
+  internal_line_width = 1,
+  background_color = "77bbdd",
+  line_color = "114488",
+  end_colors = {"f89860","f8f038","8098f8","70e070","f8a8d0"},
+  text_colors = {"f89860","f8f038","8098f8","70e070","f8a8d0"},
+  plot_colors = {"44AA4430", "00ff0033", "0000ff33", "ff00ff33"},
+  plot_outline_colors = {"44AA4430", "00ff0033", "0000ff33", "ff00ff33"},
+  font = Font.menu_card,
+  max = 255,
+  data = {
+    axis_name = {"Cool", "Tough", "Beauty", "Smart", "Cute", show = true},
+    axis_adjust = {0, -11, 10, -15, 5, 0, -5, 0, -7, -15},
+    plots = {
+      {20, 255, 100, 150, 255},
+    },
+  },
+}
+
+local test_spider_graph2 = {
+  name = "elements",
+  cache = true,
+  line_style = "rough",
+  line_width = 2,
+  internal_line_width = 0,
+  background_color = "3f3f3f90",
+  line_color = "114488",
+  text_colors = {"f86060","f8f038","8098f8","70e070"},
+  end_colors = {"f86060","f8f038","8098f8","70e070"},
+  plot_colors = {"ff000050", "00ff0050", "0000ff50", "ffff0050"},
+  plot_outline_colors = {"ff000030", "00ff0030", "0000ff30", "ffff0030"},
+  font = Font.ack_recall,
+  max = 100,
+  data = {
+    axis_name = {"Fire", "Water", "Earth", "Wind", show = true},
+    axis_adjust = {0, -14, 19, -8, 0, -2, -14, -8},
+    plots = {
+      {100, 25, 25, 25},
+      {25, 25, 100, 25},
+      {25, 100, 25, 25},
+      {25, 25, 25, 100},
+
+    },
+  },
+}
 
 local s2_example = "Click The Button"
 local s2_state = nil
@@ -323,11 +373,15 @@ function room:update(dt)
     UI.pen_right_and(5)
     UI.solid_disk("fff", 20, 1)
     UI.pen_right_and(5)
-    UI.solid_disk("aa9faa", 20, math.sin(timer * 5), 9, 180, false, false, Shader.color_basic_grad_y)
+    UI.solid_disk("aa9faa", 20, math.sin(timer * 2), 20, 180, false, false, Shader.color_basic_grad_y)
     UI.pen_right_and(5)
-    UI.solid_disk("aa9faa", 20, math.sin(timer * 5), 9, 180, false, false, Shader.color_basic_grad_x)
+    UI.solid_disk("aa9faa", 20, math.sin(timer * 1), 20, 180, false, false, Shader.color_basic_grad_x)
     UI.pen_right_and(5)
-    UI.solid_disk("aa9faa", 20, math.sin(timer * 5), 9, 180, false, false, Shader.color_basic_grad_circ)
+    UI.solid_disk("aa9faa", 20, math.sin(timer * 0.5), 20, 180, false, false, Shader.color_basic_grad_xy)
+    UI.pen_newline()
+    UI.pen_right(10)
+    UI.pen_down(2)
+    UI.solid_disk("aa9faa", 30, math.sin(timer * 2), 20, 180, false, false, Shader.color_basic_grad_circ)
 
   end
 --[[--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -348,6 +402,23 @@ function room:update(dt)
 
   end
 
+--[[--------------------------------------------------------------------------------------------------------------------------------------------------
+  *
+  *   7
+  *  
+  --------------------------------------------------------------------------------------------------------------------------------------------------]]--
+
+  if show == 7 then 
+    UI.solid_rectangle("2299aa", "100%w", "100%h", false, false, Shader.color_basic_grad_y)
+    UI.pen_reset()
+    UI.pen_down(15)
+    UI.pen_right(20)
+    UI.graph_spider(test_spider_graph, "80%h", false, false, false, Shader.color_basic_grad_x)
+    UI.pen_right_and(26)
+    UI.pen_down("20%h")
+    UI.graph_spider(test_spider_graph2, "40%h")
+  end
+
 
 
   UI.define(
@@ -357,11 +428,11 @@ function room:update(dt)
 
   UI.pen_down("90%h")
   UI.pen_right("2%w")
-  for i=1, 9 do 
+  for i=1, 11 do 
     if show == i then 
-      if UI.button_basic("S" .. i, "set1" .. i, true, "10%w") then show = i  end
+      if UI.button_basic(i, "set1" .. i, true) then show = i  end
     else 
-    if UI.button_basic("S" .. i, "set1" .. i, nil, "10%w") then show = i  end
+    if UI.button_basic(i, "set1" .. i, nil) then show = i  end
     end
     UI.pen_right()
   end
